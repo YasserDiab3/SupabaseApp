@@ -1,0 +1,40 @@
+# ⚠️ مهم: الترتيب مهم! القواعد الأكثر تحديداً يجب أن تكون أولاً
+# هذا الملف متوافق مع Netlify و Cloudflare Pages
+
+# استثناء ملف Service Worker (الأولوية القصوى)
+# Netlify: 200! = force, Cloudflare: 200 = status code
+/Frontend/service-worker.js /Frontend/service-worker.js 200!
+/service-worker.js /service-worker.js 200!
+
+# استثناء صفحة الاختبار
+/Frontend/test-service-worker.html /Frontend/test-service-worker.html 200!
+/test-service-worker.html /test-service-worker.html 200!
+
+# استثناء جميع ملفات JavaScript
+# ملاحظة: Cloudflare Pages يستخدم :splat مثل Netlify
+/Frontend/js/* /Frontend/js/:splat 200!
+/js/* /js/:splat 200!
+/Frontend/*.js /Frontend/:splat 200!
+/*.js /:splat 200!
+
+# استثناء جميع ملفات CSS
+/Frontend/*.css /Frontend/:splat 200!
+/*.css /:splat 200!
+
+# استثناء ملفات JSON (manifest, etc.)
+/Frontend/*.json /Frontend/:splat 200!
+/*.json /:splat 200!
+
+# استثناء الصور
+/Frontend/*.png /Frontend/:splat 200!
+/Frontend/*.jpg /Frontend/:splat 200!
+/Frontend/*.svg /Frontend/:splat 200!
+/Frontend/*.ico /Frontend/:splat 200!
+/*.png /:splat 200!
+/*.jpg /:splat 200!
+/*.svg /:splat 200!
+/*.ico /:splat 200!
+
+# إعادة توجيه SPA (يجب أن يكون في الأخير - بدون علامة !)
+# يعمل على Netlify و Cloudflare Pages
+/* /index.html 200

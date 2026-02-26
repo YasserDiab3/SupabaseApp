@@ -1,0 +1,41 @@
+# مفاتيح وبيانات حساسة
+.env
+.env.local
+.env.*.local
+key.txt
+*.pem
+Frontend/js/config.js
+vercel-deploy/Frontend/js/config.js
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Supabase محلي
+supabase/.temp/
+supabase/.branches/
+
+# نظام التشغيل
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# بناء ومخرجات
+dist/
+build/
+.vercel/
+.netlify/
+
+# سجلات
+*.log
+logs/

@@ -1,0 +1,122 @@
+# نشر واجهة تطبيق HSE (نسخة Supabase) على Netlify
+# المجلد المنشور: SupabaseApp/Frontend (أو استخدم هذا الملف من جذر المستودع مع base = "SupabaseApp/Frontend")
+
+[build]
+  publish = "."
+  # حقن المفتاح السري من متغير البيئة في js/config.js (لا يظهر المفتاح في المستودع)
+  command = "node scripts/inject-secret.js"
+  # إذا نشرت من جذر المستودع ووضعت هذا الملف في SupabaseApp/Frontend:
+  # base = "SupabaseApp/Frontend"
+  # publish = "SupabaseApp/Frontend"
+
+[build.environment]
+  NODE_VERSION = "18"
+  # عيّن في Netlify → Site settings → Environment variables (محمي):
+  # HSE_API_SECRET = نفس قيمة Supabase Edge Functions → Secrets
+  # SUPABASE_URL = "https://xxxx.supabase.co"
+  # SUPABASE_ANON_KEY = "your-anon-key"
+
+# إعدادات Rerouting لـ SPA
+# ⚠️ استثناء: لا تعيد توجيه الملفات الثابتة والـ Service Worker
+# Netlify يعالج الملفات الثابتة تلقائياً، لذلك نحتاج فقط لإعادة التوجيه للمسارات غير الموجودة
+
+# استثناء Service Worker (الأولوية القصوى)
+[[redirects]]
+  from = "/service-worker.js"
+  to = "/service-worker.js"
+  status = 200
+  force = true
+
+# إعادة توجيه SPA - يجب أن يكون آخر قاعدة
+# Netlify سيتجاهل هذه القاعدة للملفات الثابتة الموجودة فعلياً
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# إعدادات خاصة لـ Service Worker (يجب أن يكون أولاً)
+[[headers]]
+  for = "/service-worker.js"
+  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
+    Service-Worker-Allowed = "/"
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# إعدادات Caching للملفات الثابتة
+[[headers]]
+  for = "/styles.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.svg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Manifest.json specific headers
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Content-Type = "application/json; charset=utf-8"
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+[[headers]]
+  for = "/Frontend/manifest.json"
+  [headers.values]
+    Content-Type = "application/json; charset=utf-8"
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+[[headers]]
+  for = "/*.json"
+  [headers.values]
+    Content-Type = "application/json; charset=utf-8"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# إعدادات Header للأمان و CORS لجميع الملفات
+# ⚠️ تحذير أمني: CORS مفتوح (*) يسمح لأي موقع بالوصول
+# في الإنتاج، يجب تقييد CORS على النطاق الفعلي فقط
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Security Headers
+    # ✅ تغيير X-Frame-Options من DENY إلى SAMEORIGIN للسماح بتحميل الصفحة في iframe من نفس النطاق
+    # هذا يحل مشكلة Netlify preview mode وiframe sandboxing
+    X-Frame-Options = "SAMEORIGIN"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=self, microphone=self, camera=self"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    # ✅ إضافة Content-Security-Policy مع frame-ancestors للتحكم الأفضل في iframes
+    Content-Security-Policy = "frame-ancestors 'self' https://*.netlify.app https://*.netlify.com"
+    
+    # CORS Headers
+    # ⚠️ في الإنتاج: استبدل "*" بنطاقك الفعلي
+    # مثال: Access-Control-Allow-Origin = "https://yourdomain.com"
+    # ملاحظة: القيمة يجب أن تكون "*" أو نطاق محدد، لا يمكن استخدام wildcards
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization, X-CSRF-Token"
+    Access-Control-Max-Age = "3600"
+    Access-Control-Allow-Credentials = "false"
+

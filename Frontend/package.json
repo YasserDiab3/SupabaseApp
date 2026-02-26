@@ -1,0 +1,15 @@
+{
+  "name": "hse-management-system",
+  "version": "1.0.0",
+  "description": "HSE Management System - نظام السلامة المهنية",
+  "scripts": {
+    "build:css": "node build-css.js",
+    "minify:css": "node minify-css.js"
+  },
+  "devDependencies": {
+    "canvas": "^3.2.1",
+    "cssnano": "^6.0.1",
+    "postcss": "^8.4.32",
+    "postcss-cli": "^10.1.0"
+  }
+}

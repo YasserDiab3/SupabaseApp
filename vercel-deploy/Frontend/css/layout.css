@@ -1,0 +1,219 @@
+/* ===== Sidebar ===== */
+/* ألوان شعار الشركة: أزرق (#003865), أحمر (#C8102E), ذهبي (#FFC72C) */
+.sidebar {
+    width: var(--sidebar-width);
+    background: linear-gradient(180deg, #003865 0%, #004C8C 50%, #003865 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    height: 100dvh;
+    /* Dynamic viewport height for mobile */
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: 4px 0 20px rgba(0, 56, 101, 0.3);
+    z-index: 1000;
+    right: 0;
+    top: 0;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+    border-left: 3px solid #FFC72C;
+    -webkit-overflow-scrolling: touch;
+    /* إزالة will-change لمنع memory leaks - يتم إضافتها ديناميكياً عند الحاجة */
+    /* will-change: transform; */
+}
+
+/* User Profile */
+.user-profile {
+    padding: 2rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.user-avatar {
+    width: 80px;
+    height: 80px;
+    max-width: 80px;
+    max-height: 80px;
+    min-width: 80px;
+    min-height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #004C8C 0%, #003865 100%);
+    border: 3px solid #FFC72C;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 2rem;
+    box-shadow: 0 4px 15px rgba(255, 199, 44, 0.3);
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+.user-avatar img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+.user-avatar-clickable {
+    cursor: pointer;
+}
+
+.user-avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(255, 199, 44, 0.5);
+}
+
+.user-info {
+    margin-top: 1rem;
+}
+
+.user-name {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.user-email {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Navigation */
+.navigation {
+    flex: 1;
+    padding: 1rem 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-right: 4px solid transparent;
+    margin: 0.25rem 0.5rem;
+    border-radius: 8px 0 0 8px;
+    position: relative;
+    overflow: hidden;
+    min-height: 48px;
+    /* Touch-friendly minimum height */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(255, 199, 44, 0.2);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.nav-item::before {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 0;
+    height: 100%;
+    background: rgba(255, 199, 44, 0.1);
+    transition: width 0.3s ease;
+}
+
+.nav-item:hover::before,
+.nav-item.active::before {
+    width: 100%;
+}
+
+.nav-item i {
+    width: 24px;
+    margin-left: 1rem;
+    font-size: 1.125rem;
+    transition: transform 0.3s ease, color 0.3s ease;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+    border-right-color: #FFC72C;
+    transform: translateX(-3px);
+}
+
+.nav-item:hover i {
+    transform: scale(1.1);
+    color: #FFC72C;
+}
+
+.nav-item.active {
+    background: linear-gradient(90deg, rgba(255, 199, 44, 0.2) 0%, rgba(255, 199, 44, 0.05) 100%);
+    color: white;
+    border-right-color: #FFC72C;
+    font-weight: 600;
+    box-shadow: -2px 0 10px rgba(255, 199, 44, 0.3);
+}
+
+.nav-item.active i {
+    color: #FFC72C;
+    transform: scale(1.1);
+}
+
+/* Logout Button */
+.logout-btn {
+    padding: 1rem 1.5rem;
+    background: rgba(200, 16, 46, 0.15);
+    color: #ffffff;
+    border: none;
+    border-top: 2px solid rgba(255, 199, 44, 0.3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-family: 'Cairo', sans-serif;
+    margin: 0.5rem;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.logout-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(200, 16, 46, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+}
+
+.logout-btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.logout-btn i {
+    margin-left: 0.75rem;
+    position: relative;
+    z-index: 1;
+}
+
+.logout-btn span {
+    position: relative;
+    z-index: 1;
+}
+
+.logout-btn:hover {
+    background: rgba(200, 16, 46, 0.25);
+    color: #FFC72C;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(200, 16, 46, 0.4);
+}

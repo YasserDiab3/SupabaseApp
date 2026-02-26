@@ -1,0 +1,27 @@
+# Cloudflare Pages Configuration
+# إعدادات Cloudflare Pages/Workers
+# هذا الملف اختياري لـ Cloudflare Pages، لكنه مفيد للإعدادات المتقدمة
+
+name = "hse-management-system"
+compatibility_date = "2024-01-01"
+
+# إعدادات البناء (لـ Cloudflare Pages)
+# ملاحظة: Cloudflare Pages يستخدم GitHub/GitLab للبناء التلقائي
+# لا حاجة لإعدادات build معقدة لأن التطبيق Static Site
+
+[build]
+command = ""
+publish = "."
+
+# إعدادات البيئة (اختياري)
+[env.production]
+name = "hse-management-system-prod"
+
+[env.staging]
+name = "hse-management-system-staging"
+
+# ملاحظات مهمة:
+# 1. Cloudflare Pages يدعم SPA routing تلقائياً عبر ملف _redirects
+# 2. Service Worker يعمل بشكل طبيعي على Cloudflare Pages
+# 3. CORS headers يتم إدارتها عبر ملف _headers
+# 4. لا حاجة لـ Workers Functions إلا إذا كنت تريد إضافة منطق server-side

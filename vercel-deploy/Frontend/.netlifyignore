@@ -1,0 +1,56 @@
+# ملفات غير مطلوبة للنشر على Netlify
+# Files not needed for Netlify deployment
+
+# ===== صفحة توليد المفتاح (لا تُنشر على الموقع المباشر) =====
+generate-api-secret.html
+
+# ===== ملفات التوثيق (Documentation Files) =====
+# هذه الملفات للتوثيق فقط ولا تحتاج للنشر
+*.md
+README.md
+NAVIGATION_ICONS_GUIDE.md
+README_SERVICE_WORKER.md
+TEST_NAVIGATION_ICONS.md
+
+# ===== ملفات النسخ الاحتياطي (Backup Files) =====
+*.bak
+*.backup
+*.old
+*.orig
+*.tmp
+
+# ===== ملفات التطوير (Development Files) =====
+*.log
+*.map
+.DS_Store
+Thumbs.db
+
+# ===== ملفات الاختبار (Test Files) =====
+test-*.html
+*-test.html
+*.test.js
+*.spec.js
+
+# ===== ملفات Git (Git Files) =====
+.git/
+.gitignore
+.gitattributes
+
+# ===== ملفات IDE (IDE Files) =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ===== ملفات Node (Node Files - إذا تم إضافتها مستقبلاً) =====
+node_modules/
+package-lock.json
+npm-debug.log
+yarn-error.log
+
+# ===== ملفات Build (Build Files - إذا تم إضافتها مستقبلاً) =====
+dist/
+build/
+*.min.js.map
+

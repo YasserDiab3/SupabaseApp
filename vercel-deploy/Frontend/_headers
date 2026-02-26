@@ -1,0 +1,72 @@
+# Cloudflare Pages Headers Configuration
+# ملف إعدادات Headers لـ Cloudflare Pages
+# هذا الملف يعادل إعدادات headers في netlify.toml
+
+# Headers الأمنية لجميع الملفات
+/*
+  # ✅ تغيير X-Frame-Options من DENY إلى SAMEORIGIN للسماح بتحميل الصفحة في iframe من نفس النطاق
+  # هذا يحل مشكلة Netlify preview mode وiframe sandboxing
+  X-Frame-Options: SAMEORIGIN
+  X-XSS-Protection: 1; mode=block
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=self, microphone=self, camera=self
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  # ✅ إضافة Content-Security-Policy مع frame-ancestors للتحكم الأفضل في iframes
+  Content-Security-Policy: frame-ancestors 'self' https://*.netlify.app https://*.netlify.com
+
+# CORS Headers - محسّن للأمان
+# ⚠️ تحذير أمني: CORS مفتوح (*) يسمح لأي موقع بالوصول
+# في الإنتاج، يجب تقييد CORS على النطاق الفعلي فقط
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: GET, POST, OPTIONS
+  Access-Control-Allow-Headers: Content-Type, Authorization, X-CSRF-Token
+  Access-Control-Max-Age: 3600
+  Access-Control-Allow-Credentials: false
+
+# إعدادات خاصة لـ Service Worker
+/Frontend/service-worker.js
+  Content-Type: application/javascript; charset=utf-8
+  Service-Worker-Allowed: /Frontend/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/service-worker.js
+  Content-Type: application/javascript; charset=utf-8
+  Service-Worker-Allowed: /
+  Cache-Control: public, max-age=0, must-revalidate
+
+# إعدادات Caching للملفات الثابتة
+/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.png
+  Content-Type: image/png
+  Cache-Control: public, max-age=31536000, immutable
+
+/icons/*.png
+  Content-Type: image/png
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.jpg
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.svg
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.json
+  Content-Type: application/json; charset=utf-8
+  Cache-Control: public, max-age=31536000, immutable
+
+/manifest.json
+  Content-Type: application/json; charset=utf-8
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/Frontend/manifest.json
+  Content-Type: application/json; charset=utf-8
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/*.ico
+  Cache-Control: public, max-age=31536000, immutable

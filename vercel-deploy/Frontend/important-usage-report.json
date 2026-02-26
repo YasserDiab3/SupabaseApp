@@ -1,0 +1,97 @@
+{
+  "total": 268,
+  "removed": 135,
+  "remaining": 133,
+  "reduction": "50.37%",
+  "categories": {
+    "necessary": 31,
+    "canRemove": 135,
+    "needsRefactor": 102
+  },
+  "details": {
+    "necessary": [
+      {
+        "line": 819,
+        "content": "margin-right: 0 !important;"
+      },
+      {
+        "line": 828,
+        "content": "transform: translateX(100%) !important;"
+      },
+      {
+        "line": 832,
+        "content": "transform: translateX(0) !important;"
+      },
+      {
+        "line": 837,
+        "content": "margin-right: 0 !important;"
+      },
+      {
+        "line": 848,
+        "content": "display: flex !important;"
+      },
+      {
+        "line": 861,
+        "content": "display: none !important;"
+      },
+      {
+        "line": 1112,
+        "content": "overflow: hidden !important;"
+      },
+      {
+        "line": 1113,
+        "content": "position: fixed !important;"
+      },
+      {
+        "line": 1364,
+        "content": "display: flex !important;"
+      },
+      {
+        "line": 2006,
+        "content": "display: none !important;"
+      }
+    ],
+    "canRemove": [
+      {
+        "line": 1114,
+        "content": "width: 100% !important;"
+      },
+      {
+        "line": 1115,
+        "content": "height: 100% !important;"
+      },
+      {
+        "line": 1116,
+        "content": "height: 100dvh !important;"
+      },
+      {
+        "line": 1358,
+        "content": "width: 48px !important;"
+      },
+      {
+        "line": 1359,
+        "content": "height: 48px !important;"
+      },
+      {
+        "line": 1360,
+        "content": "min-width: 48px !important;"
+      },
+      {
+        "line": 1361,
+        "content": "max-width: 48px !important;"
+      },
+      {
+        "line": 1362,
+        "content": "min-height: 48px !important;"
+      },
+      {
+        "line": 1363,
+        "content": "max-height: 48px !important;"
+      },
+      {
+        "line": 1367,
+        "content": "background: var(--bg-tertiary) !important;"
+      }
+    ]
+  }
+}
