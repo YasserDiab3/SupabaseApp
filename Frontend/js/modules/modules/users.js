@@ -1046,9 +1046,14 @@ const Users = {
                 // إخفاء مؤشر التحميل بعد الحفظ المحلي
                 Loading.hide();
                 
-                // المزامنة مع الخادم (Supabase أو Google Sheets) في الخلفية
+                // المزامنة مع الخادم (Supabase أو Google Sheets) في الخلفية — التأكد من إرسال صلاحيات ككائن ودور للعمود permissions
                 if (canSyncBackend) {
-                    GoogleIntegration.immediateSyncWithRetry('addUser', formData, 3)
+                    const addUserPayload = {
+                        ...formData,
+                        permissions: (formData.permissions != null && typeof formData.permissions === 'object' && !Array.isArray(formData.permissions)) ? formData.permissions : {},
+                        role: formData.role || 'user'
+                    };
+                    GoogleIntegration.immediateSyncWithRetry('addUser', addUserPayload, 3)
                         .then(addUserResult => {
                             if (addUserResult && addUserResult.success) {
                                 Utils.safeLog('✅ تم إضافة المستخدم الجديد إلى Google Sheets بنجاح');

@@ -831,8 +831,14 @@ Deno.serve(async (req) => {
         if (dataObj.name == null && (payload as { name?: string }).name) dataObj.name = (payload as { name: string }).name;
         if (dataObj.role == null && (payload as { role?: string }).role) dataObj.role = (payload as { role: string }).role;
         if (dataObj.permissions == null && (payload as { permissions?: unknown }).permissions != null) dataObj.permissions = (payload as { permissions: unknown }).permissions;
-        const permissionsVal = (dataObj.permissions != null && typeof dataObj.permissions === "object" && !Array.isArray(dataObj.permissions) ? dataObj.permissions as Record<string, unknown> : {}) as Record<string, unknown>;
-        if (dataObj.role != null) permissionsVal.role = dataObj.role;
+        // عمود permissions يجب أن يكون دائماً كائناً (لا يُخزّن 0 أو null) — المصدر الوحيد للدور والصلاحيات
+        const rawPerms = dataObj.permissions;
+        const permissionsVal: Record<string, unknown> =
+          rawPerms != null && typeof rawPerms === "object" && !Array.isArray(rawPerms)
+            ? (rawPerms as Record<string, unknown>)
+            : {};
+        const roleVal = dataObj.role != null ? String(dataObj.role).trim() : "";
+        permissionsVal.role = roleVal || "user";
         const dataWithoutPerms = { ...dataObj };
         delete (dataWithoutPerms as Record<string, unknown>).permissions;
         delete (dataWithoutPerms as Record<string, unknown>).role;
@@ -869,7 +875,9 @@ Deno.serve(async (req) => {
               delete (mergedData as Record<string, unknown>).permissions;
               delete (mergedData as Record<string, unknown>).role;
               delete (mergedData as Record<string, unknown>).Role;
-              const mergedPerms = (existing.permissions != null && typeof existing.permissions === "object" && !Array.isArray(existing.permissions)) ? { ...(existing.permissions as Record<string, unknown>), ...permissionsVal } : permissionsVal;
+              const existingPerms = existing.permissions;
+              const existingPermsObj = existingPerms != null && typeof existingPerms === "object" && !Array.isArray(existingPerms) ? (existingPerms as Record<string, unknown>) : {};
+              const mergedPerms = { ...existingPermsObj, ...permissionsVal };
               const mergedRow = { id: existing.id, data: mergedData, updated_at: new Date().toISOString(), permissions: mergedPerms } as typeof row;
               if (hash != null) (mergedRow as { password_hash?: string }).password_hash = hash;
               err = await supabase.from(table).upsert(mergedRow, { onConflict: "id" });
@@ -925,18 +933,28 @@ Deno.serve(async (req) => {
         return json({ success: true });
       }
       if (action === "deleteUser" || action === "resetUserPassword") {
-        const id = (payload as { userId?: string }).userId ?? (payload as { id?: string }).id ?? (payload as { email?: string }).email;
+        let id = (payload as { userId?: string }).userId ?? (payload as { id?: string }).id ?? (payload as { email?: string }).email;
         if (!id) return json({ success: false, message: "userId or id or email required" }, 400);
+        const idStr = String(id).trim();
+        // مطابقة حالة الأحرف مع الجدول (المعرّف يُخزَّن كبريد بصيغة lowercase)
+        const normalizedId = /@/.test(idStr) ? idStr.toLowerCase() : idStr;
         if (action === "deleteUser") {
-          const { error } = await supabase.from(table).delete().eq("id", String(id));
+          const { data: byId } = await supabase.from(table).select("id").eq("id", normalizedId).maybeSingle();
+          const deleteId = (byId as { id?: string } | null)?.id ?? normalizedId;
+          const { error } = await supabase.from(table).delete().eq("id", deleteId);
           if (error) return json({ success: false, message: error.message }, 400);
         } else {
           const newHash = (payload as { newPassword?: string }).newPassword ?? null;
           if (newHash == null) return json({ success: false, message: "newPassword required" }, 400);
-          const { data: existing } = await supabase.from(table).select("data").eq("id", String(id)).maybeSingle();
+          let { data: existingRow } = await supabase.from(table).select("id, data").eq("id", normalizedId).maybeSingle();
+          if ((existingRow as { id?: string } | null) == null && /@/.test(idStr)) {
+            const { data: byLowerRow } = await supabase.from(table).select("id, data").eq("id", idStr.toLowerCase()).maybeSingle();
+            if ((byLowerRow as { id?: string } | null) != null) existingRow = byLowerRow;
+          }
+          const resolvedId = (existingRow as { id?: string } | null)?.id ?? normalizedId;
           const row: { id: string; data: Record<string, unknown>; password_hash: string; updated_at: string } = {
-            id: String(id),
-            data: (existing as { data?: Record<string, unknown> } | null)?.data ?? {},
+            id: resolvedId,
+            data: (existingRow as { data?: Record<string, unknown> } | null)?.data ?? {},
             password_hash: newHash,
             updated_at: new Date().toISOString(),
           };
