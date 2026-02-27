@@ -134,6 +134,7 @@ window.UI = {
             if (s && s.parentNode) s.remove();
             var loadingEl = document.querySelector('.hse-loading-text');
             if (loadingEl && loadingEl.parentNode) loadingEl.remove();
+            if (typeof window !== 'undefined') window.__hseSessionCheckOverlayRemoved = true;
         } catch (e) { /* ignore */ }
 
         if (loginScreen) loginScreen.style.display = 'flex';
@@ -2152,13 +2153,14 @@ window.UI = {
             return;
         }
 
-        // إزالة شاشة "جاري التحقق من الجلسة" فوراً عند عرض التطبيق
+        // إزالة شاشة "جاري التحقق من الجلسة" فوراً عند عرض التطبيق (مرة واحدة فقط)
         try {
             document.body.removeAttribute('data-hse-pending-session');
             var s = document.getElementById('hse-hide-login-until-ready');
             if (s && s.parentNode) s.remove();
             var loadingEl = document.querySelector('.hse-loading-text');
             if (loadingEl && loadingEl.parentNode) loadingEl.remove();
+            if (typeof window !== 'undefined') window.__hseSessionCheckOverlayRemoved = true;
         } catch (e) { /* ignore */ }
 
         const loginScreen = document.getElementById('login-screen');
