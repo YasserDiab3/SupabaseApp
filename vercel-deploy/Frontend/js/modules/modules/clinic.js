@@ -58,6 +58,7 @@ const Clinic = {
                 // Buttons
                 'btn.registerVisit': 'تسجيل زيارة',
                 'btn.refresh': 'تحديث',
+                'btn.importExcel': 'استيراد Excel',
                 'btn.exportExcel': 'تصدير Excel',
                 'btn.exportPDF': 'تصدير PDF',
                 'btn.reset': 'إعادة تعيين',
@@ -2271,14 +2272,17 @@ const Clinic = {
                     <input type="date" id="medications-date-to" class="form-input" value="${filters.dateTo || ''}" title="إلى تاريخ الشراء">
                 </div>
                 <div class="flex items-center gap-2">
+                    <button type="button" class="btn-primary" id="medications-add-btn">
+                        <i class="fas fa-plus ml-2"></i>إضافة جديد
+                    </button>
                     <button type="button" class="btn-secondary" id="medications-export-pdf-btn">
                         <i class="fas fa-file-pdf ml-2"></i>تصدير PDF
                     </button>
                     <button type="button" class="btn-success" id="medications-export-excel-btn">
                         <i class="fas fa-file-excel ml-2"></i>تصدير Excel
                     </button>
-                    <button type="button" class="btn-primary" id="medications-add-btn">
-                        <i class="fas fa-plus ml-2"></i>إضافة جديد
+                    <button type="button" class="btn-secondary" id="medications-import-excel-btn">
+                        <i class="fas fa-file-import ml-2"></i>استيراد Excel
                     </button>
                 </div>
             </div>
@@ -2343,6 +2347,11 @@ const Clinic = {
 
         if (exportExcelBtn) {
             exportExcelBtn.addEventListener('click', () => this.exportMedicationsToExcel());
+        }
+
+        const importExcelBtn = panel.querySelector('#medications-import-excel-btn');
+        if (importExcelBtn) {
+            importExcelBtn.addEventListener('click', () => this.showImportMedicationsExcelModal());
         }
 
         panel.querySelectorAll('[data-action="view-medication"]').forEach((btn) => {
@@ -2845,6 +2854,199 @@ const Clinic = {
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Medications');
         const fileName = `Clinic_Medications_${new Date().toISOString().slice(0, 10)}.xlsx`;
         XLSX.writeFile(workbook, fileName);
+    },
+
+    showImportMedicationsExcelModal() {
+        if (typeof XLSX === 'undefined') {
+            Notification?.error?.('مكتبة Excel غير متوفرة');
+            return;
+        }
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 800px;">
+                <div class="modal-header">
+                    <h2 class="modal-title"><i class="fas fa-file-import ml-2"></i>استيراد الأدوية من ملف Excel</h2>
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body space-y-4">
+                    <div class="bg-blue-50 border border-blue-200 rounded p-4">
+                        <p class="text-sm text-blue-800 mb-2"><strong>تعليمات الاستيراد:</strong></p>
+                        <p class="text-sm text-blue-700">يجب أن يحتوي الملف على الأعمدة: اسم الدواء، نوع الدواء، الاستخدام، تاريخ الشراء، تاريخ انتهاء الصلاحية، الحالة (اختياري)، الكمية أو الرصيد.</p>
+                    </div>
+                    <div>
+                        <label for="medications-excel-file-input" class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-file-excel ml-2"></i>اختر ملف Excel (.xlsx, .xls)
+                        </label>
+                        <input type="file" id="medications-excel-file-input" accept=".xlsx,.xls" class="form-input">
+                    </div>
+                    <div id="medications-import-preview" class="hidden">
+                        <h3 class="text-sm font-semibold mb-2">معاينة (أول 5 صفوف):</h3>
+                        <div class="max-h-60 overflow-auto border rounded">
+                            <table class="data-table text-xs">
+                                <thead id="medications-preview-head"></thead>
+                                <tbody id="medications-preview-body"></tbody>
+                            </table>
+                        </div>
+                        <p id="medications-preview-count" class="text-sm text-gray-600 mt-2"></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">إلغاء</button>
+                    <button id="medications-import-confirm-btn" class="btn-primary" disabled>
+                        <i class="fas fa-upload ml-2"></i>استيراد البيانات
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const fileInput = modal.querySelector('#medications-excel-file-input');
+        const confirmBtn = modal.querySelector('#medications-import-confirm-btn');
+        const previewContainer = modal.querySelector('#medications-import-preview');
+        const previewHead = modal.querySelector('#medications-preview-head');
+        const previewBody = modal.querySelector('#medications-preview-body');
+        const previewCount = modal.querySelector('#medications-preview-count');
+        let importedRows = [];
+
+        const resetPreview = () => {
+            importedRows = [];
+            if (previewContainer) previewContainer.classList.add('hidden');
+            if (previewHead) previewHead.innerHTML = '';
+            if (previewBody) previewBody.innerHTML = '';
+            if (previewCount) previewCount.textContent = '';
+            if (confirmBtn) confirmBtn.disabled = true;
+        };
+
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+        const handleFileChange = () => {
+            const file = fileInput?.files?.[0];
+            resetPreview();
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+                    if (!Array.isArray(rows) || rows.length === 0) {
+                        Notification?.warning?.('الملف فارغ أو لا يحتوي على بيانات.');
+                        return;
+                    }
+                    importedRows = rows;
+                    const headers = Object.keys(rows[0]);
+                    if (previewHead) previewHead.innerHTML = '<tr>' + headers.map(h => '<th class="px-2 py-1">' + Utils.escapeHTML(String(h)) + '</th>').join('') + '</tr>';
+                    if (previewBody) previewBody.innerHTML = rows.slice(0, 5).map(row => '<tr>' + headers.map(h => '<td class="px-2 py-1">' + Utils.escapeHTML(String(row[h] ?? '')) + '</td>').join('') + '</tr>').join('');
+                    if (previewCount) previewCount.textContent = 'إجمالي الصفوف: ' + rows.length;
+                    previewContainer?.classList.remove('hidden');
+                    if (confirmBtn) confirmBtn.disabled = false;
+                } catch (err) {
+                    Utils.safeError('قراءة ملف الأدوية:', err);
+                    Notification?.error?.('فشل قراءة الملف: ' + (err.message || err));
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        };
+
+        fileInput?.addEventListener('change', handleFileChange);
+        confirmBtn?.addEventListener('click', () => {
+            if (importedRows.length === 0) {
+                Notification?.warning?.('يرجى اختيار ملف يحتوي على بيانات.');
+                return;
+            }
+            this.processImportedMedications(importedRows, modal);
+        });
+    },
+
+    mapImportedMedicationRow(row) {
+        if (!row || typeof row !== 'object') return null;
+        const name = String(row['اسم الدواء'] ?? row['name'] ?? row['الدواء'] ?? '').trim();
+        if (!name) return null;
+        const type = String(row['نوع الدواء'] ?? row['type'] ?? row['النوع'] ?? '').trim();
+        const usage = String(row['الاستخدام'] ?? row['usage'] ?? row['notes'] ?? '').trim();
+        const purchaseStr = String(row['تاريخ الشراء'] ?? row['purchaseDate'] ?? '').trim();
+        const expiryStr = String(row['تاريخ انتهاء الصلاحية'] ?? row['expiryDate'] ?? '').trim();
+        const qty = parseInt(row['الكمية'] ?? row['الرصيد'] ?? row['quantity'] ?? 0, 10) || 0;
+        const remaining = parseInt(row['الرصيد'] ?? row['remainingQuantity'] ?? row['الكمية'] ?? qty, 10);
+        const quantityAdded = qty > 0 ? qty : (remaining > 0 ? remaining : 1);
+        const remainingQuantity = remaining >= 0 ? remaining : quantityAdded;
+
+        let purchaseDate = purchaseStr ? new Date(purchaseStr) : new Date();
+        purchaseDate = isNaN(purchaseDate.getTime()) ? new Date() : purchaseDate;
+        let expiryDate = expiryStr ? new Date(expiryStr) : null;
+        if (expiryDate && isNaN(expiryDate.getTime())) expiryDate = null;
+
+        const statusInfo = this.calculateMedicationStatus({ expiryDate: expiryDate ? expiryDate.toISOString() : '' });
+        const currentUser = this.getCurrentUserSummary();
+        return this.normalizeMedicationRecord({
+            id: Utils.generateId('MED'),
+            name,
+            type,
+            usage,
+            purchaseDate: purchaseDate.toISOString(),
+            expiryDate: expiryDate ? expiryDate.toISOString() : '',
+            quantityAdded,
+            remainingQuantity,
+            location: String(row['موقع التخزين'] ?? row['location'] ?? '').trim(),
+            notes: usage,
+            createdAt: new Date().toISOString(),
+            createdBy: currentUser,
+            updatedAt: new Date().toISOString(),
+            updatedBy: currentUser,
+            status: statusInfo.status,
+            daysRemaining: statusInfo.daysRemaining
+        });
+    },
+
+    processImportedMedications(rows, modal) {
+        if (!Array.isArray(rows) || rows.length === 0) {
+            Notification?.warning?.('لا توجد بيانات صالحة للاستيراد.');
+            return;
+        }
+        this.ensureData();
+        if (!Array.isArray(AppState.appData.medications)) {
+            AppState.appData.medications = [];
+        }
+        let successCount = 0;
+        let skipCount = 0;
+        const errors = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const hasData = Object.values(row || {}).some(v => String(v || '').trim() !== '');
+            if (!hasData) { skipCount++; continue; }
+            try {
+                const med = this.mapImportedMedicationRow(row);
+                if (!med) { skipCount++; continue; }
+                AppState.appData.medications.push(med);
+                AppState.appData.clinicMedications = AppState.appData.medications;
+                AppState.appData.clinicInventory = AppState.appData.medications;
+                successCount++;
+            } catch (err) {
+                skipCount++;
+                errors.push('صف ' + (i + 2) + ': ' + (err.message || err));
+            }
+        }
+        if (successCount > 0) {
+            if (typeof window.DataManager !== 'undefined' && window.DataManager.save) {
+                window.DataManager.save();
+            }
+            this.renderMedicationsTab();
+        }
+        if (modal) modal.remove();
+        if (successCount > 0) {
+            Notification?.success?.('تم استيراد ' + successCount + ' دواء بنجاح' + (skipCount ? '، وتخطي ' + skipCount + ' صف' : ''));
+        } else {
+            Notification?.warning?.('لم يتم استيراد أي دواء. تحقق من صيغة الملف.');
+        }
+        if (errors.length > 0 && errors.length <= 5) {
+            Notification?.error?.('أخطاء: ' + errors.join('؛ '));
+        } else if (errors.length > 5) {
+            Notification?.error?.('أخطاء في الاستيراد: ' + errors.slice(0, 3).join('؛ ') + ' ...');
+        }
     },
 
     exportMedicationsToPDF() {
@@ -5838,6 +6040,10 @@ const Clinic = {
                         <i class="fas fa-sync-alt ${iconMarginClass}"></i>
                         ${t('btn.refresh')}
                     </button>
+                    <button type="button" id="visits-import-excel-btn" class="btn-secondary">
+                        <i class="fas fa-file-import ${iconMarginClass}"></i>
+                        ${t('btn.importExcel')}
+                    </button>
                     <button type="button" id="visits-export-excel-btn" class="btn-success">
                         <i class="fas fa-file-excel ${iconMarginClass}"></i>
                         ${t('btn.exportExcel')}
@@ -6378,6 +6584,7 @@ const Clinic = {
         const addBtn = panel.querySelector('#visits-add-btn');
         const addNewBtn = panel.querySelector('#visits-add-new-btn');
         const refreshBtn = panel.querySelector('#visits-refresh-btn');
+        const importExcelBtn = panel.querySelector('#visits-import-excel-btn');
         const exportExcelBtn = panel.querySelector('#visits-export-excel-btn');
         const exportPdfBtn = panel.querySelector('#visits-export-pdf-btn');
         const searchInput = panel.querySelector('#visits-search');
@@ -6389,6 +6596,7 @@ const Clinic = {
             this.renderVisitsTab(true);
             Notification.success('جاري تحديث البيانات...');
         });
+        importExcelBtn?.addEventListener('click', () => this.showImportVisitsExcelModal());
         exportExcelBtn?.addEventListener('click', () => this.exportVisitsToExcel());
         exportPdfBtn?.addEventListener('click', () => this.exportVisitsToPDF());
 
@@ -9731,6 +9939,228 @@ const Clinic = {
         } catch (error) {
             Utils.safeError('خطأ في تصدير Excel:', error);
             Notification.error('فشل تصدير Excel: ' + error.message);
+        }
+    },
+
+    showImportVisitsExcelModal() {
+        if (typeof XLSX === 'undefined') {
+            Notification.error('مكتبة Excel غير متوفرة');
+            return;
+        }
+        const modal = document.createElement('div');
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 800px;">
+                <div class="modal-header">
+                    <h2 class="modal-title"><i class="fas fa-file-import ml-2"></i>استيراد سجل التردد من ملف Excel</h2>
+                    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body space-y-4">
+                    <div class="bg-blue-50 border border-blue-200 rounded p-4">
+                        <p class="text-sm text-blue-800 mb-2"><strong>تعليمات الاستيراد:</strong></p>
+                        <p class="text-sm text-blue-700">يجب أن يحتوي ملف Excel على الأعمدة (موظفين: الكود الوظيفي، الاسم، الوظيفة، المصنع، مكان العمل، وقت الدخول، سبب الزيارة، التشخيص، الأدوية المنصرفة). للمقاولين: اسم المقاول بدلاً من الكود الوظيفي.</p>
+                        <p class="text-xs text-blue-700 mt-2">وقت الدخول بصيغة تاريخ/وقت (مثل 2025-01-15 أو 15/01/2025). يمكن ترك وقت الخروج والتشخيص والأدوية فارغاً.</p>
+                    </div>
+                    <div>
+                        <label for="visits-excel-file-input" class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-file-excel ml-2"></i>اختر ملف Excel (.xlsx, .xls)
+                        </label>
+                        <input type="file" id="visits-excel-file-input" accept=".xlsx,.xls" class="form-input">
+                    </div>
+                    <div id="visits-import-preview" class="hidden">
+                        <h3 class="text-sm font-semibold mb-2">معاينة (أول 5 صفوف):</h3>
+                        <div class="max-h-60 overflow-auto border rounded">
+                            <table class="data-table text-xs">
+                                <thead id="visits-preview-head"></thead>
+                                <tbody id="visits-preview-body"></tbody>
+                            </table>
+                        </div>
+                        <p id="visits-preview-count" class="text-sm text-gray-600 mt-2"></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">إلغاء</button>
+                    <button id="visits-import-confirm-btn" class="btn-primary" disabled>
+                        <i class="fas fa-upload ml-2"></i>استيراد البيانات
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const fileInput = modal.querySelector('#visits-excel-file-input');
+        const confirmBtn = modal.querySelector('#visits-import-confirm-btn');
+        const previewContainer = modal.querySelector('#visits-import-preview');
+        const previewHead = modal.querySelector('#visits-preview-head');
+        const previewBody = modal.querySelector('#visits-preview-body');
+        const previewCount = modal.querySelector('#visits-preview-count');
+        let importedRows = [];
+
+        const resetPreview = () => {
+            importedRows = [];
+            if (previewContainer) previewContainer.classList.add('hidden');
+            if (previewHead) previewHead.innerHTML = '';
+            if (previewBody) previewBody.innerHTML = '';
+            if (previewCount) previewCount.textContent = '';
+            if (confirmBtn) confirmBtn.disabled = true;
+        };
+
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+        const handleFileChange = () => {
+            const file = fileInput?.files?.[0];
+            resetPreview();
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+                    if (!Array.isArray(rows) || rows.length === 0) {
+                        Notification.warning('الملف فارغ أو لا يحتوي على بيانات.');
+                        return;
+                    }
+                    importedRows = rows;
+                    const headers = Object.keys(rows[0]);
+                    if (previewHead) previewHead.innerHTML = '<tr>' + headers.map(h => '<th class="px-2 py-1">' + Utils.escapeHTML(String(h)) + '</th>').join('') + '</tr>';
+                    if (previewBody) previewBody.innerHTML = rows.slice(0, 5).map(row => '<tr>' + headers.map(h => '<td class="px-2 py-1">' + Utils.escapeHTML(String(row[h] ?? '')) + '</td>').join('') + '</tr>').join('');
+                    if (previewCount) previewCount.textContent = 'إجمالي الصفوف: ' + rows.length;
+                    previewContainer?.classList.remove('hidden');
+                    if (confirmBtn) confirmBtn.disabled = false;
+                } catch (err) {
+                    Utils.safeError('قراءة ملف الزيارات:', err);
+                    Notification.error('فشل قراءة الملف: ' + (err.message || err));
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        };
+
+        fileInput?.addEventListener('change', handleFileChange);
+        confirmBtn?.addEventListener('click', () => {
+            if (importedRows.length === 0) {
+                Notification.warning('يرجى اختيار ملف يحتوي على بيانات.');
+                return;
+            }
+            this.processImportedVisits(importedRows, modal);
+        });
+    },
+
+    mapImportedVisitRow(row) {
+        if (!row || typeof row !== 'object') return null;
+        const code = String(row['الكود الوظيفي'] ?? row['الكود'] ?? row['employeeCode'] ?? '').trim();
+        const contractorName = String(row['اسم المقاول'] ?? row['contractorName'] ?? '').trim();
+        const name = String(row['الاسم'] ?? row['employeeName'] ?? row['اسم'] ?? '').trim();
+        const position = String(row['الوظيفة'] ?? row['employeePosition'] ?? '').trim();
+        const factory = String(row['المصنع'] ?? row['factory'] ?? '').trim();
+        const workplace = String(row['مكان العمل'] ?? row['workplace'] ?? row['employeeLocation'] ?? '').trim();
+        const entryStr = String(row['وقت الدخول'] ?? row['visitDate'] ?? row['تاريخ الدخول'] ?? '').trim();
+        const exitStr = String(row['وقت الخروج'] ?? row['exitDate'] ?? '').trim();
+        const reason = String(row['سبب الزيارة'] ?? row['reason'] ?? '').trim();
+        const diagnosis = String(row['التشخيص'] ?? row['diagnosis'] ?? '').trim();
+        const medsText = String(row['الأدوية المنصرفة'] ?? row['medications'] ?? '').trim();
+
+        const isContractor = !!contractorName || (!code && name);
+        const personType = isContractor ? 'contractor' : 'employee';
+
+        let visitDate = '';
+        if (entryStr) {
+            const d = new Date(entryStr);
+            visitDate = isNaN(d.getTime()) ? '' : d.toISOString();
+        }
+        if (!visitDate && (code || name || contractorName)) {
+            visitDate = new Date().toISOString();
+        }
+        if (!visitDate) return null;
+
+        let exitDate = '';
+        if (exitStr) {
+            const d = new Date(exitStr);
+            exitDate = isNaN(d.getTime()) ? '' : d.toISOString();
+        }
+
+        const medications = [];
+        if (medsText) {
+            const parts = medsText.split(/[،,;؛]/).map(s => s.trim()).filter(Boolean);
+            for (const p of parts) {
+                const match = p.match(/^(.+?)\s*\((\d+)\)\s*$/);
+                if (match) {
+                    medications.push({ medicationName: match[1].trim(), quantity: parseInt(match[2], 10) || 1 });
+                } else if (p) {
+                    medications.push({ medicationName: p, quantity: 1 });
+                }
+            }
+        }
+
+        const currentUser = this.getCurrentUserSummary();
+        return {
+            id: Utils.generateId('VISIT'),
+            personType,
+            employeeCode: isContractor ? '' : code,
+            employeeNumber: isContractor ? '' : code,
+            employeeName: isContractor ? '' : name,
+            employeePosition: position,
+            contractorName: isContractor ? contractorName : '',
+            contractorWorkerName: isContractor ? name : '',
+            contractorPosition: isContractor ? position : '',
+            factory: factory,
+            employeeLocation: workplace,
+            workArea: workplace,
+            visitDate,
+            exitDate: exitDate || '',
+            reason,
+            diagnosis,
+            medications,
+            email: AppState.currentUser?.email || '',
+            createdBy: currentUser
+        };
+    },
+
+    processImportedVisits(rows, modal) {
+        if (!Array.isArray(rows) || rows.length === 0) {
+            Notification.warning('لا توجد بيانات صالحة للاستيراد.');
+            return;
+        }
+        this.ensureData();
+        if (!Array.isArray(AppState.appData.clinicVisits)) {
+            AppState.appData.clinicVisits = [];
+        }
+        let successCount = 0;
+        let skipCount = 0;
+        const errors = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const hasData = Object.values(row || {}).some(v => String(v || '').trim() !== '');
+            if (!hasData) { skipCount++; continue; }
+            try {
+                const visit = this.mapImportedVisitRow(row);
+                if (!visit) { skipCount++; continue; }
+                AppState.appData.clinicVisits.push(visit);
+                successCount++;
+            } catch (err) {
+                skipCount++;
+                errors.push('صف ' + (i + 2) + ': ' + (err.message || err));
+            }
+        }
+        if (successCount > 0) {
+            if (typeof window.DataManager !== 'undefined' && window.DataManager.save) {
+                window.DataManager.save();
+            }
+            this.renderVisitsTab();
+        }
+        if (modal) modal.remove();
+        if (successCount > 0) {
+            Notification.success('تم استيراد ' + successCount + ' زيارة بنجاح' + (skipCount ? '، وتخطي ' + skipCount + ' صف' : ''));
+        } else {
+            Notification.warning('لم يتم استيراد أي زيارة. تحقق من صيغة الملف.');
+        }
+        if (errors.length > 0 && errors.length <= 5) {
+            Notification.error('أخطاء: ' + errors.join('؛ '));
+        } else if (errors.length > 5) {
+            Notification.error('أخطاء في الاستيراد: ' + errors.slice(0, 3).join('؛ ') + ' ...');
         }
     },
 
