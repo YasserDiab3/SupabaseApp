@@ -1549,7 +1549,8 @@ window.Auth = {
                                 name: mergedName,
                                 passwordHash: foundUser.passwordHash || user.passwordHash,
                                 password: '***', // إخفاء كلمة المرور
-                                loginTime: user.loginTime || AppState.currentUser?.loginTime // الحفاظ على وقت تسجيل الدخول
+                                loginTime: user.loginTime || AppState.currentUser?.loginTime, // الحفاظ على وقت تسجيل الدخول
+                                postLoginPolicySeenAt: foundUser.postLoginPolicySeenAt || user.postLoginPolicySeenAt // عدم إظهار السياسة مرة أخرى عند التحديث
                             };
                             
                             console.log('✅ [AUTH] AppState.currentUser.name بعد الاستعادة (sessionStorage):', AppState.currentUser.name);
@@ -1560,7 +1561,8 @@ window.Auth = {
                             // استخدام بيانات المستخدم من الجلسة المحفوظة
                             AppState.currentUser = {
                                 ...user,
-                                name: (user.name || user.displayName || '').trim() || user.email || user.id || ''
+                                name: (user.name || user.displayName || '').trim() || user.email || user.id || '',
+                                postLoginPolicySeenAt: user.postLoginPolicySeenAt // الحفاظ على حالة اطّلاع السياسة من الجلسة
                             };
                             Utils.safeLog('⚠️ استخدام بيانات المستخدم من الجلسة (لم يُعثر عليه في قاعدة البيانات بعد)');
                             
@@ -1622,7 +1624,7 @@ window.Auth = {
                             }
                         }
                         
-                        // حفظ الجلسة مرة أخرى للتأكد من استمراريتها
+                        // حفظ الجلسة مرة أخرى للتأكد من استمراريتها (مع postLoginPolicySeenAt لعدم إظهار السياسة عند التحديث)
                         const safeUserData = {
                             email: AppState.currentUser.email,
                             name: AppState.currentUser.name,
@@ -1630,7 +1632,8 @@ window.Auth = {
                             department: AppState.currentUser.department,
                             permissions: AppState.currentUser.permissions,
                             id: AppState.currentUser.id,
-                            loginTime: AppState.currentUser.loginTime
+                            loginTime: AppState.currentUser.loginTime,
+                            postLoginPolicySeenAt: AppState.currentUser.postLoginPolicySeenAt
                         };
                         sessionStorage.setItem('hse_current_session', JSON.stringify(safeUserData));
                         Utils.safeLog('✅ تم استعادة الجلسة من sessionStorage - المستخدم مسجل دخول');
@@ -1720,7 +1723,8 @@ window.Auth = {
                                 name: mergedName, // ✅ استخدام mergedName
                                 passwordHash: foundUser.passwordHash || user.passwordHash,
                                 password: '***', // إخفاء كلمة المرور
-                                loginTime: user.loginTime || AppState.currentUser?.loginTime // الحفاظ على وقت تسجيل الدخول
+                                loginTime: user.loginTime || AppState.currentUser?.loginTime, // الحفاظ على وقت تسجيل الدخول
+                                postLoginPolicySeenAt: foundUser.postLoginPolicySeenAt || user.postLoginPolicySeenAt // عدم إظهار السياسة مرة أخرى عند التحديث
                             };
                             
                             console.log('✅ [AUTH] AppState.currentUser.name بعد الاستعادة (localStorage):', AppState.currentUser.name);
@@ -1731,7 +1735,8 @@ window.Auth = {
                             // استخدام بيانات المستخدم من localStorage
                             AppState.currentUser = {
                                 ...user,
-                                name: (user.name || user.displayName || '').trim() || user.email || user.id || ''
+                                name: (user.name || user.displayName || '').trim() || user.email || user.id || '',
+                                postLoginPolicySeenAt: user.postLoginPolicySeenAt // الحفاظ على حالة اطّلاع السياسة
                             };
                             Utils.safeLog('⚠️ استخدام بيانات المستخدم من localStorage (لم يُعثر عليه في قاعدة البيانات بعد)');
                             
@@ -1921,7 +1926,8 @@ window.Auth = {
                 department: AppState.currentUser.department,
                 permissions: permissionsToSave, // استخدام الصلاحيات المدققة
                 id: AppState.currentUser.id,
-                loginTime: AppState.currentUser.loginTime
+                loginTime: AppState.currentUser.loginTime,
+                postLoginPolicySeenAt: AppState.currentUser.postLoginPolicySeenAt // لعدم إظهار السياسة عند إعادة التحميل
             };
 
             // تحديث sessionStorage

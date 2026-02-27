@@ -799,8 +799,9 @@
                         } else {
                             const usersLoaded = Array.isArray(AppState.appData.users) && AppState.appData.users.length > 0;
                             const retryCount = (self._sessionRestoreRetries || 0);
-                            const maxRetries = 3;
-                            const retryDelay = usersLoaded ? 100 : 150;
+                            // عند وجود بيانات جلسة نزيد المحاولات لانتظار تحميل appData وتجنب الخروج ثم العودة
+                            const maxRetries = (sessionData || rememberData) ? 15 : 3;
+                            const retryDelay = usersLoaded ? 100 : (sessionData || rememberData ? 200 : 150);
                             if (retryCount < maxRetries) {
                                 self._sessionRestoreRetries = retryCount + 1;
                                 log('⚠️ إعادة محاولة استعادة الجلسة (' + self._sessionRestoreRetries + '/' + maxRetries + ')...');

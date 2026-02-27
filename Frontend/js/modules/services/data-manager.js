@@ -374,11 +374,6 @@ const DataManager = {
             const serialized = Utils.safeStringify(AppState.appData);
             if (!serialized || serialized.length > 10 * 1024 * 1024) { // 10MB limit
                 Utils.safeWarn('⚠️ حجم البيانات كبير جداً - قد يفشل الحفظ في localStorage');
-                const now = Date.now();
-                if (now - this._quotaWarningLastShown >= this._QUOTA_WARNING_COOLDOWN_MS) {
-                    this._quotaWarningLastShown = now;
-                    Notification.warning('حجم البيانات كبير جداً. سيتم حفظ البيانات تلقائياً في قاعدة البيانات عند المزامنة.');
-                }
                 return false;
             }
             localStorage.setItem('hse_app_data', serialized);
@@ -404,19 +399,11 @@ const DataManager = {
             Utils.safeError('❌ خطأ في حفظ البيانات المحلية:', error.name || error.code, error.message);
             
             if (isStackOverflow) {
-                const now = Date.now();
-                if (now - this._quotaWarningLastShown >= this._QUOTA_WARNING_COOLDOWN_MS) {
-                    this._quotaWarningLastShown = now;
-                    Notification.warning('حجم البيانات كبير جداً. سيتم حفظ البيانات تلقائياً في قاعدة البيانات عند المزامنة.');
-                }
+                // عدم إظهار أي إشعار للمستخدم — المزامنة تتم تلقائياً عند الاتصال
                 return false;
             }
             if (isQuotaExceeded) {
-                const now = Date.now();
-                if (now - this._quotaWarningLastShown >= this._QUOTA_WARNING_COOLDOWN_MS) {
-                    this._quotaWarningLastShown = now;
-                    Notification.warning('التخزين المحلي ممتلئ أو البيانات كبيرة. سيتم المزامنة مع قاعدة البيانات عند الاتصال.');
-                }
+                // عدم إظهار أي إشعار للمستخدم — المزامنة تتم تلقائياً عند الاتصال
                 return false;
             }
             if (isSecurityError) {
@@ -424,12 +411,7 @@ const DataManager = {
                 Utils.safeWarn('⚠️ التخزين المحلي غير متاح (وضع خاص أو إعدادات المتصفح)');
                 return false;
             }
-            // أخطاء أخرى: إظهار تحذير مرة واحدة كل 5 دقائق لتقليل تكرار الإشعارات
-            const now = Date.now();
-            if (now - this._quotaWarningLastShown >= this._QUOTA_WARNING_COOLDOWN_MS) {
-                this._quotaWarningLastShown = now;
-                Notification.warning('لم يتم حفظ نسخة محلية. سيتم المزامنة مع السيرفر عند الحاجة.');
-            }
+            // أخطاء أخرى: عدم إظهار إشعار للمستخدم
             return false;
         }
     },
