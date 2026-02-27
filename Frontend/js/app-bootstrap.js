@@ -84,7 +84,10 @@
                 // المرحلة 4: واجهة المستخدم
                 await this.phaseUI();
                 
-                // المرحلة 5: الموديولات
+                // التحقق من الجلسة فوراً بعد جاهزية الواجهة (بدون انتظار تحميل الموديولات) لتفادي بقاء "جاري التحقق من الجلسة" 10–60 ثانية
+                this.checkAndRestoreSession();
+                
+                // المرحلة 5: الموديولات (تحميل في الخلفية بينما المستخدم يرى التطبيق أو شاشة الدخول)
                 await this.phaseModules();
                 
                 // المرحلة 6: جاهز
@@ -434,19 +437,19 @@
             // ✅ إصلاح: زيادة timeout لأن الموديولات تُحمّل بالتسلسل (async=false, defer=true)
             // Employees هو الموديول #23 من 33، لذا يحتاج وقت أطول
             const [usersModule, incidentsModule, employeesModule] = await Promise.all([
-                this.waitForModule('Users', 8000, {
+                this.waitForModule('Users', 3000, {
                     required: false,
                     checkComplete: (module) => {
                         return module && typeof module.load === 'function';
                     }
                 }),
-                this.waitForModule('Incidents', 8000, {
+                this.waitForModule('Incidents', 3000, {
                     required: false,
                     checkComplete: (module) => {
                         return module && typeof module.load === 'function';
                     }
                 }),
-                this.waitForModule('Employees', 10000, {
+                this.waitForModule('Employees', 4000, {
                     required: false,
                     checkComplete: (module) => {
                         return module && typeof module.load === 'function';
@@ -476,9 +479,7 @@
                 window.EventManager.init();
             }
             
-            // التحقق من المستخدم المحفوظ واستعادة الجلسة عند إعادة تحميل الصفحة
-            this.checkAndRestoreSession();
-            
+            // التحقق من الجلسة يُنفَّذ بعد phaseUI (قبل phaseModules) لتفادي تأخير 10–60 ثانية
             this.updateLoader(100, 'تم التحميل بنجاح!');
             
             // لا نعرض شاشة التحميل - التحميل في الخلفية
