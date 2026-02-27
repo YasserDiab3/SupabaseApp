@@ -1375,13 +1375,13 @@ const Users = {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
 
-            // حفظ تلقائي في الخادم (Supabase أو Google Sheets)
+            // حفظ تلقائي في الخادم (Supabase أو Google Sheets) — استخدام sendRequest لتوجيه الحذف إلى Supabase عند التفعيل
             const canSyncBackendDelete = AppState.useSupabaseBackend === true || AppState.googleConfig?.appsScript?.enabled;
             if (canSyncBackendDelete) {
                 try {
-                    await GoogleIntegration.sendToAppsScript('deleteUser', { userId });
+                    await GoogleIntegration.sendRequest({ action: 'deleteUser', data: { userId } });
                 } catch (error) {
-                    Utils.safeWarn('⚠️ فشل حذف المستخدم من Google Sheets، سيتم المحاولة لاحقاً:', error);
+                    Utils.safeWarn('⚠️ فشل حذف المستخدم من الخادم، سيتم المحاولة لاحقاً:', error);
                     await GoogleIntegration.autoSave('Users', AppState.appData.users);
                 }
             } else {
