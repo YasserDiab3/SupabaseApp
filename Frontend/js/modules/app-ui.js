@@ -2766,6 +2766,10 @@ window.UI = {
                     
                     // تحديث صلاحيات المستخدم الحالي
                     AppState.currentUser.permissions = normalizedPermissions || {};
+                    // تحديث الدور من قاعدة البيانات (يمنع بقاء المدير كـ user بعد إصلاح الصلاحيات في الخادم)
+                    if (updatedUser.role != null && String(updatedUser.role).trim() !== '') {
+                        AppState.currentUser.role = String(updatedUser.role).trim();
+                    }
                     // تحديث صورة الملف الشخصي من قاعدة البيانات (حتى تظهر بعد المزامنة أو تحديث الصفحة)
                     if (updatedUser.photo != null) AppState.currentUser.photo = updatedUser.photo;
                     

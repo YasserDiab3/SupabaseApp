@@ -340,6 +340,7 @@ Deno.serve(async (req) => {
         return flat;
       });
       // حفظ تلقائي في Supabase عند نقص بيانات المستخدم (name/email/role) — بدون المساس بالدور أو الصلاحيات (الصلاحيات من العمود فقط)
+      // ⚠️ لا نكتب role: "user" أبداً عند وجود أكثر من مستخدم لتجنب استبدال صلاحيات المدير بعد تسجيل الدخول
       if (table === "users" && rows && rows.length > 0) {
         const now = new Date().toISOString();
         const isOnlyUser = rows.length === 1;
@@ -356,16 +357,22 @@ Deno.serve(async (req) => {
             if (!hasName && flat.name) merged.name = flat.name;
             if (!hasEmail && flat.email) merged.email = flat.email;
             if (!hasRole) {
-              merged.role = existingRoleVal ?? ((flat.role && String(flat.role).trim()) || (isOnlyUser ? "admin" : "user"));
-              if ((existing as Record<string, unknown>).Role != null) (merged as Record<string, unknown>).Role = merged.role;
+              const explicitRole = (flat.role && String(flat.role).trim()) || null;
+              merged.role = isOnlyUser ? (explicitRole || "admin") : (explicitRole ?? undefined);
+              if (merged.role != null) {
+                if ((existing as Record<string, unknown>).Role != null) (merged as Record<string, unknown>).Role = merged.role;
+              }
             }
+            const wouldOverwriteAdminWithUser = !hasRole && !isOnlyUser && (merged.role === "user" || merged.role == null);
             delete (merged as Record<string, unknown>).permissions;
             const payload: { id: string; data: Record<string, unknown>; updated_at: string; permissions?: unknown } = { id: r.id, data: merged, updated_at: now };
             if (r.permissions != null && typeof r.permissions === "object" && !Array.isArray(r.permissions)) payload.permissions = r.permissions;
-            await supabase.from(table).upsert(payload, { onConflict: "id" });
-            if (merged.name != null) flat.name = merged.name;
-            if (merged.email != null) flat.email = merged.email;
-            if (merged.role != null) flat.role = merged.role;
+            if (!wouldOverwriteAdminWithUser) {
+              await supabase.from(table).upsert(payload, { onConflict: "id" });
+              if (merged.name != null) flat.name = merged.name;
+              if (merged.email != null) flat.email = merged.email;
+              if (merged.role != null) flat.role = merged.role;
+            }
           }
         }
       }
@@ -394,6 +401,9 @@ Deno.serve(async (req) => {
           if (incomingRole === undefined && existingRoleVal != null) {
             merged.role = existingRoleVal;
             (merged as Record<string, unknown>).Role = existingRoleVal;
+          } else if (incomingRole === "user" && existingRoleVal === "admin") {
+            merged.role = "admin";
+            (merged as Record<string, unknown>).Role = "admin";
           }
           const hasExplicitPermissions = Object.prototype.hasOwnProperty.call(dataObj, "permissions");
           if (!hasExplicitPermissions && existingPermissionsCol != null) merged.permissions = existingPermissionsCol;
@@ -875,6 +885,9 @@ Deno.serve(async (req) => {
         if (!incomingRoleOk && existingRole != null) {
           mergedData.role = existingRole;
           (mergedData as Record<string, unknown>).Role = existingRole;
+        } else if (incomingRoleOk && String(incomingRole).trim() === "user" && existingRole === "admin") {
+          mergedData.role = "admin";
+          (mergedData as Record<string, unknown>).Role = "admin";
         }
         const hasPermissionsInPayload = Object.prototype.hasOwnProperty.call(dataWithoutHash as Record<string, unknown>, "permissions");
         if (!hasPermissionsInPayload && existingPermissionsCol != null && typeof existingPermissionsCol === "object" && !Array.isArray(existingPermissionsCol)) {
