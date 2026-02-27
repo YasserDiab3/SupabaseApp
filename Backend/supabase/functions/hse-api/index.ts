@@ -311,7 +311,8 @@ Deno.serve(async (req) => {
             const hash = (r as { password_hash?: string | null }).password_hash ?? (r.data?.passwordHash as string | undefined);
             flat.passwordHash = hash ?? (r.data?.passwordHash as string | undefined);
           }
-          if (r.permissions != null && typeof r.permissions === "object" && !Array.isArray(r.permissions)) {
+          const permsCol = r.permissions != null && typeof r.permissions === "object" && !Array.isArray(r.permissions) ? r.permissions as Record<string, unknown> : null;
+          if (permsCol != null) {
             flat.permissions = r.permissions;
           } else if (flat.permissions == null && r.data?.permissions != null && typeof r.data.permissions === "object") {
             flat.permissions = r.data.permissions;
@@ -330,7 +331,8 @@ Deno.serve(async (req) => {
           } else if (flat.email) {
             flat.name = String(flat.email).split("@")[0] || flat.email;
           }
-          const roleVal = flat.role ?? (r.data?.Role ?? r.data?.role);
+          const roleFromPerms = permsCol?.role != null && String(permsCol.role).trim() !== "" ? permsCol.role : null;
+          const roleVal = roleFromPerms ?? flat.role ?? (r.data?.Role ?? r.data?.role);
           if (roleVal != null && String(roleVal).trim() !== "") flat.role = typeof roleVal === "string" ? roleVal.trim() : String(roleVal);
           const deptVal = flat.department ?? (r.data?.Department ?? r.data?.department);
           if (deptVal != null && String(deptVal).trim() !== "") flat.department = typeof deptVal === "string" ? deptVal.trim() : String(deptVal);
@@ -348,7 +350,8 @@ Deno.serve(async (req) => {
           const r = rows[i] as { id: string; data: Record<string, unknown>; permissions?: unknown };
           const existing = r.data ?? {};
           const flat = out[i] as Record<string, unknown>;
-          const existingRoleVal = (existing.Role != null && String(existing.Role).trim() !== "" ? existing.Role : null) ?? (existing.role != null && String(existing.role).trim() !== "" ? existing.role : null);
+          const permsObj = r.permissions != null && typeof r.permissions === "object" && !Array.isArray(r.permissions) ? r.permissions as Record<string, unknown> : {};
+          const existingRoleVal = (permsObj.role != null && String(permsObj.role).trim() !== "" ? permsObj.role : null) ?? (existing.Role != null && String(existing.Role).trim() !== "" ? existing.Role : null) ?? (existing.role != null && String(existing.role).trim() !== "" ? existing.role : null);
           const hasRole = existingRoleVal != null;
           const hasName = (existing.name != null && String(existing.name).trim() !== "") || (existing.Name != null && String(existing.Name).trim() !== "");
           const hasEmail = (existing.email != null && String(existing.email).trim() !== "") || (existing.Email != null && String(existing.Email).trim() !== "");
@@ -356,22 +359,26 @@ Deno.serve(async (req) => {
             const merged: Record<string, unknown> = { ...existing };
             if (!hasName && flat.name) merged.name = flat.name;
             if (!hasEmail && flat.email) merged.email = flat.email;
+            let roleForPerms: string | undefined;
             if (!hasRole) {
               const explicitRole = (flat.role && String(flat.role).trim()) || null;
-              merged.role = isOnlyUser ? (explicitRole || "admin") : (explicitRole ?? undefined);
-              if (merged.role != null) {
-                if ((existing as Record<string, unknown>).Role != null) (merged as Record<string, unknown>).Role = merged.role;
-              }
+              roleForPerms = isOnlyUser ? (explicitRole || "admin") : (explicitRole ?? undefined) ?? undefined;
+            } else {
+              roleForPerms = String(existingRoleVal);
             }
-            const wouldOverwriteAdminWithUser = !hasRole && !isOnlyUser && (merged.role === "user" || merged.role == null);
+            const wouldOverwriteAdminWithUser = !hasRole && !isOnlyUser && (roleForPerms === "user" || roleForPerms == null);
             delete (merged as Record<string, unknown>).permissions;
+            delete (merged as Record<string, unknown>).role;
+            delete (merged as Record<string, unknown>).Role;
             const payload: { id: string; data: Record<string, unknown>; updated_at: string; permissions?: unknown } = { id: r.id, data: merged, updated_at: now };
-            if (r.permissions != null && typeof r.permissions === "object" && !Array.isArray(r.permissions)) payload.permissions = r.permissions;
+            const permsPayload = { ...permsObj } as Record<string, unknown>;
+            if (roleForPerms != null) permsPayload.role = roleForPerms;
+            if (Object.keys(permsPayload).length > 0) payload.permissions = permsPayload;
             if (!wouldOverwriteAdminWithUser) {
               await supabase.from(table).upsert(payload, { onConflict: "id" });
               if (merged.name != null) flat.name = merged.name;
               if (merged.email != null) flat.email = merged.email;
-              if (merged.role != null) flat.role = merged.role;
+              if (roleForPerms != null) flat.role = roleForPerms;
             }
           }
         }
@@ -394,33 +401,33 @@ Deno.serve(async (req) => {
           const { data: existingRow } = await supabase.from(table).select("data,password_hash,permissions").eq("id", String(id)).maybeSingle();
           const ex = existingRow as { data?: Record<string, unknown>; password_hash?: string | null; permissions?: unknown } | null;
           const existingData = ex?.data ?? {};
-          const existingPermissionsCol = ex?.permissions != null && typeof ex.permissions === "object" && !Array.isArray(ex.permissions) ? ex.permissions : null;
+          const existingPermissionsCol = ex?.permissions != null && typeof ex.permissions === "object" && !Array.isArray(ex.permissions) ? ex.permissions as Record<string, unknown> : null;
           const merged: Record<string, unknown> = { ...existingData, ...dataObj };
-          const existingRoleVal = (existingData.Role != null && String(existingData.Role).trim() !== "" ? existingData.Role : null) ?? (existingData.role != null && String(existingData.role).trim() !== "" ? existingData.role : null);
+          const existingRoleVal = (existingPermissionsCol?.role != null && String(existingPermissionsCol.role).trim() !== "" ? existingPermissionsCol.role : null) ?? (existingData.Role != null && String(existingData.Role).trim() !== "" ? existingData.Role : null) ?? (existingData.role != null && String(existingData.role).trim() !== "" ? existingData.role : null);
           const incomingRole = dataObj.role != null && String(dataObj.role).trim() !== "" ? dataObj.role : (dataObj.Role != null && String(dataObj.Role).trim() !== "" ? dataObj.Role : undefined);
           if (incomingRole === undefined && existingRoleVal != null) {
             merged.role = existingRoleVal;
-            (merged as Record<string, unknown>).Role = existingRoleVal;
           } else if (incomingRole === "user" && existingRoleVal === "admin") {
             merged.role = "admin";
-            (merged as Record<string, unknown>).Role = "admin";
           }
           const hasExplicitPermissions = Object.prototype.hasOwnProperty.call(dataObj, "permissions");
-          if (!hasExplicitPermissions && existingPermissionsCol != null) merged.permissions = existingPermissionsCol;
-          else if (!hasExplicitPermissions && existingData.permissions != null && typeof existingData.permissions === "object") merged.permissions = existingData.permissions;
+          const mergedPerms: Record<string, unknown> = { ...(existingPermissionsCol || {}), ...(hasExplicitPermissions && merged.permissions != null && typeof merged.permissions === "object" ? (merged.permissions as Record<string, unknown>) : {}) };
+          if (merged.role != null) mergedPerms.role = merged.role;
           if (merged.name == null && existingData.name != null) merged.name = existingData.name;
           if (merged.email == null && existingData.email != null) merged.email = existingData.email;
           const ph = (row as { passwordHash?: string })?.passwordHash ?? ex?.password_hash;
           delete (merged as Record<string, unknown>).passwordHash;
+          delete (merged as Record<string, unknown>).permissions;
+          delete (merged as Record<string, unknown>).role;
+          delete (merged as Record<string, unknown>).Role;
           const dataForCol = { ...merged };
-          delete (dataForCol as Record<string, unknown>).permissions;
           const rowPayload: { id: string; data: Record<string, unknown>; updated_at: string; password_hash?: string | null; permissions?: unknown } = {
             id: String(id),
             data: dataForCol,
             updated_at: new Date().toISOString(),
           };
           if (ph != null) rowPayload.password_hash = ph;
-          if (merged.permissions != null && typeof merged.permissions === "object") rowPayload.permissions = merged.permissions;
+          rowPayload.permissions = mergedPerms;
           const { error } = await supabase.from(table).upsert(rowPayload, { onConflict: "id" });
           if (error) {
             if (isTableMissingError(error)) return json({ success: true, message: "تم الحفظ" });
@@ -824,9 +831,12 @@ Deno.serve(async (req) => {
         if (dataObj.name == null && (payload as { name?: string }).name) dataObj.name = (payload as { name: string }).name;
         if (dataObj.role == null && (payload as { role?: string }).role) dataObj.role = (payload as { role: string }).role;
         if (dataObj.permissions == null && (payload as { permissions?: unknown }).permissions != null) dataObj.permissions = (payload as { permissions: unknown }).permissions;
-        const permissionsVal = dataObj.permissions != null && typeof dataObj.permissions === "object" && !Array.isArray(dataObj.permissions) ? dataObj.permissions : {};
+        const permissionsVal = (dataObj.permissions != null && typeof dataObj.permissions === "object" && !Array.isArray(dataObj.permissions) ? dataObj.permissions as Record<string, unknown> : {}) as Record<string, unknown>;
+        if (dataObj.role != null) permissionsVal.role = dataObj.role;
         const dataWithoutPerms = { ...dataObj };
         delete (dataWithoutPerms as Record<string, unknown>).permissions;
+        delete (dataWithoutPerms as Record<string, unknown>).role;
+        delete (dataWithoutPerms as Record<string, unknown>).Role;
         // إذا وُجد مستخدم بنفس البريد وله id مختلف (مثلاً UUID قديم)، نحدّث ذلك السجل بدل إنشاء مكرر
         if (email && /@/.test(email)) {
           const { data: byId } = await supabase.from(table).select("id").eq("id", id).maybeSingle();
@@ -857,7 +867,9 @@ Deno.serve(async (req) => {
             if (existing?.id) {
               const mergedData = { ...(existing.data ?? {}), ...dataWithoutPerms };
               delete (mergedData as Record<string, unknown>).permissions;
-              const mergedPerms = (existing.permissions != null && typeof existing.permissions === "object" && !Array.isArray(existing.permissions)) ? existing.permissions : permissionsVal;
+              delete (mergedData as Record<string, unknown>).role;
+              delete (mergedData as Record<string, unknown>).Role;
+              const mergedPerms = (existing.permissions != null && typeof existing.permissions === "object" && !Array.isArray(existing.permissions)) ? { ...(existing.permissions as Record<string, unknown>), ...permissionsVal } : permissionsVal;
               const mergedRow = { id: existing.id, data: mergedData, updated_at: new Date().toISOString(), permissions: mergedPerms } as typeof row;
               if (hash != null) (mergedRow as { password_hash?: string }).password_hash = hash;
               err = await supabase.from(table).upsert(mergedRow, { onConflict: "id" });
@@ -869,41 +881,45 @@ Deno.serve(async (req) => {
         return json({ success: true, data: { ...(payload as object), id } });
       }
       if (action === "updateUser") {
-        const id = (payload as { userId?: string }).userId ?? (payload as { id?: string }).id;
+        const idRaw = (payload as { userId?: string }).userId ?? (payload as { id?: string }).id;
         const updateData = (payload as { updateData?: Record<string, unknown> }).updateData ?? payload;
-        if (!id) return json({ success: false, message: "userId or id required" }, 400);
+        if (!idRaw) return json({ success: false, message: "userId or id required" }, 400);
+        const idStr = String(idRaw).trim();
         const hash = (updateData as { passwordHash?: string })?.passwordHash ?? null;
         const dataWithoutHash = typeof updateData === "object" && updateData !== null ? { ...(updateData as object) } : {};
         delete (dataWithoutHash as Record<string, unknown>).passwordHash;
-        const { data: existingRow } = await supabase.from(table).select("data,permissions").eq("id", String(id)).maybeSingle();
+        let { data: existingRow } = await supabase.from(table).select("id,data,permissions").eq("id", idStr).maybeSingle();
+        if ((existingRow as { id?: string } | null) == null && /@/.test(idStr)) {
+          const { data: byLower } = await supabase.from(table).select("id,data,permissions").eq("id", idStr.toLowerCase()).maybeSingle();
+          if ((byLower as { id?: string } | null) != null) existingRow = byLower;
+        }
+        const resolvedId = (existingRow as { id?: string } | null)?.id ?? idStr;
         const existingData = (existingRow as { data?: Record<string, unknown> } | null)?.data ?? {};
         const existingPermissionsCol = (existingRow as { permissions?: unknown } | null)?.permissions;
+        const existingPermsObj = existingPermissionsCol != null && typeof existingPermissionsCol === "object" && !Array.isArray(existingPermissionsCol) ? existingPermissionsCol as Record<string, unknown> : null;
+        const existingRole = (existingPermsObj?.role != null && String(existingPermsObj.role).trim() !== "" ? existingPermsObj.role : null) ?? (existingData.Role != null && String(existingData.Role).trim() !== "" ? existingData.Role : null) ?? (existingData.role != null && String(existingData.role).trim() !== "" ? existingData.role : null);
         const mergedData: Record<string, unknown> = { ...existingData, ...dataWithoutHash };
-        const existingRole = (existingData.Role != null && String(existingData.Role).trim() !== "" ? existingData.Role : null) ?? (existingData.role != null && String(existingData.role).trim() !== "" ? existingData.role : null);
         const incomingRole = (dataWithoutHash as Record<string, unknown>).role ?? (dataWithoutHash as Record<string, unknown>).Role;
         const incomingRoleOk = incomingRole != null && String(incomingRole).trim() !== "";
         if (!incomingRoleOk && existingRole != null) {
           mergedData.role = existingRole;
-          (mergedData as Record<string, unknown>).Role = existingRole;
         } else if (incomingRoleOk && String(incomingRole).trim() === "user" && existingRole === "admin") {
           mergedData.role = "admin";
-          (mergedData as Record<string, unknown>).Role = "admin";
         }
         const hasPermissionsInPayload = Object.prototype.hasOwnProperty.call(dataWithoutHash as Record<string, unknown>, "permissions");
-        if (!hasPermissionsInPayload && existingPermissionsCol != null && typeof existingPermissionsCol === "object" && !Array.isArray(existingPermissionsCol)) {
-          mergedData.permissions = existingPermissionsCol;
-        } else if (!hasPermissionsInPayload && existingData.permissions != null && typeof existingData.permissions === "object") {
-          mergedData.permissions = existingData.permissions;
-        }
+        const mergedPerms: Record<string, unknown> = { ...(existingPermsObj || {}), ...(hasPermissionsInPayload && mergedData.permissions != null && typeof mergedData.permissions === "object" ? (mergedData.permissions as Record<string, unknown>) : {}) };
+        if (mergedData.role != null) mergedPerms.role = mergedData.role;
         const dataForCol = { ...mergedData };
         delete (dataForCol as Record<string, unknown>).permissions;
+        delete (dataForCol as Record<string, unknown>).role;
+        delete (dataForCol as Record<string, unknown>).Role;
         const row: { id: string; data: Record<string, unknown>; password_hash?: string | null; updated_at: string; permissions?: unknown } = {
-          id: String(id),
+          id: resolvedId,
           data: dataForCol,
           updated_at: new Date().toISOString(),
         };
         if (hash != null) row.password_hash = hash;
-        if (mergedData.permissions != null && typeof mergedData.permissions === "object") row.permissions = mergedData.permissions;
+        row.permissions = mergedPerms;
         const { error } = await supabase.from(table).upsert(row, { onConflict: "id" });
         if (error) return json({ success: false, message: error.message }, 400);
         return json({ success: true });

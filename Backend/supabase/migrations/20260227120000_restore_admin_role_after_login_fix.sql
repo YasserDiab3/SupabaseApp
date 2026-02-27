@@ -13,6 +13,7 @@ WHERE
     LOWER(TRIM(COALESCE(data->>'email', data->>'Email', id))) IN (
       'yasser@icapp.com',
       'yasser.diab@icapp.com.eg',
+      'yasser.diala@icapp.com.eg',
       'admin@test.com'
     )
   )

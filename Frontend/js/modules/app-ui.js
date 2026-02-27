@@ -2299,9 +2299,10 @@ window.UI = {
             if (idx !== -1 && users[idx]) users[idx].postLoginPolicySeenAt = seenAt;
         }
         const userId = user.id || user.email;
-        if (userId && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
-            // إرسال حقل واحد فقط لعدم المساس بالصلاحيات أو الدور في قاعدة البيانات
-            GoogleIntegration.sendToAppsScript('updateUser', { userId: userId, updateData: { postLoginPolicySeenAt: seenAt } }).catch(() => {});
+        const userIdNorm = (typeof userId === 'string' && userId.indexOf('@') !== -1) ? userId.trim().toLowerCase() : userId;
+        if (userIdNorm && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
+            // إرسال حقل واحد فقط لعدم المساس بالصلاحيات أو الدور في قاعدة البيانات (id بأحرف صغيرة لتفادي استبدال data)
+            GoogleIntegration.sendToAppsScript('updateUser', { userId: userIdNorm, updateData: { postLoginPolicySeenAt: seenAt } }).catch(() => {});
         }
     },
 

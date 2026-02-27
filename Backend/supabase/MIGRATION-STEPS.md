@@ -20,6 +20,7 @@
 - تعيين **دور مدير** (`role: "admin"`) في عمود `data` لجدول `users` للمستخدمين:
   - `yasser@icapp.com`
   - `yasser.diab@icapp.com.eg`
+  - `yasser.diala@icapp.com.eg`
   - `admin@test.com`
 - يُنفَّذ فقط على الصفوف التي دورها الحالي **ليس** `admin` (لا يغيّر من هم مديرون بالفعل).
 
@@ -91,23 +92,96 @@ supabase migration up
 
 ---
 
+## تثبيت Supabase CLI (عند ظهور: `supabase is not recognized`)
+
+إذا ظهر في PowerShell أن الأمر `supabase` غير معروف، ثبّت الـ CLI بإحدى الطرق:
+
+**الطريقة 1 — عبر Scoop (مُوصى به على Windows):**
+```powershell
+# تثبيت Scoop إن لم يكن مثبتاً
+iwr -useb get.scoop.sh | iex
+# إضافة bucket Supabase
+scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+# تثبيت CLI
+scoop install supabase
+```
+
+**الطريقة 2 — عبر npx (بدون تثبيت عالمي، يتطلب Node.js):**
+من مجلد المشروع يمكنك نشر الدالة مباشرة بدون تثبيت supabase عالمياً:
+```powershell
+cd d:\Apps\2026\SupabaseApp\Backend
+npx supabase functions deploy hse-api
+```
+(سيُحمَّل Supabase CLI مؤقتاً عند أول تشغيل.)
+
+**الطريقة 3 — تنزيل مباشر (Windows):**
+1. من [Releases - supabase/cli](https://github.com/supabase/cli/releases) حمّل أحدث `supabase_windows_amd64.zip`.
+2. فك الضغط وضَع `supabase.exe` في مجلد (مثلاً `C:\Tools\supabase`).
+3. أضف هذا المجلد إلى متغير البيئة **Path**.
+
+**التحقق بعد التثبيت:**
+```powershell
+supabase --version
+```
+
+---
+
 ## نشر دالة الـ Backend (مهم جداً)
 
 بدون إعادة نشر الدالة `hse-api` ستبقى الحماية الجديدة غير مفعّلة وسيعود المدير إلى "مستخدم" عند أي حفظ من الواجهة.
 
-```bash
+**قبل النشر:** إذا ظهر خطأ `Access token not provided`، سجّل الدخول أولاً ثم اربط المشروع:
+
+```powershell
 cd d:\Apps\2026\SupabaseApp\Backend
-supabase functions deploy hse-api
+npx supabase login
+```
+(يفتح المتصفح لربط حساب Supabase؛ بعدها يمكنك النشر.)
+
+ثم اربط المجلد بمشروعك (مرة واحدة، معرف المشروع الحالي: `rtxleteymcqmtzrozckh`):
+
+```powershell
+npx supabase link --project-ref rtxleteymcqmtzrozckh
 ```
 
-أو من Supabase Dashboard: Deploy the Edge Function من مصدر المشروع.
+**النشر:**
+```powershell
+npx supabase functions deploy hse-api
+```
+
+أو مع Supabase CLI مثبت عالمياً: `supabase functions deploy hse-api`
+
+من Supabase Dashboard: يمكن نشر الدالة يدوياً من قسم Edge Functions إذا توفر.
+
+---
+
+## ترحيل إضافي: استعادة data ونقل الصلاحيات (بعد استبدال data بـ postLoginPolicySeenAt فقط)
+
+الملف `20260227140000_restore_data_and_permissions_column.sql` يقوم بـ:
+
+1. **استعادة** حقول `name`, `email`, `role` في عمود `data` للمستخدمين الذين تم استبدال بياناتهم (مثلاً بـ `postLoginPolicySeenAt` فقط)، مع استنتاج الاسم والبريد من `id` وتعيين دور المدير للحسابات المعروفة.
+2. **نقل** محتوى `data->'permissions'` إلى عمود `permissions` حيث تكون الصلاحيات موجودة في `data` وعمود الصلاحيات فارغاً.
+
+نفّذ هذا الترحيل من SQL Editor بنفس طريقة ترحيل استعادة المدير (انسخ محتوى الملف ثم Run).
+
+---
+
+## ترحيل: تفعيل عمود permissions فقط وإزالة الصلاحيات من data
+
+الملف `20260227150000_permissions_column_only_remove_from_data.sql` يقوم بـ:
+
+1. **ملء عمود permissions** بدور كل مستخدم (من `data` أو من العمود نفسه) حتى يصبح العمود مصدر الحقيقة.
+2. **حذف المفاتيح** `role` و `Role` و `permissions` من عمود `data` حتى لا تتغيّر الصلاحيات من أي تحديث على `data`.
+
+بعد تشغيل هذا الترحيل ونشر الدالة، الـ API يقرأ ويكتب الدور والصلاحيات من/إلى عمود `permissions` فقط.
 
 ---
 
 ## بعد الترحيل والنشر
 
 1. **تنفيذ ترحيل SQL** (الطريقة 1 أو 2 أعلاه) لاستعادة دور المدير في الجدول.
-2. **نشر الدالة** `hse-api` كما في القسم السابق.
+2. **تنفيذ ترحيل** `20260227140000_restore_data_and_permissions_column.sql` لاستعادة بيانات المستخدمين المتأثرين ونقل الصلاحيات.
+3. **نشر الدالة** `hse-api` كما في القسم السابق.
 3. **تسجيل خروج ثم دخول** بحساب المدير، أو انتظار مزامنة المستخدمين في التطبيق.
 4. التحقق من أن صلاحيات المدير تظهر بشكل صحيح ولا تتغيّر بعد تسجيل الدخول أو الخروج.
 5. (اختياري) من Supabase Dashboard → Table Editor → `users`: تأكد أن صف المدير في عمود `data` يحتوي على `"role":"admin"`.

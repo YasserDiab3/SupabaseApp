@@ -1,0 +1,35 @@
+---
+description: عند تحديث أي ملف في الواجهة (Frontend) ارفع التغييرات إلى مخزن GitHub
+globs: Frontend/**
+alwaysApply: false
+---
+
+# رفع تحديثات الواجهة إلى GitHub
+
+## القاعدة
+
+عند إتمام **أي تحديث** على ملفات الواجهة (مجلد `Frontend/` — HTML، JS، CSS، إلخ):
+
+1. اعرض الملفات المتغيرة: `git status`
+2. أضف ملفات الواجهة المعدّلة (وما يرتبط بها من التحديث نفسه):  
+   `git add Frontend/` أو `git add <الملفات>`
+3. اعمل commit برسالة واضحة، مثلاً:
+   - `fix(frontend): وصف الإصلاح`
+   - `feat(ui): وصف الميزة`
+4. ارفع إلى GitHub: `git push -u origin main`
+
+## الأوامر (من جذر المشروع)
+
+```powershell
+cd "d:\Apps\2026\SupabaseApp"
+git add Frontend/
+git status
+git commit -m "fix(frontend): وصف التحديث"
+git push -u origin main
+```
+
+## ملاحظات
+
+- المستودع: `origin` → `https://github.com/YasserDiab3/SupabaseApp.git`
+- القاعدة تنطبق على أي تعديل داخل `Frontend/` (ملفات الواجهة فقط).
+- بعد إنهاء التعديلات على الواجهة، نفّذ الرفع دون انتظار طلب صريح من المستخدم.
