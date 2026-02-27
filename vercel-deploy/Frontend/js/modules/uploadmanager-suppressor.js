@@ -285,5 +285,5 @@
         }, true);
     }
     
-    console.log('✅ uploadmanager error suppressor loaded successfully');
+    // رسالة التحميل معطّلة لتجنب ازدحام الكونسول في الإنتاج
 })();

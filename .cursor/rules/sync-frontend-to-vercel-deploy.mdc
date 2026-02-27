@@ -1,0 +1,43 @@
+---
+description: مزامنة Frontend تلقائياً مع vercel-deploy/Frontend عند أي تحديث
+globs: Frontend/**
+alwaysApply: true
+---
+
+# مزامنة الواجهة مع مجلد النشر على Vercel
+
+## القاعدة
+
+عند إجراء **أي تحديث أو تغيير** في ملفات الواجهة (مجلد `Frontend/`):
+
+1. **مزامنة المجلد**: انسخ محتويات `Frontend/` إلى `vercel-deploy/Frontend/` بحيث يصبحان متطابقين.
+2. نفّذ المزامنة **بعد** انتهاء التعديلات وقبل الـ commit (أو معه)، حتى يُنشر آخر إصدار على Vercel.
+
+## الأمر (من جذر المشروع — PowerShell)
+
+```powershell
+cd "d:\Apps\2026\SupabaseApp"
+Copy-Item -Path "Frontend\*" -Destination "vercel-deploy\Frontend\" -Recurse -Force
+```
+
+أو مزامنة ملف/مجلد محدد بعد تعديله:
+
+```powershell
+# مثال بعد تعديل ملف واحد
+Copy-Item -Path "Frontend\js\modules\modules\clinic.js" -Destination "vercel-deploy\Frontend\js\modules\modules\clinic.js" -Force
+
+# مزامنة مجلد كامل
+Copy-Item -Path "Frontend\js\modules\*" -Destination "vercel-deploy\Frontend\js\modules\" -Recurse -Force
+```
+
+## ترتيب التنفيذ الموصى به
+
+1. إجراء التعديلات في `Frontend/`.
+2. مزامنة `Frontend/` → `vercel-deploy/Frontend/` (الأمر أعلاه).
+3. إضافة التغييرات: `git add Frontend/ vercel-deploy/Frontend/`
+4. عمل commit ورفع إلى GitHub.
+
+## ملاحظات
+
+- النشر على Vercel يعتمد على مجلد `vercel-deploy/`؛ لذلك يجب أن تحتوي `vercel-deploy/Frontend/` على نفس أحدث نسخة الواجهة.
+- لا تقم بعمل commit لتغييرات مؤقتة أو تجريبية إلا إذا طلب المستخدم ذلك.

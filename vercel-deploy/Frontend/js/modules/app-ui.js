@@ -134,6 +134,7 @@ window.UI = {
             if (s && s.parentNode) s.remove();
             var loadingEl = document.querySelector('.hse-loading-text');
             if (loadingEl && loadingEl.parentNode) loadingEl.remove();
+            if (typeof window !== 'undefined') window.__hseSessionCheckOverlayRemoved = true;
         } catch (e) { /* ignore */ }
 
         if (loginScreen) loginScreen.style.display = 'flex';
@@ -2152,13 +2153,14 @@ window.UI = {
             return;
         }
 
-        // إزالة شاشة "جاري التحقق من الجلسة" فوراً عند عرض التطبيق
+        // إزالة شاشة "جاري التحقق من الجلسة" فوراً عند عرض التطبيق (مرة واحدة فقط)
         try {
             document.body.removeAttribute('data-hse-pending-session');
             var s = document.getElementById('hse-hide-login-until-ready');
             if (s && s.parentNode) s.remove();
             var loadingEl = document.querySelector('.hse-loading-text');
             if (loadingEl && loadingEl.parentNode) loadingEl.remove();
+            if (typeof window !== 'undefined') window.__hseSessionCheckOverlayRemoved = true;
         } catch (e) { /* ignore */ }
 
         const loginScreen = document.getElementById('login-screen');
@@ -2183,7 +2185,11 @@ window.UI = {
             AppState.companySettings.postLoginItems = [];
         }
 
-        const postLoginItems = this._getPostLoginItemsForDisplay();
+        let postLoginItems = this._getPostLoginItemsForDisplay();
+        // عند إعادة التحميل/التنشيط: عدم إظهار السياسة إذا كان المستخدم قد اطّلع عليها مسبقاً
+        if (postLoginItems.length > 0 && this._currentUserHasSeenPostLoginPolicy()) {
+            postLoginItems = [];
+        }
 
         // الآن إخفاء شاشة الدخول وتهيئة العرض ثم عرض السياسة مباشرة (بدون شاشة تحضيرية داكنة)
         if (loginScreen) {
@@ -2286,7 +2292,7 @@ window.UI = {
         } catch (e) { return false; }
     },
 
-    /** تسجيل أن المستخدم الحالي قد شاهد سياسة ما بعد الدخول (حفظ في Backend + AppState) */
+    /** تسجيل أن المستخدم الحالي قد شاهد سياسة ما بعد الدخول (حفظ في Backend + AppState + الجلسة) */
     _markCurrentUserPostLoginPolicySeen() {
         const user = AppState.currentUser;
         if (!user) return;
@@ -2299,9 +2305,14 @@ window.UI = {
             if (idx !== -1 && users[idx]) users[idx].postLoginPolicySeenAt = seenAt;
         }
         const userId = user.id || user.email;
-        if (userId && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
-            // إرسال حقل واحد فقط لعدم المساس بالصلاحيات أو الدور في قاعدة البيانات
-            GoogleIntegration.sendToAppsScript('updateUser', { userId: userId, updateData: { postLoginPolicySeenAt: seenAt } }).catch(() => {});
+        const userIdNorm = (typeof userId === 'string' && userId.indexOf('@') !== -1) ? userId.trim().toLowerCase() : userId;
+        if (userIdNorm && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendToAppsScript) {
+            // إرسال حقل واحد فقط لعدم المساس بالصلاحيات أو الدور في قاعدة البيانات (id بأحرف صغيرة لتفادي استبدال data)
+            GoogleIntegration.sendToAppsScript('updateUser', { userId: userIdNorm, updateData: { postLoginPolicySeenAt: seenAt } }).catch(() => {});
+        }
+        // حفظ في الجلسة حتى لا تُعرض السياسة مرة أخرى عند إعادة التحميل
+        if (typeof window.Auth !== 'undefined' && typeof window.Auth.updateUserSession === 'function') {
+            window.Auth.updateUserSession();
         }
     },
 
@@ -2766,6 +2777,10 @@ window.UI = {
                     
                     // تحديث صلاحيات المستخدم الحالي
                     AppState.currentUser.permissions = normalizedPermissions || {};
+                    // تحديث الدور من قاعدة البيانات (يمنع بقاء المدير كـ user بعد إصلاح الصلاحيات في الخادم)
+                    if (updatedUser.role != null && String(updatedUser.role).trim() !== '') {
+                        AppState.currentUser.role = String(updatedUser.role).trim();
+                    }
                     // تحديث صورة الملف الشخصي من قاعدة البيانات (حتى تظهر بعد المزامنة أو تحديث الصفحة)
                     if (updatedUser.photo != null) AppState.currentUser.photo = updatedUser.photo;
                     

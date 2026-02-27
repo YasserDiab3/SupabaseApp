@@ -84,7 +84,13 @@
                 // المرحلة 4: واجهة المستخدم
                 await this.phaseUI();
                 
-                // المرحلة 5: الموديولات
+                // حد أقصى 2 ثانية لرسالة "جاري التحقق من الجلسة" ثم إزالتها وعدم إظهارها مرة أخرى
+                this._startSessionCheckOverlayMaxTimer(2000);
+                // انتظار Auth بحد أقصى 2 ثانية ثم التحقق من الجلسة فوراً لتسريع التحميل
+                await this._waitForAuthMax(2000);
+                this.checkAndRestoreSession();
+                
+                // المرحلة 5: الموديولات (تحميل في الخلفية بينما المستخدم يرى التطبيق أو شاشة الدخول)
                 await this.phaseModules();
                 
                 // المرحلة 6: جاهز
@@ -434,19 +440,19 @@
             // ✅ إصلاح: زيادة timeout لأن الموديولات تُحمّل بالتسلسل (async=false, defer=true)
             // Employees هو الموديول #23 من 33، لذا يحتاج وقت أطول
             const [usersModule, incidentsModule, employeesModule] = await Promise.all([
-                this.waitForModule('Users', 8000, {
+                this.waitForModule('Users', 3000, {
                     required: false,
                     checkComplete: (module) => {
                         return module && typeof module.load === 'function';
                     }
                 }),
-                this.waitForModule('Incidents', 8000, {
+                this.waitForModule('Incidents', 3000, {
                     required: false,
                     checkComplete: (module) => {
                         return module && typeof module.load === 'function';
                     }
                 }),
-                this.waitForModule('Employees', 10000, {
+                this.waitForModule('Employees', 4000, {
                     required: false,
                     checkComplete: (module) => {
                         return module && typeof module.load === 'function';
@@ -476,9 +482,7 @@
                 window.EventManager.init();
             }
             
-            // التحقق من المستخدم المحفوظ واستعادة الجلسة عند إعادة تحميل الصفحة
-            this.checkAndRestoreSession();
-            
+            // التحقق من الجلسة يُنفَّذ بعد phaseUI (قبل phaseModules) لتفادي تأخير 10–60 ثانية
             this.updateLoader(100, 'تم التحميل بنجاح!');
             
             // لا نعرض شاشة التحميل - التحميل في الخلفية
@@ -693,6 +697,42 @@
             window.dispatchEvent(event);
         },
 
+        /** إزالة شاشة "جاري التحقق من الجلسة" مرة واحدة فقط — لا تُعرض مرة أخرى */
+        _removeSessionCheckOverlay() {
+            if (window.__hseSessionCheckOverlayRemoved) return;
+            try {
+                document.body.removeAttribute('data-hse-pending-session');
+                var s = document.getElementById('hse-hide-login-until-ready');
+                if (s && s.parentNode) s.remove();
+                var loadingEl = document.querySelector('.hse-loading-text');
+                if (loadingEl && loadingEl.parentNode) loadingEl.remove();
+                window.__hseSessionCheckOverlayRemoved = true;
+            } catch (e) { /* ignore */ }
+        },
+
+        /** حد أقصى 2 ثانية لرسالة التحقق من الجلسة ثم إزالتها */
+        _startSessionCheckOverlayMaxTimer(maxMs) {
+            var self = this;
+            if (window.__hseSessionCheckOverlayTimer) return;
+            window.__hseSessionCheckOverlayTimer = setTimeout(function() {
+                window.__hseSessionCheckOverlayTimer = null;
+                self._removeSessionCheckOverlay();
+            }, maxMs);
+        },
+
+        /** انتظار تحميل Auth بحد أقصى (مثلاً 2 ثانية) لتسريع التحقق من الجلسة */
+        async _waitForAuthMax(maxMs) {
+            try {
+                await Promise.race([
+                    this.waitForModule('Auth', maxMs, {
+                        required: false,
+                        checkComplete: function(m) { return m && typeof m.login === 'function' && typeof m.checkRememberedUser === 'function'; }
+                    }),
+                    new Promise(function(_, reject) { setTimeout(function() { reject(new Error('Auth timeout')); }, maxMs); })
+                ]);
+            } catch (e) { /* Auth قد لا يكون جاهزاً بعد، التحقق من الجلسة سيعيد المحاولة */ }
+        },
+
         /**
          * التحقق من الجلسة واستعادتها (دالة مساعدة)
          */
@@ -723,6 +763,7 @@
 
             // إذا لم تكن هناك بيانات جلسة على الإطلاق بعد المحاولة، نعرض شاشة الدخول
             if (!sessionData && !rememberData) {
+                this._removeSessionCheckOverlay();
                 log('ℹ️ لا توجد جلسة محفوظة - عرض شاشة تسجيل الدخول');
                 if (typeof window.UI !== 'undefined' && typeof window.UI.showLoginScreen === 'function') {
                     window.UI.showLoginScreen();
@@ -738,7 +779,7 @@
                         // التأكد من تحميل AppState و AppState.appData قبل التحقق
                         if (typeof AppState === 'undefined' || !AppState.appData) {
                             log('⚠️ AppState أو AppState.appData غير محمل - إعادة المحاولة...');
-                            setTimeout(() => self.checkAndRestoreSession(), 500);
+                            setTimeout(() => self.checkAndRestoreSession(), 150);
                             return;
                         }
                         // مزامنة المستخدمين في الخلفية (بدون انتظار) حتى لا نفقد الجلسة إذا فشلت المزامنة أو أعادت مصفوفة فارغة
@@ -750,6 +791,7 @@
                         const isLoggedIn = window.Auth.checkRememberedUser();
                         if (isLoggedIn) {
                             self._sessionRestoreRetries = 0;
+                            self._removeSessionCheckOverlay();
                             log('✅ تم استعادة الجلسة - المستخدم مسجل دخول');
                             if (typeof window.UI !== 'undefined' && typeof window.UI.showMainApp === 'function') {
                                 window.UI.showMainApp();
@@ -757,14 +799,17 @@
                         } else {
                             const usersLoaded = Array.isArray(AppState.appData.users) && AppState.appData.users.length > 0;
                             const retryCount = (self._sessionRestoreRetries || 0);
-                            const maxRetries = 5;
+                            // عند وجود بيانات جلسة نزيد المحاولات لانتظار تحميل appData وتجنب الخروج ثم العودة
+                            const maxRetries = (sessionData || rememberData) ? 15 : 3;
+                            const retryDelay = usersLoaded ? 100 : (sessionData || rememberData ? 200 : 150);
                             if (retryCount < maxRetries) {
                                 self._sessionRestoreRetries = retryCount + 1;
                                 log('⚠️ إعادة محاولة استعادة الجلسة (' + self._sessionRestoreRetries + '/' + maxRetries + ')...');
-                                setTimeout(() => self.checkAndRestoreSession(), usersLoaded ? 300 : 400);
+                                setTimeout(() => self.checkAndRestoreSession(), retryDelay);
                                 return;
                             }
                             self._sessionRestoreRetries = 0;
+                            self._removeSessionCheckOverlay();
                             log('ℹ️ فشل استعادة الجلسة بعد ' + maxRetries + ' محاولات - عرض شاشة تسجيل الدخول');
                             if (typeof window.UI !== 'undefined' && typeof window.UI.showLoginScreen === 'function') {
                                 window.UI.showLoginScreen();
@@ -774,8 +819,9 @@
                         console.error('❌ خطأ في التحقق من المستخدم المحفوظ:', error);
                         if (sessionData || rememberData) {
                             log('⚠️ حدث خطأ لكن هناك بيانات جلسة - إعادة المحاولة...');
-                            setTimeout(() => self.checkAndRestoreSession(), 500);
+                            setTimeout(() => self.checkAndRestoreSession(), 150);
                         } else {
+                            self._removeSessionCheckOverlay();
                             if (typeof window.UI !== 'undefined' && typeof window.UI.showLoginScreen === 'function') {
                                 window.UI.showLoginScreen();
                             }
@@ -786,13 +832,12 @@
                 // إذا لم يكن Auth متاحاً، نتحقق من وجود جلسة
                 if (sessionData || rememberData) {
                     log('⚠️ Auth غير متاح لكن هناك بيانات جلسة - انتظار تحميل Auth...');
-                    // ننتظر قليلاً ثم نحاول مرة أخرى
                     setTimeout(() => {
                         this.checkAndRestoreSession();
-                    }, 500);
+                    }, 150);
                 } else {
+                    this._removeSessionCheckOverlay();
                     console.warn('⚠️ Auth.checkRememberedUser غير متاح - عرض شاشة تسجيل الدخول');
-                    // إذا لم يكن Auth متاحاً ولا توجد جلسة، نعرض شاشة تسجيل الدخول
                     if (typeof window.UI !== 'undefined' && typeof window.UI.showLoginScreen === 'function') {
                         window.UI.showLoginScreen();
                     }
