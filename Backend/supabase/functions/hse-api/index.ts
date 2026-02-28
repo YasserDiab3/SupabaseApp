@@ -210,8 +210,39 @@ Deno.serve(async (req) => {
     if (action === "saveFormSettings") {
       const data = (payload as { data?: Record<string, unknown> }).data ?? (payload as Record<string, unknown>);
       const id = (payload as { id?: string }).id ?? "default";
-      const { error } = await supabase.from("form_settings_db").upsert({ id: String(id), data: data ?? {}, updated_at: new Date().toISOString() }, { onConflict: "id" });
-      if (error) return json({ success: false, message: error.message }, 400);
+      const payloadData = (data ?? {}) as { sites?: Array<{ id: string; name: string; places?: Array<{ id: string; name: string; siteId: string }> }> };
+      const { error: errSettings } = await supabase.from("form_settings_db").upsert({ id: String(id), data: data ?? {}, updated_at: new Date().toISOString() }, { onConflict: "id" });
+      if (errSettings) return json({ success: false, message: errSettings.message }, 400);
+      const sites = Array.isArray(payloadData.sites) ? payloadData.sites : [];
+      const siteIds: string[] = [];
+      const placeIds: string[] = [];
+      for (const site of sites) {
+        if (!site || typeof site.id !== "string") continue;
+        siteIds.push(site.id);
+        const { error: errSite } = await supabase.from("form_sites").upsert({
+          id: site.id,
+          data: { id: site.id, name: site.name ?? "", places: site.places ?? [] },
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "id" });
+        if (errSite) return json({ success: false, message: "form_sites: " + errSite.message }, 400);
+        const places = Array.isArray(site.places) ? site.places : [];
+        for (const place of places) {
+          if (!place || typeof place.id !== "string") continue;
+          placeIds.push(place.id);
+          const { error: errPlace } = await supabase.from("form_places").upsert({
+            id: place.id,
+            data: { id: place.id, name: place.name ?? "", siteId: place.siteId ?? site.id },
+            updated_at: new Date().toISOString(),
+          }, { onConflict: "id" });
+          if (errPlace) return json({ success: false, message: "form_places: " + errPlace.message }, 400);
+        }
+      }
+      const allSiteIds = await supabase.from("form_sites").select("id").then((r) => (r.data ?? []).map((r: { id: string }) => r.id));
+      const toDeleteSites = (allSiteIds as string[]).filter((sid) => !siteIds.includes(sid));
+      if (toDeleteSites.length > 0) await supabase.from("form_sites").delete().in("id", toDeleteSites);
+      const allPlaceIds = await supabase.from("form_places").select("id").then((r) => (r.data ?? []).map((r: { id: string }) => r.id));
+      const toDeletePlaces = (allPlaceIds as string[]).filter((pid) => !placeIds.includes(pid));
+      if (toDeletePlaces.length > 0) await supabase.from("form_places").delete().in("id", toDeletePlaces);
       return json({ success: true });
     }
 

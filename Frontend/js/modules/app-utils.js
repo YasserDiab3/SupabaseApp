@@ -1211,11 +1211,16 @@ const Permissions = {
         }));
 
         const useSupabaseSave = AppState.useSupabaseBackend === true;
-        const canSaveToBackend = (useSupabaseSave || (AppState.googleConfig?.appsScript?.enabled && AppState.googleConfig?.appsScript?.scriptUrl)) && typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.sendToAppsScript === 'function';
-        if (canSaveToBackend) {
+        const hasGoogleScript = AppState.googleConfig?.appsScript?.enabled && AppState.googleConfig?.appsScript?.scriptUrl;
+        const canSaveToBackend = (useSupabaseSave || hasGoogleScript) && typeof GoogleIntegration !== 'undefined';
+        const sendRequest = (GoogleIntegration.sendRequest && typeof GoogleIntegration.sendRequest === 'function')
+            ? GoogleIntegration.sendRequest.bind(GoogleIntegration)
+            : null;
+        let backendSaved = false;
+        if (canSaveToBackend && sendRequest) {
             try {
                 const userData = AppState.currentUser || {};
-                const result = await GoogleIntegration.sendToAppsScript('saveFormSettings', {
+                const payload = {
                     id: 'FORM-SETTINGS-1',
                     sites: sitesForBackend,
                     departments: departments,
@@ -1226,9 +1231,12 @@ const Permissions = {
                         role: userData.role,
                         permissions: userData.permissions
                     }
-                });
+                };
+                // استخدام sendRequest لتوجيه الطلب إلى Supabase عند تفعيله أو إلى Google عند تفعيل الرابط
+                const result = await sendRequest({ action: 'saveFormSettings', data: payload });
 
                 if (result && result.success) {
+                    backendSaved = true;
                     Utils.safeLog('✅ تم حفظ إعدادات النماذج في قاعدة البيانات بنجاح');
                 } else {
                     Utils.safeWarn('⚠️ فشل حفظ إعدادات النماذج في قاعدة البيانات:', result?.message);
@@ -1251,7 +1259,13 @@ const Permissions = {
             safetyTeam: safetyTeam.length
         });
 
-        Notification.success('تم حفظ إعدادات النماذج بنجاح.');
+        if (backendSaved) {
+            Notification.success('تم حفظ إعدادات النماذج في قاعدة البيانات بنجاح.');
+        } else if (!canSaveToBackend) {
+            Notification.success('تم حفظ إعدادات النماذج محلياً. فعّل الاتصال بقاعدة البيانات من الإعدادات لتسجيلها في السحابة.');
+        } else {
+            Notification.warning('تم الحفظ محلياً، لكن لم يتم التسجيل في قاعدة البيانات. تحقق من الاتصال والإعدادات.');
+        }
 
         // تحديث الحالة من البيانات المحفوظة بدل إعادة التحميل من الخادم (لتجنب استبدال الأماكن إذا تأخرت قاعدة البيانات)
         if (this.formSettingsState) {

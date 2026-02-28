@@ -361,6 +361,7 @@ const DataManager = {
     /**
      * حفظ البيانات المحلية في localStorage
      * ملاحظة: حفظ البيانات المحلية فقط - المزامنة مع قاعدة البيانات تتم تلقائياً عبر autoSave
+     * عند امتلاء التخزين (QuotaExceeded) يُعرض إشعار واحد مع تهدئة 5 دقائق لتجنب التكرار.
      */
     save() {
         try {
@@ -370,16 +371,29 @@ const DataManager = {
                 return false;
             }
             
-            // استخدام safeStringify لتجنب الأخطاء في التسلسل
             const serialized = Utils.safeStringify(AppState.appData);
-            if (!serialized || serialized.length > 10 * 1024 * 1024) { // 10MB limit
-                Utils.safeWarn('⚠️ حجم البيانات كبير جداً - قد يفشل الحفظ في localStorage');
+            if (!serialized) {
                 return false;
             }
-            localStorage.setItem('hse_app_data', serialized);
+            // تجنب محاولة حفظ نصوص ضخمة جداً (أعلى من حد المتصفح المعتاد) التي قد تبطئ الواجهة
+            const MAX_SAFE_SIZE = 4.5 * 1024 * 1024; // ~4.5MB - أقل من حد 5MB المعتاد لأصل واحد
+            if (serialized.length > MAX_SAFE_SIZE) {
+                Utils.safeWarn('⚠️ حجم البيانات كبير جداً (' + Math.round(serialized.length / 1024 / 1024 * 10) / 10 + 'MB) - سيتم الاعتماد على المزامنة مع قاعدة البيانات');
+                // عدم رفض الحفظ مسبقاً قد يسبب ظهور رسالة "التخزين ممتلئ" دون داعٍ؛ نجرّب الحفظ مرة واحدة
+                try {
+                    localStorage.setItem('hse_app_data', serialized);
+                } catch (e) {
+                    if (e.name === 'QuotaExceededError' || e.code === 22 || (e.message && (e.message.includes('QuotaExceeded') || e.message.includes('quota')))) {
+                        if (this._tryFreeSpaceAndRetry(serialized)) return true;
+                        this._showQuotaWarningOnce();
+                    }
+                    return false;
+                }
+            } else {
+                localStorage.setItem('hse_app_data', serialized);
+            }
             this.saveCompanySettings();
             
-            // ✅ إضافة: حفظ syncMeta
             if (AppState.syncMeta) {
                 try {
                     localStorage.setItem('hse_sync_meta', Utils.safeStringify(AppState.syncMeta));
@@ -387,11 +401,8 @@ const DataManager = {
                     Utils.safeWarn('⚠️ فشل حفظ syncMeta:', e);
                 }
             }
-            
-            // ملاحظة: حفظ البيانات المحلية فقط - المزامنة مع قاعدة البيانات تتم تلقائياً عبر autoSave
             return true;
         } catch (error) {
-            // ✅ تحديد سبب الفشل ومعالجته دون إظهار رسالة مخيفة عند الدخول للموديولات
             const isQuotaExceeded = (error.name === 'QuotaExceededError' || (error.code === 22)) || (error.message && (error.message.includes('QuotaExceeded') || error.message.includes('quota')));
             const isSecurityError = (error.name === 'SecurityError' || (error.code === 18)) || (error.message && error.message.toLowerCase().includes('security'));
             const isStackOverflow = error.message && (error.message.includes('Maximum call stack') || error.message.includes('stack overflow'));
@@ -399,20 +410,62 @@ const DataManager = {
             Utils.safeError('❌ خطأ في حفظ البيانات المحلية:', error.name || error.code, error.message);
             
             if (isStackOverflow) {
-                // عدم إظهار أي إشعار للمستخدم — المزامنة تتم تلقائياً عند الاتصال
                 return false;
             }
             if (isQuotaExceeded) {
-                // عدم إظهار أي إشعار للمستخدم — المزامنة تتم تلقائياً عند الاتصال
+                const serializedRetry = (AppState && AppState.appData) ? Utils.safeStringify(AppState.appData) : null;
+                if (this._tryFreeSpaceAndRetry(serializedRetry)) return true;
+                this._showQuotaWarningOnce();
                 return false;
             }
             if (isSecurityError) {
-                // وضع التصفح الخاص أو localStorage معطّل - لا نزعج المستخدم
                 Utils.safeWarn('⚠️ التخزين المحلي غير متاح (وضع خاص أو إعدادات المتصفح)');
                 return false;
             }
-            // أخطاء أخرى: عدم إظهار إشعار للمستخدم
             return false;
+        }
+    },
+
+    /**
+     * محاولة تحرير مساحة في localStorage ثم إعادة حفظ البيانات الأساسية
+     * @param {string} serialized - البيانات المُسلسلة لـ hse_app_data
+     * @returns {boolean} true إذا تم الحفظ بنجاح بعد تحرير المساحة
+     */
+    _tryFreeSpaceAndRetry(serialized) {
+        try {
+            localStorage.removeItem('hse_sync_meta');
+            var keysToFree = ['hse_company_logo', 'company_logo'];
+            keysToFree.forEach(function (k) {
+                try { localStorage.removeItem(k); } catch (e) {}
+            });
+            if (serialized) {
+                localStorage.setItem('hse_app_data', serialized);
+                return true;
+            }
+            if (AppState && AppState.appData) {
+                var again = Utils.safeStringify(AppState.appData);
+                if (again) {
+                    localStorage.setItem('hse_app_data', again);
+                    return true;
+                }
+            }
+        } catch (e) {
+            Utils.safeWarn('⚠️ فشل الحفظ بعد تحرير المساحة:', e);
+        }
+        return false;
+    },
+
+    /**
+     * إظهار تحذير امتلاء التخزين مرة واحدة كل 5 دقائق لتجنب إزعاج المستخدم
+     */
+    _showQuotaWarningOnce() {
+        const now = Date.now();
+        if (now - this._quotaWarningLastShown < this._QUOTA_WARNING_COOLDOWN_MS) {
+            return;
+        }
+        this._quotaWarningLastShown = now;
+        if (typeof Notification !== 'undefined') {
+            Notification.warning('التخزين المحلي ممتلئ. سيتم المزامنة مع قاعدة البيانات عند الاتصال.', { duration: 8000 });
         }
     },
 
