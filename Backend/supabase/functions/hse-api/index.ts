@@ -210,28 +210,33 @@ Deno.serve(async (req) => {
     if (action === "saveFormSettings") {
       const data = (payload as { data?: Record<string, unknown> }).data ?? (payload as Record<string, unknown>);
       const id = (payload as { id?: string }).id ?? "default";
-      const payloadData = (data ?? {}) as { sites?: Array<{ id: string; name: string; places?: Array<{ id: string; name: string; siteId: string }> }> };
+      const payloadData = (data ?? {}) as { sites?: Array<{ id?: string | number; name?: string; places?: Array<{ id?: string | number; name?: string; siteId?: string }> }> };
       const { error: errSettings } = await supabase.from("form_settings_db").upsert({ id: String(id), data: data ?? {}, updated_at: new Date().toISOString() }, { onConflict: "id" });
       if (errSettings) return json({ success: false, message: errSettings.message }, 400);
       const sites = Array.isArray(payloadData.sites) ? payloadData.sites : [];
       const siteIds: string[] = [];
       const placeIds: string[] = [];
       for (const site of sites) {
-        if (!site || typeof site.id !== "string") continue;
-        siteIds.push(site.id);
+        if (!site) continue;
+        const siteId = String(site.id ?? "").trim();
+        if (!siteId) continue;
+        siteIds.push(siteId);
         const { error: errSite } = await supabase.from("form_sites").upsert({
-          id: site.id,
-          data: { id: site.id, name: site.name ?? "", places: site.places ?? [] },
+          id: siteId,
+          data: { id: siteId, name: String(site.name ?? ""), places: site.places ?? [] },
           updated_at: new Date().toISOString(),
         }, { onConflict: "id" });
         if (errSite) return json({ success: false, message: "form_sites: " + errSite.message }, 400);
         const places = Array.isArray(site.places) ? site.places : [];
         for (const place of places) {
-          if (!place || typeof place.id !== "string") continue;
-          placeIds.push(place.id);
+          if (!place) continue;
+          const placeId = String(place.id ?? "").trim();
+          if (!placeId) continue;
+          placeIds.push(placeId);
+          const placeSiteId = String(place.siteId ?? siteId).trim() || siteId;
           const { error: errPlace } = await supabase.from("form_places").upsert({
-            id: place.id,
-            data: { id: place.id, name: place.name ?? "", siteId: place.siteId ?? site.id },
+            id: placeId,
+            data: { id: placeId, name: String(place.name ?? ""), siteId: placeSiteId },
             updated_at: new Date().toISOString(),
           }, { onConflict: "id" });
           if (errPlace) return json({ success: false, message: "form_places: " + errPlace.message }, 400);

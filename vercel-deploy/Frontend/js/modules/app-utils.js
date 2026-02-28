@@ -402,7 +402,9 @@ const Permissions = {
         // تحميل إعدادات النماذج (المواقع والأماكن) من قاعدة البيانات (Supabase أو الخادم)
         if (hasBackend) {
             try {
-                const result = await GoogleIntegration.sendToAppsScript('getFormSettings', {});
+                const result = useSupabase && typeof SupabaseIntegration !== 'undefined' && typeof SupabaseIntegration.sendRequest === 'function'
+                    ? await SupabaseIntegration.sendRequest({ action: 'getFormSettings', data: {} })
+                    : await (GoogleIntegration.sendRequest ? GoogleIntegration.sendRequest({ action: 'getFormSettings', data: {} }) : GoogleIntegration.sendToAppsScript('getFormSettings', {}));
                 if (result && result.success && result.data) {
                     // تحديث AppState بالبيانات من قاعدة البيانات مع التأكد من وجود الأماكن الفرعية
                     if (Array.isArray(result.data.sites) && result.data.sites.length > 0) {
@@ -1212,29 +1214,32 @@ const Permissions = {
 
         const useSupabaseSave = AppState.useSupabaseBackend === true;
         const hasGoogleScript = AppState.googleConfig?.appsScript?.enabled && AppState.googleConfig?.appsScript?.scriptUrl;
-        const canSaveToBackend = (useSupabaseSave || hasGoogleScript) && typeof GoogleIntegration !== 'undefined';
-        const sendRequest = (GoogleIntegration.sendRequest && typeof GoogleIntegration.sendRequest === 'function')
-            ? GoogleIntegration.sendRequest.bind(GoogleIntegration)
-            : null;
         let backendSaved = false;
-        if (canSaveToBackend && sendRequest) {
+        const payload = {
+            id: 'FORM-SETTINGS-1',
+            sites: sitesForBackend,
+            departments: departments,
+            safetyTeam: safetyTeam,
+            userData: (function () {
+                const u = AppState.currentUser || {};
+                return { email: u.email, name: u.name, role: u.role, permissions: u.permissions };
+            })()
+        };
+        if (useSupabaseSave && typeof SupabaseIntegration !== 'undefined' && typeof SupabaseIntegration.sendRequest === 'function') {
             try {
-                const userData = AppState.currentUser || {};
-                const payload = {
-                    id: 'FORM-SETTINGS-1',
-                    sites: sitesForBackend,
-                    departments: departments,
-                    safetyTeam: safetyTeam,
-                    userData: {
-                        email: userData.email,
-                        name: userData.name,
-                        role: userData.role,
-                        permissions: userData.permissions
-                    }
-                };
-                // استخدام sendRequest لتوجيه الطلب إلى Supabase عند تفعيله أو إلى Google عند تفعيل الرابط
-                const result = await sendRequest({ action: 'saveFormSettings', data: payload });
-
+                const result = await SupabaseIntegration.sendRequest({ action: 'saveFormSettings', data: payload });
+                if (result && result.success) {
+                    backendSaved = true;
+                    Utils.safeLog('✅ تم حفظ إعدادات النماذج في قاعدة البيانات بنجاح');
+                } else {
+                    Utils.safeWarn('⚠️ فشل حفظ إعدادات النماذج في قاعدة البيانات:', result?.message);
+                }
+            } catch (error) {
+                Utils.safeWarn('⚠️ خطأ أثناء حفظ إعدادات النماذج في قاعدة البيانات:', error);
+            }
+        } else if (hasGoogleScript && typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.sendRequest === 'function') {
+            try {
+                const result = await GoogleIntegration.sendRequest({ action: 'saveFormSettings', data: payload });
                 if (result && result.success) {
                     backendSaved = true;
                     Utils.safeLog('✅ تم حفظ إعدادات النماذج في قاعدة البيانات بنجاح');
@@ -1259,9 +1264,10 @@ const Permissions = {
             safetyTeam: safetyTeam.length
         });
 
+        const attemptedBackend = useSupabaseSave || hasGoogleScript;
         if (backendSaved) {
             Notification.success('تم حفظ إعدادات النماذج في قاعدة البيانات بنجاح.');
-        } else if (!canSaveToBackend) {
+        } else if (!attemptedBackend) {
             Notification.success('تم حفظ إعدادات النماذج محلياً. فعّل الاتصال بقاعدة البيانات من الإعدادات لتسجيلها في السحابة.');
         } else {
             Notification.warning('تم الحفظ محلياً، لكن لم يتم التسجيل في قاعدة البيانات. تحقق من الاتصال والإعدادات.');
