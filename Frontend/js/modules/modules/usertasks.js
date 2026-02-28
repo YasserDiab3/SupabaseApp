@@ -275,7 +275,7 @@ const UserTasks = {
     },
 
     /**
-     * مزامنة المهام من Google Sheets
+     * مزامنة المهام من قاعدة البيانات
      */
     async syncTasks() {
         try {
@@ -1134,11 +1134,11 @@ const UserTasks = {
                         Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
                     }
 
-                    // محاولة الحفظ في Google Sheets
+                    // محاولة الحفظ في قاعدة البيانات
                     try {
                         await GoogleIntegration.autoSave?.('UserTasks', AppState.appData.userTasks);
                     } catch (error) {
-                        Utils.safeWarn('⚠️ خطأ في حفظ التحديث في Google Sheets:', error);
+                        Utils.safeWarn('⚠️ خطأ في حفظ التحديث في قاعدة البيانات:', error);
                     }
 
                     Notification.success('تم تحديث حالة المهمة بنجاح');
@@ -1347,7 +1347,7 @@ const UserTasks = {
                 return;
             }
 
-            // محاولة الحصول من Google Sheets
+            // محاولة الحصول من قاعدة البيانات
             if (AppState.googleConfig.appsScript.enabled) {
                 try {
                     // استخدام readFromSheets بدلاً من getUsers
@@ -1363,7 +1363,7 @@ const UserTasks = {
                         return;
                     }
                 } catch (error) {
-                    Utils.safeWarn('⚠️ خطأ في تحميل المستخدمين من Google Sheets:', error);
+                    Utils.safeWarn('⚠️ خطأ في تحميل المستخدمين من قاعدة البيانات:', error);
                 }
             }
 
@@ -1738,12 +1738,12 @@ const UserTasks = {
                 throw new Error('نظام إدارة البيانات غير جاهز');
             }
 
-            // حفظ في Google Sheets إذا كان مفعلاً
+            // حفظ في قاعدة البيانات إذا كان مفعلاً
             if (AppState.googleConfig && AppState.googleConfig.appsScript && AppState.googleConfig.appsScript.enabled) {
                 try {
                     await GoogleIntegration.autoSave?.('UserTasks', AppState.appData.userTasks);
                 } catch (error) {
-                    Utils.safeWarn('⚠️ خطأ في حفظ المهام في Google Sheets:', error);
+                    Utils.safeWarn('⚠️ خطأ في حفظ المهام في قاعدة البيانات:', error);
                 }
             }
 
@@ -1924,12 +1924,12 @@ const UserTasks = {
                     Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
                 }
 
-                // حذف من Google Sheets إذا كان مفعلاً
+                // حذف من قاعدة البيانات إذا كان مفعلاً
                 if (AppState.googleConfig.appsScript.enabled) {
                     try {
                         await GoogleIntegration.autoSave?.('UserTasks', AppState.appData.userTasks);
                     } catch (error) {
-                        Utils.safeWarn('⚠️ خطأ في حذف المهمة من Google Sheets:', error);
+                        Utils.safeWarn('⚠️ خطأ في حذف المهمة من قاعدة البيانات:', error);
                     }
                 }
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AI Assistant Service
  * مساعد الذكاء الاصطناعي - للرد على الأسئلة واسترجاع البيانات
  * 
@@ -2157,3 +2157,4 @@ const AIAssistant = {
 if (typeof window !== 'undefined') {
     window.AIAssistant = AIAssistant;
 }
+

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Script to check for 404 errors and missing resources
  * Paste this in the browser console (F12) to diagnose 404 issues
  */
@@ -138,3 +138,4 @@
         checkComplete: false
     };
 })();
+

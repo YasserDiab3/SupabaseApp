@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Issue Tracking Service
  * نظام تتبع المشاكل العرضي - يعمل في كل مكان في التطبيق
  * 
@@ -576,4 +576,5 @@ const IssueTrackingService = {
 if (typeof window !== 'undefined') {
     window.IssueTrackingService = IssueTrackingService;
 }
+
 

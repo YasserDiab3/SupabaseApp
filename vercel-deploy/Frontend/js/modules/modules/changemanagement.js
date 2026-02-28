@@ -146,7 +146,7 @@ const ChangeManagement = {
         if (this.state._loadInProgress) return;
 
         if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
-            container.innerHTML = this.showEmptyState('يجب تفعيل Google Integration أولاً');
+            container.innerHTML = this.showEmptyState('يجب تفعيل الاتصال بقاعدة البيانات أولاً');
             return;
         }
 
@@ -1448,3 +1448,4 @@ ${data.map(r => '<tr>' + (Object.keys(data[0] || {})).map(k => '<td>' + safe(r[k
         }
     }
 })();
+

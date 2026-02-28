@@ -443,7 +443,7 @@ const PTW = {
     /**
      * حفظ بيانات السجل
      * @param {Object} options - خيارات الحفظ
-     * @param {boolean} options.skipSync - تجاهل المزامنة مع Google Sheets (مفيد عند التحميل الأولي)
+     * @param {boolean} options.skipSync - تجاهل المزامنة مع قاعدة البيانات (مفيد عند التحميل الأولي)
      */
     async saveRegistryData(options = {}) {
         try {
@@ -457,7 +457,7 @@ const PTW = {
             // تحديث عرض السجل إذا كان مرئياً
             this.refreshRegistryViewIfVisible();
 
-            // المزامنة مع Google Sheets (فقط إذا لم يتم تخطي المزامنة)
+            // المزامنة مع قاعدة البيانات (فقط إذا لم يتم تخطي المزامنة)
             if (!skipSync && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
                 await GoogleIntegration.autoSave('PTWRegistry', this.registryData);
             }
@@ -840,7 +840,7 @@ const PTW = {
     },
 
     /**
-     * تحميل بيانات PTWRegistry من Backend (Supabase أو Google Sheets)
+     * تحميل بيانات PTWRegistry من Backend (Supabase أو قاعدة البيانات)
      */
     async loadRegistryFromBackend() {
         try {
@@ -941,7 +941,7 @@ const PTW = {
             // تحميل إحداثيات المواقع من MapCoordinatesManager (إذا كان متاحاً)
             if (typeof MapCoordinatesManager !== 'undefined' && MapCoordinatesManager.syncFromGoogleSheets) {
                 MapCoordinatesManager.syncFromGoogleSheets().then(() => {
-                    Utils.safeLog('✅ تم مزامنة إحداثيات المواقع من Google Sheets');
+                    Utils.safeLog('✅ تم مزامنة إحداثيات المواقع من قاعدة البيانات');
                 }).catch(error => {
                     Utils.safeWarn('⚠️ تعذر مزامنة إحداثيات المواقع:', error);
                 });
@@ -3714,10 +3714,10 @@ const PTW = {
             window.DataManager.save();
         }
         
-        // حفظ في Google Sheets إذا كان متاحاً
+        // حفظ في قاعدة البيانات إذا كان متاحاً
         if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
             await GoogleIntegration.autoSave('PTW_MAP_SITES', sites).catch(err => {
-                Utils.safeWarn('⚠️ تعذر حفظ إعدادات المواقع في Google Sheets:', err);
+                Utils.safeWarn('⚠️ تعذر حفظ إعدادات المواقع في قاعدة البيانات:', err);
             });
         }
     },
@@ -7256,7 +7256,7 @@ const PTW = {
 
             Notification.success(entryId ? 'تم تحديث التصريح بنجاح' : 'تم إضافة التصريح اليدوي بنجاح');
 
-            // المزامنة في الخلفية (بدون انتظار) — حفظ السجل + التصاريح + Google Sheets
+            // المزامنة في الخلفية (بدون انتظار) — حفظ السجل + التصاريح + قاعدة البيانات
             Promise.resolve().then(() => this.saveRegistryData()).then(() => {
                 if (typeof window.DataManager !== 'undefined' && window.DataManager.save) return window.DataManager.save();
             }).then(() => {
@@ -9882,9 +9882,9 @@ const PTW = {
                         Utils.safeError('خطأ في إضافة السجل:', error);
                         return { success: false, error };
                     }),
-                // حفظ في Google Sheets
+                // حفظ في قاعدة البيانات
                 GoogleIntegration.autoSave('PTW', AppState.appData.ptw).catch(error => {
-                    Utils.safeError('خطأ في حفظ Google Sheets:', error);
+                    Utils.safeError('خطأ في حفظ قاعدة البيانات:', error);
                     return { success: false, error };
                 })
             ]).then((results) => {
@@ -10618,9 +10618,9 @@ const PTW = {
                 Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
             }
             
-            // حفظ في Google Sheets في الخلفية
+            // حفظ في قاعدة البيانات في الخلفية
             GoogleIntegration.autoSave('PTW', AppState.appData.ptw).catch(error => {
-                Utils.safeError('خطأ في حفظ Google Sheets:', error);
+                Utils.safeError('خطأ في حفظ قاعدة البيانات:', error);
             });
 
             if (action === 'approved') {
@@ -11046,7 +11046,7 @@ const PTW = {
             } else {
                 Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
             }
-            // حظ تلقائي ي Google Sheets
+            // حظ تلقائي ي قاعدة البيانات
             await GoogleIntegration.autoSave('PTW', AppState.appData.ptw);
             Loading.hide();
             Notification.success('تم حذف التصريح بنجاح');

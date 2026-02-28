@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Dashboard Module - موديول لوحة التحكم
  * تم استخراجه من app-modules.js لتحسين الأداء
  */
@@ -3050,3 +3050,4 @@ const Dashboard = {
 if (typeof window !== "undefined") {
     window.Dashboard = window.Dashboard || Dashboard;
 }
+

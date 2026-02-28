@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Chemical Management Module - مديول إدارة المواد الكيميائية
  * Chemical Register with full CRUD, file uploads, NFPA Diamond, and exports
  */
@@ -302,7 +302,7 @@ const ChemicalSafety = {
     },
 
     /**
-     * تحميل البيانات من Google Sheets
+     * تحميل البيانات من قاعدة البيانات
      */
     async loadChemicalDataAsync() {
         try {
@@ -321,7 +321,7 @@ const ChemicalSafety = {
             if (result && result.success && Array.isArray(result.data)) {
                 AppState.appData.chemicalRegister = result.data;
                 dataUpdated = true;
-                Utils.safeLog(`✅ تم تحميل ${result.data.length} سجل من Google Sheets`);
+                Utils.safeLog(`✅ تم تحميل ${result.data.length} سجل من قاعدة البيانات`);
             } else {
                 // التأكد من وجود مصفوفة فارغة إذا لم يتم تحميل البيانات
                 if (!AppState.appData.chemicalRegister) {
@@ -2372,7 +2372,7 @@ const ChemicalSafety = {
                 AppState.appData.chemicalRegister.push(formData);
             }
 
-            // حفظ في Google Sheets
+            // حفظ في قاعدة البيانات
             await GoogleIntegration.sendRequest({
                 action: 'saveToSheet',
                 data: {
@@ -2664,7 +2664,7 @@ const ChemicalSafety = {
             // حذف من AppState
             AppState.appData.chemicalRegister = AppState.appData.chemicalRegister.filter(c => c.id !== id);
 
-            // حذف من Google Sheets
+            // حذف من قاعدة البيانات
             await GoogleIntegration.sendRequest({
                 action: 'deleteFromSheet',
                 data: {
@@ -3506,3 +3506,4 @@ const ChemicalSafety = {
         }
     }
 })();
+

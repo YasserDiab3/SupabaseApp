@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 /**
  * حقن HSE_API_SECRET من متغير البيئة في js/config.js عند البناء (Netlify).
  * الاستخدام: من مجلد Frontend نفّذ node scripts/inject-secret.js
@@ -19,3 +19,4 @@ content = content.replace(
 
 fs.writeFileSync(configPath, content, 'utf8');
 console.log(secret ? '[inject-secret] تم حقن HSE_API_SECRET من متغير البيئة.' : '[inject-secret] HSE_API_SECRET غير معيّن — تم ترك القيمة فارغة.');
+

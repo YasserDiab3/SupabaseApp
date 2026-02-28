@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Contractors Module
  * تم استخراجه من app-modules.js
  */
@@ -2791,9 +2791,9 @@ const Contractors = {
         // التأكد من قراءة البيانات الكاملة من AppState قبل التعديل
         let collection = AppState.appData.approvedContractors || [];
 
-        // إذا كانت البيانات غير موجودة أو غير صحيحة، نحاول قراءتها من Google Sheets
+        // إذا كانت البيانات غير موجودة أو غير صحيحة، نحاول قراءتها من قاعدة البيانات
         if (!Array.isArray(collection) || collection.length === 0) {
-            // محاولة قراءة البيانات من Google Sheets إذا كانت متاحة
+            // محاولة قراءة البيانات من قاعدة البيانات إذا كانت متاحة
             try {
                 if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.syncData) {
                     // سنقوم بمزامنة البيانات في الخلفية ولكن لا ننتظرها
@@ -4493,7 +4493,7 @@ const Contractors = {
                     this.ensureApprovalRequestsSetup();
                     
                     // ✅ إصلاح: استخدام addContractorApprovalRequest مباشرة بدلاً من autoSave
-                    // ✅ هذا يضمن عدم حذف الطلبات الموجودة في Google Sheets
+                    // ✅ هذا يضمن عدم حذف الطلبات الموجودة في قاعدة البيانات
                     try {
                         const backendResult = await GoogleIntegration.sendRequest({
                             action: 'addContractorApprovalRequest',
@@ -4511,7 +4511,7 @@ const Contractors = {
                                 Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
                             }
                             
-                            Utils.safeLog('✅ تم حفظ طلب اعتماد التقييم في Google Sheets بنجاح');
+                            Utils.safeLog('✅ تم حفظ طلب اعتماد التقييم في قاعدة البيانات بنجاح');
                         } else {
                             // إذا فشل الحفظ في Backend، نضيف محلياً فقط
                             AppState.appData.contractorApprovalRequests.push(approvalRequest);
@@ -4523,7 +4523,7 @@ const Contractors = {
                                 Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
                             }
                             
-                            Utils.safeWarn('⚠️ فشل حفظ طلب اعتماد التقييم في Google Sheets، تم الحفظ محلياً فقط');
+                            Utils.safeWarn('⚠️ فشل حفظ طلب اعتماد التقييم في قاعدة البيانات، تم الحفظ محلياً فقط');
                         }
                     } catch (error) {
                         // في حالة الخطأ، نضيف محلياً فقط
@@ -4536,7 +4536,7 @@ const Contractors = {
                             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
                         }
                         
-                        Utils.safeWarn('⚠️ خطأ في حفظ طلب اعتماد التقييم في Google Sheets:', error);
+                        Utils.safeWarn('⚠️ خطأ في حفظ طلب اعتماد التقييم في قاعدة البيانات:', error);
                     }
 
                     Notification.success('تم إرسال طلب اعتماد التقييم بنجاح. سيتم مراجعته من قبل مدير النظام.');
@@ -5548,7 +5548,7 @@ const Contractors = {
                     } else {
                         Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
                     }
-                    // حفظ تلقائي في Google Sheets
+                    // حفظ تلقائي في قاعدة البيانات
                     await GoogleIntegration.autoSave('Contractors', AppState.appData.contractors);
 
                     // تحديث حالة الاعتماد بعد الحفظ
@@ -5590,7 +5590,7 @@ const Contractors = {
                     this.ensureApprovalRequestsSetup();
                     
                     // ✅ إصلاح: استخدام addContractorApprovalRequest مباشرة بدلاً من autoSave
-                    // ✅ هذا يضمن عدم حذف الطلبات الموجودة في Google Sheets
+                    // ✅ هذا يضمن عدم حذف الطلبات الموجودة في قاعدة البيانات
                     try {
                         const backendResult = await GoogleIntegration.sendRequest({
                             action: 'addContractorApprovalRequest',
@@ -5608,7 +5608,7 @@ const Contractors = {
                                 Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
                             }
                             
-                            Utils.safeLog('✅ تم حفظ طلب اعتماد المقاول في Google Sheets بنجاح');
+                            Utils.safeLog('✅ تم حفظ طلب اعتماد المقاول في قاعدة البيانات بنجاح');
                         } else {
                             // إذا فشل الحفظ في Backend، نضيف محلياً فقط
                             AppState.appData.contractorApprovalRequests.push(approvalRequest);
@@ -5620,7 +5620,7 @@ const Contractors = {
                                 Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
                             }
                             
-                            Utils.safeWarn('⚠️ فشل حفظ طلب اعتماد المقاول في Google Sheets، تم الحفظ محلياً فقط');
+                            Utils.safeWarn('⚠️ فشل حفظ طلب اعتماد المقاول في قاعدة البيانات، تم الحفظ محلياً فقط');
                         }
                     } catch (error) {
                         // في حالة الخطأ، نضيف محلياً فقط
@@ -5633,7 +5633,7 @@ const Contractors = {
                             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
                         }
                         
-                        Utils.safeWarn('⚠️ خطأ في حفظ طلب اعتماد المقاول في Google Sheets:', error);
+                        Utils.safeWarn('⚠️ خطأ في حفظ طلب اعتماد المقاول في قاعدة البيانات:', error);
                     }
 
                     Loading.hide();
@@ -7488,7 +7488,7 @@ const Contractors = {
             window.DataManager.save();
         }
 
-        // حفظ في Google Sheets
+        // حفظ في قاعدة البيانات
         try {
             const result = await GoogleIntegration.callBackend('addContractorDeletionRequest', deletionRequest);
             if (result && result.success) {
@@ -8521,7 +8521,7 @@ const Contractors = {
             });
 
             if (admins.length === 0) {
-                // إذا لم نجد مدراء محلياً، نحاول قراءتهم من Google Sheets
+                // إذا لم نجد مدراء محلياً، نحاول قراءتهم من قاعدة البيانات
                 try {
                     const usersResult = await GoogleIntegration.sendRequest({
                         action: 'readFromSheet',
@@ -8536,7 +8536,7 @@ const Contractors = {
                         }));
                     }
                 } catch (error) {
-                    Utils.safeWarn('فشل قراءة المستخدمين من Google Sheets:', error);
+                    Utils.safeWarn('فشل قراءة المستخدمين من قاعدة البيانات:', error);
                 }
             }
 
@@ -9584,7 +9584,7 @@ const Contractors = {
             }
 
             // ✅ إصلاح: استخدام rejectContractorApprovalRequest في Backend مباشرة
-            // ✅ هذا يضمن عدم حذف الطلبات الموجودة في Google Sheets
+            // ✅ هذا يضمن عدم حذف الطلبات الموجودة في قاعدة البيانات
             const backendResult = await GoogleIntegration.sendRequest({
                 action: 'rejectContractorApprovalRequest',
                 data: {
@@ -9609,7 +9609,7 @@ const Contractors = {
                 }
 
                 Loading.hide();
-                Utils.safeLog('✅ تم رفض طلب الاعتماد في Google Sheets بنجاح');
+                Utils.safeLog('✅ تم رفض طلب الاعتماد في قاعدة البيانات بنجاح');
             } else {
                 // إذا فشل الحفظ في Backend، نحدث محلياً فقط
                 request.status = 'rejected';
@@ -9625,7 +9625,7 @@ const Contractors = {
                 }
 
                 Loading.hide();
-                Utils.safeWarn('⚠️ فشل رفض طلب الاعتماد في Google Sheets، تم التحديث محلياً فقط');
+                Utils.safeWarn('⚠️ فشل رفض طلب الاعتماد في قاعدة البيانات، تم التحديث محلياً فقط');
                 Notification.warning('تم تحديث الطلب محلياً. سيتم المزامنة لاحقاً.');
             }
 

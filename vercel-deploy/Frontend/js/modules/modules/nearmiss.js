@@ -964,7 +964,7 @@ const NearMiss = {
         try {
             // معالجة attachments ورفعها إلى Google Drive
             if (attachments && Array.isArray(attachments) && attachments.length > 0) {
-                Loading.show('جاري رفع المرفقات إلى Google Drive...');
+                Loading.show('جاري رفع المرفقات إلى التخزين السحابي...');
                 try {
                     Utils.safeLog('NearMiss: قبل processAttachments - عدد المرفقات: ' + attachments.length);
                     if (attachments.length > 0) {
@@ -1064,7 +1064,7 @@ const NearMiss = {
             this.renderTable();
             this.refreshFilterOptions();
             
-            // 6. معالجة المهام الخلفية (Google Sheets) في الخلفية
+            // 6. معالجة المهام الخلفية (قاعدة البيانات) في الخلفية
             if (GoogleIntegration?.sendRequest) {
                 Promise.resolve().then(async () => {
                     try {
@@ -1080,10 +1080,10 @@ const NearMiss = {
                             });
                         }
                     } catch (error) {
-                        Utils.safeWarn('⚠ فشل حفظ الحوادث الوشيكة في Google Sheets:', error);
+                        Utils.safeWarn('⚠ فشل حفظ الحوادث الوشيكة في قاعدة البيانات:', error);
                     }
                 }).catch(error => {
-                    Utils.safeWarn('⚠ فشل حفظ الحوادث الوشيكة في Google Sheets:', error);
+                    Utils.safeWarn('⚠ فشل حفظ الحوادث الوشيكة في قاعدة البيانات:', error);
                 });
             }
         } catch (error) {
@@ -1271,7 +1271,7 @@ const NearMiss = {
                         data: { nearMissId: id }
                     });
                 } catch (error) {
-                    Utils.safeWarn('⚠ فشل حذف الحوادث الوشيكة من Google Sheets:', error);
+                    Utils.safeWarn('⚠ فشل حذف الحوادث الوشيكة من قاعدة البيانات:', error);
                 }
             }
             Notification.success('تم حذف الملاحظة بنجاح');

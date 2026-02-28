@@ -1,4 +1,4 @@
-// تطبيق الوضع الليلي فوراً عند تحميل الصفحة (قبل تعريف UI)
+﻿// تطبيق الوضع الليلي فوراً عند تحميل الصفحة (قبل تعريف UI)
 (function applyThemeImmediately() {
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);

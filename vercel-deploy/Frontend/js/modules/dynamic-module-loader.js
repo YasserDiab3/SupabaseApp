@@ -1,4 +1,4 @@
-/* ========================================
+﻿/* ========================================
    نظام تحميل الموديولات الديناميكية
    Dynamic Module Loader System
    ======================================== */
@@ -353,4 +353,5 @@ const DynamicModuleLoader = {
 if (typeof window !== 'undefined') {
     window.DynamicModuleLoader = DynamicModuleLoader;
 }
+
 

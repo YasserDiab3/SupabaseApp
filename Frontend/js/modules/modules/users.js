@@ -1056,7 +1056,7 @@ const Users = {
                     GoogleIntegration.immediateSyncWithRetry('addUser', addUserPayload, 3)
                         .then(addUserResult => {
                             if (addUserResult && addUserResult.success) {
-                                Utils.safeLog('✅ تم إضافة المستخدم الجديد إلى Google Sheets بنجاح');
+                                Utils.safeLog('✅ تم إضافة المستخدم الجديد إلى قاعدة البيانات بنجاح');
                                 Notification.success('تم حفظ البيانات بنجاح');
                             } else if (addUserResult && addUserResult.shouldDefer) {
                                 // فشلت جميع المحاولات - أضف إلى قائمة الانتظار
@@ -1064,16 +1064,16 @@ const Users = {
                                 if (typeof DataManager !== 'undefined' && DataManager.addToPendingSync) {
                                     DataManager.addToPendingSync('Users', AppState.appData.users);
                                 }
-                                Notification.warning('سيتم المزامنة مع Google Sheets تلقائياً لاحقاً.');
+                                Notification.warning('سيتم المزامنة مع قاعدة البيانات تلقائياً لاحقاً.');
                             } else {
                                 // خطأ في البيانات أو مشكلة أخرى
                                 Utils.safeWarn('⚠️ فشل إضافة المستخدم:', addUserResult?.message);
-                                Notification.warning('فشلت المزامنة مع Google Sheets. سيتم المحاولة لاحقاً.');
+                                Notification.warning('فشلت المزامنة مع قاعدة البيانات. سيتم المحاولة لاحقاً.');
                             }
                         })
                         .catch(addUserError => {
                             Utils.safeError('❌ خطأ غير متوقع في إضافة المستخدم:', addUserError);
-                            Notification.warning('حدث خطأ في المزامنة مع Google Sheets. سيتم المحاولة لاحقاً.');
+                            Notification.warning('حدث خطأ في المزامنة مع قاعدة البيانات. سيتم المحاولة لاحقاً.');
                         });
                 }
             } else {
@@ -1115,25 +1115,25 @@ const Users = {
                     }, 3)
                         .then(updateResult => {
                             if (updateResult && updateResult.success) {
-                                Utils.safeLog('✅ تم تحديث المستخدم في Google Sheets بنجاح');
+                                Utils.safeLog('✅ تم تحديث المستخدم في قاعدة البيانات بنجاح');
                                 Notification.success('تم حفظ البيانات بنجاح');
                             } else if (updateResult && updateResult.shouldDefer) {
                                 // فشلت جميع المحاولات - أضف إلى قائمة الانتظار
                                 Utils.safeWarn('⚠️ فشلت المزامنة بعد 3 محاولات:', updateResult?.message);
                                 GoogleIntegration.autoSave('Users', AppState.appData.users)
                                     .catch(err => Utils.safeWarn('⚠️ خطأ في autoSave:', err));
-                                Notification.warning('سيتم المزامنة مع Google Sheets تلقائياً لاحقاً.');
+                                Notification.warning('سيتم المزامنة مع قاعدة البيانات تلقائياً لاحقاً.');
                             } else {
                                 // خطأ في البيانات
                                 Utils.safeWarn('⚠️ فشل تحديث المستخدم:', updateResult?.message);
-                                Notification.warning('فشلت المزامنة مع Google Sheets. سيتم المحاولة لاحقاً.');
+                                Notification.warning('فشلت المزامنة مع قاعدة البيانات. سيتم المحاولة لاحقاً.');
                             }
                         })
                         .catch(updateError => {
                             Utils.safeError('❌ خطأ غير متوقع في تحديث المستخدم:', updateError);
                             GoogleIntegration.autoSave('Users', AppState.appData.users)
                                 .catch(err => Utils.safeWarn('⚠️ خطأ في autoSave:', err));
-                            Notification.warning('حدث خطأ في المزامنة مع Google Sheets. سيتم المحاولة لاحقاً.');
+                            Notification.warning('حدث خطأ في المزامنة مع قاعدة البيانات. سيتم المحاولة لاحقاً.');
                         });
                 }
             }

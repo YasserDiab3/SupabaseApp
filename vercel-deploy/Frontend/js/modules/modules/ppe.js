@@ -1,4 +1,4 @@
-/**
+﻿/**
  * PPE Module
  * ØªÙ… Ø§Ø³ØªØ®Ø±Ø§Ø¬Ù‡ Ù…Ù† app-modules.js
  */
@@ -1262,9 +1262,9 @@ const PPE = {
                         // 5. ✅ تحديث التبويب النشط فقط (أسرع من إعادة تحميل كامل)
                         this.refreshActiveTab();
                         
-                        // 6. معالجة المهام الخلفية (Google Sheets) في الخلفية
+                        // 6. معالجة المهام الخلفية (قاعدة البيانات) في الخلفية
                         GoogleIntegration.autoSave('PPE', AppState.appData.ppe).catch(error => {
-                            Utils.safeError('خطأ في حفظ Google Sheets:', error);
+                            Utils.safeError('خطأ في حفظ قاعدة البيانات:', error);
                         });
                     } catch (error) {
                         Notification.error('حدث خطأ: ' + error.message);
@@ -1990,14 +1990,14 @@ const PPE = {
 
                 // ✅ 3. معالجة المهام الخلفية في الخلفية (بدون انتظار)
                 Promise.allSettled([
-                    // حفظ في Google Sheets
+                    // حفظ في قاعدة البيانات
                     GoogleIntegration.autoSave('PPEMatrix', AppState.appData.employeePPEMatrix).catch(error => {
-                        Utils.safeError('خطأ في حفظ Google Sheets:', error);
+                        Utils.safeError('خطأ في حفظ قاعدة البيانات:', error);
                         return { success: false, error };
                     }),
                     // حفظ مصفوفة الموظفين أيضاً
                     GoogleIntegration.autoSave('EmployeePPEMatrixByCode', AppState.appData.employeePPEMatrixByCode).catch(error => {
-                        Utils.safeError('خطأ في حفظ مصفوفة الموظفين في Google Sheets:', error);
+                        Utils.safeError('خطأ في حفظ مصفوفة الموظفين في قاعدة البيانات:', error);
                         return { success: false, error };
                     })
                 ]).then((results) => {
@@ -2139,10 +2139,10 @@ const PPE = {
                     contentContainer.innerHTML = await this.renderPPEMatrix();
                 }
 
-                // حفظ في Google Sheets في الخلفية
+                // حفظ في قاعدة البيانات في الخلفية
                 if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
                     GoogleIntegration.autoSave('EmployeePPEMatrixByCode', AppState.appData.employeePPEMatrixByCode).catch(error => {
-                        Utils.safeError('خطأ في حفظ Google Sheets:', error);
+                        Utils.safeError('خطأ في حفظ قاعدة البيانات:', error);
                     });
                 }
             } catch (error) {

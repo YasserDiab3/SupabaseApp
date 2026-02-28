@@ -4110,7 +4110,7 @@ const DailyObservations = {
                             type="text" 
                             id="ppt-template-id-input" 
                             class="form-input font-mono text-sm" 
-                            placeholder="أدخل File ID من رابط Google Slides"
+                            placeholder="أدخل معرف الملف من رابط العرض التقديمي"
                             value="${currentTemplateId ? Utils.escapeHTML(currentTemplateId) : ''}"
                         >
                         <p class="text-xs text-gray-500 mt-2">
@@ -5820,7 +5820,7 @@ const DailyObservations = {
             
             // معالجة المرفقات ورفعها إلى Google Drive
             if (payload.attachments && Array.isArray(payload.attachments) && payload.attachments.length > 0) {
-                Loading.show('جاري رفع المرفقات إلى Google Drive...');
+                Loading.show('جاري رفع المرفقات إلى التخزين السحابي...');
                 try {
                     Utils.safeLog('DailyObservations: قبل processAttachments - عدد المرفقات: ' + payload.attachments.length);
                     if (payload.attachments.length > 0) {
@@ -5876,19 +5876,19 @@ const DailyObservations = {
                 Utils.safeError('خطأ في حفظ البيانات محلياً:', saveError);
             }
 
-            // المزامنة مع Google Sheets
+            // المزامنة مع قاعدة البيانات
             Loading.show('جاري المزامنة مع السحابة...');
             try {
                 await GoogleIntegration.autoSave('DailyObservations', AppState.appData.dailyObservations);
                 
-                // إذا تم تحديث المرفقات، نتحقق من الحفظ في Google Sheets
+                // إذا تم تحديث المرفقات، نتحقق من الحفظ في قاعدة البيانات
                 if (attachmentsUpdated) {
-                    Utils.safeLog('DailyObservations: تم حفظ البيانات مع المرفقات المحدثة إلى Google Sheets');
+                    Utils.safeLog('DailyObservations: تم حفظ البيانات مع المرفقات المحدثة إلى قاعدة البيانات');
                     Notification.success('تم رفع المرفقات ومزامنتها بنجاح');
                 }
             } catch (syncError) {
                 Utils.safeError('خطأ في المزامنة:', syncError);
-                Notification.warning('فشلت المزامنة مع Google Sheets - سيتم المحاولة لاحقاً');
+                Notification.warning('فشلت المزامنة مع قاعدة البيانات - سيتم المحاولة لاحقاً');
             } finally {
                 Loading.hide();
             }
@@ -6885,7 +6885,7 @@ const DailyObservations = {
         try {
             // التحقق من تفعيل Google Integration
             if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
-                Notification.error('يجب تفعيل Google Integration أولاً');
+                Notification.error('يجب تفعيل الاتصال بقاعدة البيانات أولاً');
                 return;
             }
 
@@ -6965,7 +6965,7 @@ const DailyObservations = {
         try {
             // التحقق من تفعيل Google Integration
             if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
-                Notification.error('يجب تفعيل Google Integration أولاً');
+                Notification.error('يجب تفعيل الاتصال بقاعدة البيانات أولاً');
                 return;
             }
 
@@ -7319,11 +7319,11 @@ const DailyObservations = {
                     Utils.safeError('خطأ في حفظ البيانات محلياً:', saveError);
                 }
                 
-                // المزامنة مع Google Sheets
+                // المزامنة مع قاعدة البيانات
                 try {
                     await GoogleIntegration.autoSave('DailyObservations', AppState.appData.dailyObservations);
                 } catch (syncError) {
-                    Utils.safeError('خطأ في المزامنة مع Google Sheets:', syncError);
+                    Utils.safeError('خطأ في المزامنة مع قاعدة البيانات:', syncError);
                 }
             }
         } catch (error) {
@@ -7598,7 +7598,7 @@ const DailyObservations = {
             'Link',
             'URL',
             'Drive Link',
-            'Google Drive Link'
+            'رابط التخزين السحابي'
         ]);
 
         // تحسين التحقق من الحقول الأساسية - السماح بوجود أي من الحقول المطلوبة

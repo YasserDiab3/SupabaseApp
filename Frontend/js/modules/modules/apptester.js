@@ -679,7 +679,7 @@ const AppTester = {
                     name: 'الربط مع الخلفية',
                     passed: true,
                     severity: null,
-                    message: 'GoogleIntegration غير متاح - تم تخطي الاختبار (سيتم استخدام البيانات المحلية)',
+                    message: 'الاتصال بقاعدة البيانات غير متاح - تم تخطي الاختبار (سيتم استخدام البيانات المحلية)',
                     recommendation: null
                 };
                 this._backendTestCache = { timestamp: Date.now(), result };
@@ -1545,7 +1545,7 @@ const AppTester = {
                         throw new Error(response?.message || 'فشل إرسال التقرير');
                     }
                 } catch (googleError) {
-                    Utils.safeWarn('فشل إرسال التقرير عبر GoogleIntegration، جاري المحاولة بطريقة بديلة:', googleError);
+                    Utils.safeWarn('فشل إرسال التقرير عبر الخادم، جاري المحاولة بطريقة بديلة:', googleError);
                     // المحاولة بطريقة بديلة
                     await this.sendReportAlternative(report);
                 }

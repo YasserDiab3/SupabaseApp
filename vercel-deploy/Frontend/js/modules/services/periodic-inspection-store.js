@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Periodic Inspection Store Service
  * Handles periodic inspection categories, records, schedules, and checklists
  */
@@ -475,4 +475,5 @@ const PeriodicInspectionStore = {
 if (typeof window !== 'undefined') {
     window.PeriodicInspectionStore = PeriodicInspectionStore;
 }
+
 

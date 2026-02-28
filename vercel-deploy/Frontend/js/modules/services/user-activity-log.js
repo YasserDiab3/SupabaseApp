@@ -1,4 +1,4 @@
-/**
+﻿/**
  * User Activity Log Service
  * Handles user activity logging with UI rendering and export functionality
  */
@@ -758,4 +758,5 @@ const UserActivityLog = {
 if (typeof window !== 'undefined') {
     window.UserActivityLog = UserActivityLog;
 }
+
 

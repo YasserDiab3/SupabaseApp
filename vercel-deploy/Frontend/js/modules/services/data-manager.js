@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Data Manager Service
  * Handles local data storage, sync queue management, and configuration persistence
  */
@@ -764,4 +764,5 @@ const DataManager = {
 if (typeof window !== 'undefined') {
     window.DataManager = DataManager;
 }
+
 

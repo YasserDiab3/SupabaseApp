@@ -560,7 +560,7 @@ const Violations = {
                 // عرض الواجهة مباشرة مع البيانات المحلية (إن وجدت)
                 contentContainer.innerHTML = this.renderBlacklistTab();
                 this.setupBlacklistEventListeners();
-                // تحميل البيانات من Google Sheets في الخلفية وتحديث الواجهة
+                // تحميل البيانات من قاعدة البيانات في الخلفية وتحديث الواجهة
                 this.loadBlacklistDataAsync().then(() => {
                     // تحديث الواجهة بعد تحميل البيانات
                     this.refreshBlacklistDisplay();
@@ -2143,10 +2143,10 @@ const Violations = {
                     Violations.load();
                 }
                 
-                // 5. معالجة المهام الخلفية (Google Sheets) في الخلفية
+                // 5. معالجة المهام الخلفية (قاعدة البيانات) في الخلفية
                 GoogleIntegration.autoSave('Violations', AppState.appData.violations).catch(err => {
-                    if (AppState.debugMode) Utils.safeWarn('خطأ في حفظ Google Sheets:', err);
-                    Notification.warning('تم الحفظ محلياً لكن فشل الحفظ في Google Sheets');
+                    if (AppState.debugMode) Utils.safeWarn('خطأ في حفظ قاعدة البيانات:', err);
+                    Notification.warning('تم الحفظ محلياً لكن فشل الحفظ في قاعدة البيانات');
                 });
 
             } catch (error) {
@@ -2552,7 +2552,7 @@ const Violations = {
 
     // ===== Blacklist Register Functions =====
     /**
-     * تحميل بيانات Blacklist من Google Sheets
+     * تحميل بيانات Blacklist من قاعدة البيانات
      */
     async loadBlacklistDataAsync() {
         try {
@@ -2571,12 +2571,12 @@ const Violations = {
             if (!isGoogleEnabled || !isGoogleIntegrationAvailable) {
                 // إذا لم يكن Google Integration متاحاً، استخدام البيانات المحلية
                 if (AppState.debugMode) {
-                    Utils.safeLog('⚠️ Google Integration غير متاح - استخدام البيانات المحلية فقط');
+                    Utils.safeLog('⚠️ الاتصال بقاعدة البيانات غير متاح - استخدام البيانات المحلية فقط');
                 }
                 return;
             }
 
-            // تحميل البيانات من Google Sheets (بدون عرض مؤشر تحميل - الواجهة تُعرض أولاً)
+            // تحميل البيانات من قاعدة البيانات (بدون عرض مؤشر تحميل - الواجهة تُعرض أولاً)
             const result = await GoogleIntegration.sendRequest({
                 action: 'readFromSheet',
                 data: {
@@ -2584,7 +2584,7 @@ const Violations = {
                     spreadsheetId: AppState.googleConfig?.sheets?.spreadsheetId
                 }
             }).catch(error => {
-                Utils.safeWarn('⚠️ تعذر تحميل بيانات Blacklist من Google Sheets:', error);
+                Utils.safeWarn('⚠️ تعذر تحميل بيانات Blacklist من قاعدة البيانات:', error);
                 return { success: false, data: [] };
             });
 
@@ -2593,7 +2593,7 @@ const Violations = {
                 AppState.appData.blacklistRegister = result.data;
                 dataUpdated = true;
                 if (AppState.debugMode) {
-                    Utils.safeLog(`✅ تم تحميل ${result.data.length} سجل Blacklist من Google Sheets`);
+                    Utils.safeLog(`✅ تم تحميل ${result.data.length} سجل Blacklist من قاعدة البيانات`);
                 }
             } else {
                 // التأكد من وجود مصفوفة فارغة إذا لم يتم تحميل البيانات
@@ -3574,12 +3574,12 @@ const Violations = {
                 window.DataManager.save();
             }
 
-            // حفظ في Google Sheets
+            // حفظ في قاعدة البيانات
             try {
                 await GoogleIntegration.autoSave('Blacklist_Register', AppState.appData.blacklistRegister);
             } catch (err) {
-                if (AppState.debugMode) Utils.safeWarn('خطأ في حفظ Google Sheets:', err);
-                Notification.warning('تم الحفظ محلياً لكن فشل الحفظ في Google Sheets');
+                if (AppState.debugMode) Utils.safeWarn('خطأ في حفظ قاعدة البيانات:', err);
+                Notification.warning('تم الحفظ محلياً لكن فشل الحفظ في قاعدة البيانات');
             }
 
             Loading.hide();
@@ -3703,12 +3703,12 @@ const Violations = {
                 window.DataManager.save();
             }
 
-            // حفظ في Google Sheets
+            // حفظ في قاعدة البيانات
             try {
                 await GoogleIntegration.autoSave('Blacklist_Register', AppState.appData.blacklistRegister);
             } catch (err) {
-                if (AppState.debugMode) Utils.safeWarn('خطأ في حفظ Google Sheets:', err);
-                Notification.warning('تم الحذف محلياً لكن فشل الحفظ في Google Sheets');
+                if (AppState.debugMode) Utils.safeWarn('خطأ في حفظ قاعدة البيانات:', err);
+                Notification.warning('تم الحذف محلياً لكن فشل الحفظ في قاعدة البيانات');
             }
 
             Loading.hide();

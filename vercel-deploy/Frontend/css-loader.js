@@ -1,4 +1,4 @@
-/**
+﻿/**
  * CSS Loader - Dynamic CSS Module Loader
  * يحمل ملفات CSS بشكل ديناميكي مع دعم Minification
  */
@@ -96,3 +96,4 @@
         loadAllCSS();
     }
 })();
+

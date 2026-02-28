@@ -1,4 +1,4 @@
-/**
+﻿/**
  * App Services - Main Loader/Index File
  * 
  * This file serves as the main entry point for all service modules.
@@ -39,7 +39,7 @@ if (typeof window !== 'undefined') {
         window.GoogleIntegration.syncSpecificSheets = async function(sheetNames = [], options = {}) {
             const { silent = false, showLoader = false, notifyOnSuccess = !silent, notifyOnError = !silent } = options;
             if (!AppState.googleConfig.appsScript.enabled || !AppState.googleConfig.appsScript.scriptUrl) {
-                if (!silent) Utils.safeLog('Google Sheets غير مفعّل');
+                if (!silent) Utils.safeLog('قاعدة البيانات غير مفعّل');
                 return false;
             }
             if (!Array.isArray(sheetNames) || sheetNames.length === 0) {
@@ -85,3 +85,4 @@ if (typeof window !== 'undefined') {
         };
     }
 }
+

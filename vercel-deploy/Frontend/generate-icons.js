@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Script to generate PWA icons from SVG template
  * Run: node generate-icons.js
  */
@@ -41,3 +41,4 @@ console.log('\nTo convert SVG to PNG, you can:');
 console.log('1. Use an online converter like https://cloudconvert.com/svg-to-png');
 console.log('2. Use ImageMagick: magick convert icon-192x192.svg icon-192x192.png');
 console.log('3. Use Inkscape: inkscape icon-192x192.svg --export-filename=icon-192x192.png');
+

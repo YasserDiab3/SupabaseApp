@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Compatibility Test Script
  * سكريبت اختبار التوافق الشامل
  */
@@ -602,3 +602,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // تحديث دوري
     setInterval(updateViewportInfo, 1000);
 });
+

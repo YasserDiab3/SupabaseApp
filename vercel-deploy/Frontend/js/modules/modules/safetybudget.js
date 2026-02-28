@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SafetyBudget Module
  * ØªÙ… Ø§Ø³ØªØ®Ø±Ø§Ø¬Ù‡ Ù…Ù† app-modules.js
  */

@@ -257,7 +257,7 @@ const Permissions = {
                 // محاولة تحليل JSON أولاً
                 return JSON.parse(permissions);
             } catch (error) {
-                // إذا فشل تحليل JSON، قد تكون الصلاحيات بصيغة key: value من Google Sheets
+                // إذا فشل تحليل JSON، قد تكون الصلاحيات بصيغة key: value من مصدر البيانات
                 const trimmed = permissions.trim();
                 if (trimmed && (trimmed.includes(':') || trimmed.includes('\n'))) {
                     try {
@@ -2928,14 +2928,14 @@ const Utils = {
             return; // تجاهل هذه الأخطاء تماماً
         }
 
-        // تجاهل أخطاء "Failed to fetch" المتعلقة بـ Google Sheets عندما تكون غير مفعّلة
+        // تجاهل أخطاء "Failed to fetch" المتعلقة بقاعدة البيانات عندما تكون غير مفعّلة
         if (allText.includes('خطأ في طلب google sheets') &&
             (allText.includes('failed to fetch') || allText.includes('networkerror'))) {
-            // التحقق من حالة Google Sheets
+            // التحقق من حالة الاتصال بالخادم
             const isGoogleAppsScriptEnabled = window.AppState?.googleConfig?.appsScript?.enabled &&
                 window.AppState?.googleConfig?.appsScript?.scriptUrl;
             if (!isGoogleAppsScriptEnabled) {
-                return; // تجاهل الخطأ إذا كانت Google Sheets غير مفعّلة
+                return; // تجاهل الخطأ إذا كان الاتصال بقاعدة البيانات غير مفعّل
             }
         }
 
@@ -3087,19 +3087,19 @@ const Utils = {
      * تسجيل تحذيرات آمن
      */
     safeWarn(...args) {
-        // تجاهل التحذيرات المتعلقة بـ Google Sheets و Chrome Extensions
+        // تجاهل التحذيرات المتعلقة بقاعدة البيانات وإضافات المتصفح
         if (args.length > 0) {
             const argsStr = args.map(arg => String(arg || '')).join(' ');
             if (argsStr.includes('runtime.lastError') ||
                 argsStr.includes('message port closed') ||
                 argsStr.includes('translator') ||
-                argsStr.includes('معرف Google Sheets غير محدد') ||
-                argsStr.includes('Google Sheets ID') ||
+                argsStr.includes('معرف المصدر غير محدد') ||
+                argsStr.includes('معرف المصدر') ||
                 argsStr.includes('Spreadsheet ID') ||
                 argsStr.includes('sendRequest (saveToSheet)') ||
                 argsStr.includes('sendRequest (appendToSheet)') ||
                 argsStr.includes('sendRequest (readFromSheet)') ||
-                argsStr.includes('معرف Google Sheets غير معرف')) {
+                argsStr.includes('معرف المصدر غير معرف')) {
                 return; // تجاهل هذه التحذيرات
             }
 

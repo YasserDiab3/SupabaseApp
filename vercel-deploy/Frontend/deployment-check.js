@@ -1,4 +1,4 @@
-/**
+﻿/**
  * فحص توافق التطبيق للنشر على Cloudflare Pages و Netlify
  * Deployment Compatibility Checker
  */
@@ -198,3 +198,4 @@
     window.DeploymentChecker = DeploymentChecker;
     
 })();
+

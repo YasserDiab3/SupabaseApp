@@ -302,7 +302,7 @@ const BehaviorMonitoring = {
             // معالجة نتائج البيانات
             if (behaviorResult && behaviorResult.success && Array.isArray(behaviorResult.data)) {
                 AppState.appData.behaviorMonitoring = behaviorResult.data;
-                Utils.safeLog(`✅ تم تحميل ${behaviorResult.data.length} سجل من Google Sheets`);
+                Utils.safeLog(`✅ تم تحميل ${behaviorResult.data.length} سجل من قاعدة البيانات`);
                 
                 // تحديث التبويب الحالي بعد تحميل البيانات
                 this.refreshCurrentTab();
@@ -314,7 +314,7 @@ const BehaviorMonitoring = {
             }
         } catch (error) {
             const errorMsg = error.message || error.toString() || '';
-            Utils.safeError('❌ خطأ في تحميل بيانات مراقبة السلوك من Google Sheets:', error);
+            Utils.safeError('❌ خطأ في تحميل بيانات مراقبة السلوك من قاعدة البيانات:', error);
             
             // عرض رسالة خطأ واضحة للمستخدم
             if (errorMsg.includes('انتهت مهلة الاتصال') || errorMsg.includes('timeout')) {
@@ -1282,7 +1282,7 @@ const BehaviorMonitoring = {
                 Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
             }
 
-            // حفظ تلقائي في Google Sheets
+            // حفظ تلقائي في قاعدة البيانات
             await GoogleIntegration.autoSave('BehaviorMonitoring', AppState.appData.behaviorMonitoring);
 
             Loading.hide();

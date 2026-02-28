@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Script to reduce !important usage in CSS
  * يحلل ويقلل استخدام !important في ملف CSS
  */
@@ -117,3 +117,4 @@ fs.writeFileSync(
 );
 
 console.log('\n📊 Detailed report saved to: important-usage-report.json');
+

@@ -5,7 +5,7 @@
 
 /**
  * نظام إدارة المزامنة اللحظية للبيانات بين المستخدمين
- * يقوم بجلب التحديثات من Google Sheets بشكل دوري
+ * يقوم بجلب التحديثات من قاعدة البيانات بشكل دوري
  * ويعرضها للمستخدمين الآخرين بدون الحاجة لإعادة تحميل الصفحة
  */
 const realtimeSyncLog = (...args) => {
@@ -277,7 +277,7 @@ const RealtimeSyncManager = {
                     user: AppState.currentUser?.email
                 });
 
-                // مزامنة الموديول بعد ثانيتين للتأكد من حفظ البيانات في Google Sheets
+                // مزامنة الموديول بعد ثانيتين للتأكد من حفظ البيانات في قاعدة البيانات
                 setTimeout(() => {
                     this.syncModule(module, false);
                 }, 2000);
@@ -531,7 +531,7 @@ const RealtimeSyncManager = {
                 return false;
             }
 
-            // جلب البيانات من Google Sheets
+            // جلب البيانات من قاعدة البيانات
             const result = await GoogleIntegration.sendRequest({
                 action: 'readFromSheet',
                 data: {

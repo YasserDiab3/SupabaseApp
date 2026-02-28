@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Service Worker for HSE Management System
  * يدير التخزين المؤقت للملفات لتحسين الأداء
  */
@@ -767,3 +767,4 @@ self.addEventListener('unhandledrejection', (event) => {
     // منع عرض رفض الوعود غير المعالجة في Console
     event.preventDefault();
 });
+

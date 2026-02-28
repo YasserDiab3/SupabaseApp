@@ -1,7 +1,7 @@
 ﻿// ===== Inline Authentication Helper Functions =====
 // ملاحظة أمنية (إنتاج):
 // - لا يتم إنشاء أي "حسابات افتراضية" أو كلمات مرور داخل الكود.
-// - يجب إنشاء المستخدمين (وخاصة المدير الأول) عبر Google Sheets/لوحة المستخدمين.
+// - يجب إنشاء المستخدمين (وخاصة المدير الأول) عبر قاعدة البيانات/لوحة المستخدمين.
 
 /**
  * تحويل كلمات المرور النصية إلى مشفرة
@@ -54,3 +54,4 @@ async function migrateUsersToHashedPasswords() {
 if (typeof window !== 'undefined') {
     window.migrateUsersToHashedPasswords = migrateUsersToHashedPasswords;
 }
+

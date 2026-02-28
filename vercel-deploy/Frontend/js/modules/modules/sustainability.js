@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Sustainability Module - Environmental Resource Management
  * مديول الاستدامة البيئية - إدارة استهلاك الموارد
  * 
@@ -122,14 +122,14 @@ const Sustainability = {
             };
         }
 
-        // تحميل بيانات استهلاك الموارد من Google Sheets (في الخلفية)
+        // تحميل بيانات استهلاك الموارد من قاعدة البيانات (في الخلفية)
         this.loadResourceConsumptionFromSheets().catch(error => {
-            Utils.safeWarn('⚠️ تعذر تحميل بيانات استهلاك الموارد من Google Sheets:', error);
+            Utils.safeWarn('⚠️ تعذر تحميل بيانات استهلاك الموارد من قاعدة البيانات:', error);
         });
 
-        // تحميل بيانات إدارة المخلفات من Google Sheets (في الخلفية)
+        // تحميل بيانات إدارة المخلفات من قاعدة البيانات (في الخلفية)
         this.loadWasteManagementFromSheets().catch(error => {
-            Utils.safeWarn('⚠️ تعذر تحميل بيانات إدارة المخلفات من Google Sheets:', error);
+            Utils.safeWarn('⚠️ تعذر تحميل بيانات إدارة المخلفات من قاعدة البيانات:', error);
         });
 
         try {
@@ -329,7 +329,7 @@ const Sustainability = {
     },
 
     /**
-     * تحديث البيانات من Google Sheets وإعادة عرض المحتوى
+     * تحديث البيانات من قاعدة البيانات وإعادة عرض المحتوى
      */
     async handleRefresh() {
         const btn = document.getElementById('sustainability-refresh-btn');
@@ -3334,7 +3334,7 @@ const Sustainability = {
     // ===== دوال مساعدة للمخلفات =====
 
     /**
-     * تحميل بيانات إدارة المخلفات من Google Sheets
+     * تحميل بيانات إدارة المخلفات من قاعدة البيانات
      */
     async loadWasteManagementFromSheets() {
         // التحقق من تفعيل Google Integration
@@ -3432,7 +3432,7 @@ const Sustainability = {
     },
 
     /**
-     * تحميل بيانات استهلاك الموارد من Google Sheets (جداول منفصلة)
+     * تحميل بيانات استهلاك الموارد من قاعدة البيانات (جداول منفصلة)
      */
     async loadResourceConsumptionFromSheets() {
         // التحقق من تفعيل Google Integration
@@ -3520,7 +3520,7 @@ const Sustainability = {
     },
 
     /**
-     * حفظ بيانات إدارة المخلفات في Google Sheets (جداول منفصلة)
+     * حفظ بيانات إدارة المخلفات في قاعدة البيانات (جداول منفصلة)
      */
     async saveWasteManagementToSheets() {
         const wasteData = AppState.appData.wasteManagement || {
@@ -3557,7 +3557,7 @@ const Sustainability = {
     },
 
     /**
-     * حفظ بيانات استهلاك الموارد في Google Sheets (جداول منفصلة)
+     * حفظ بيانات استهلاك الموارد في قاعدة البيانات (جداول منفصلة)
      */
     async saveResourceConsumptionToSheets() {
         const resourceData = AppState.appData.resourceConsumption || {
@@ -3751,3 +3751,4 @@ const Sustainability = {
         }
     }
 })();
+

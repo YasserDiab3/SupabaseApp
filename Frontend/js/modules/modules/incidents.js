@@ -329,7 +329,7 @@ const Incidents = {
             AppState.appData.incidentsRegistry = this.registryData;
             localStorage.setItem('hse_incidents_registry', Utils.safeStringify(this.registryData));
 
-            // المزامنة مع Google Sheets
+            // المزامنة مع قاعدة البيانات
             if (sync && typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
                 await GoogleIntegration.autoSave('IncidentsRegistry', this.registryData);
             }
@@ -2467,13 +2467,13 @@ const Incidents = {
                 backendSaveSuccess = true;
             }
 
-            // Auto-save to Google Sheets if enabled
+            // Auto-save to قاعدة البيانات if enabled
             if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
                 try {
                     await GoogleIntegration.autoSave('safetyAlerts', AppState.appData.safetyAlerts);
                     googleSheetsSaveSuccess = true;
                 } catch (error) {
-                    Utils.safeWarn('خطأ في حفظ Safety Alert إلى Google Sheets:', error);
+                    Utils.safeWarn('خطأ في حفظ Safety Alert إلى قاعدة البيانات:', error);
                 }
             } else {
                 googleSheetsSaveSuccess = true; // Not enabled, treat as success
@@ -2634,12 +2634,12 @@ const Incidents = {
                 }
             }
 
-            // Auto-save to Google Sheets
+            // Auto-save to قاعدة البيانات
             if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
                 try {
                     await GoogleIntegration.autoSave('safetyAlerts', AppState.appData.safetyAlerts);
                 } catch (error) {
-                    Utils.safeWarn('خطأ في حفظ Safety Alert إلى Google Sheets:', error);
+                    Utils.safeWarn('خطأ في حفظ Safety Alert إلى قاعدة البيانات:', error);
                 }
             }
 
@@ -3600,7 +3600,7 @@ const Incidents = {
     /**
      * ربط بيانات الإجازة المرضية من سجل الحوادث (الإدخال اليدوي) إلى موديول العيادة (سجل الإجازات المرضية)
      * - يسجل محلياً في AppState.appData.sickLeave
-     * - ثم يرسل إلى Google Sheets في الخلفية عبر action:addSickLeave
+     * - ثم يرسل إلى قاعدة البيانات في الخلفية عبر action:addSickLeave
      */
     async syncClinicSickLeaveFromRegistryEntry(entry, options = {}) {
         try {
@@ -3693,7 +3693,7 @@ const Incidents = {
                     await GoogleIntegration.sendRequest({ action: 'addSickLeave', data: payload });
                 }
             } catch (syncError) {
-                Utils.safeWarn('⚠️ فشل مزامنة الإجازة المرضية مع Google Sheets:', syncError);
+                Utils.safeWarn('⚠️ فشل مزامنة الإجازة المرضية مع قاعدة البيانات:', syncError);
             }
 
             return true;
@@ -6218,7 +6218,7 @@ const Incidents = {
                 }
             }
 
-            // حفظ تلقائي في Google Sheets
+            // حفظ تلقائي في قاعدة البيانات
             await GoogleIntegration.autoSave('Incidents', AppState.appData.incidents);
 
             // إنشاء إجراءات تلقائية في Action Tracking إذا كانت هناك إجراءات في خطة الإجراءات
@@ -6822,7 +6822,7 @@ const Incidents = {
                 } : null
             };
 
-            // حفظ الإخطار في Google Sheets
+            // حفظ الإخطار في قاعدة البيانات
             if (!AppState.appData.incidentNotifications) {
                 AppState.appData.incidentNotifications = [];
             }
@@ -7238,21 +7238,21 @@ const Incidents = {
     // معالجة المهام الخلفية بعد حفظ الإخطار
     async processNotificationBackgroundTasks(notificationData, investigationData) {
         try {
-            // حفظ الإخطار في Google Sheets عبر Backend
+            // حفظ الإخطار في قاعدة البيانات عبر Backend
             const notificationResult = await GoogleIntegration.sendRequest({
                 action: 'addIncidentNotification',
                 data: notificationData
             });
 
             if (notificationResult && notificationResult.success) {
-                Utils.safeLog('✅ تم حفظ الإخطار في Google Sheets بنجاح');
+                Utils.safeLog('✅ تم حفظ الإخطار في قاعدة البيانات بنجاح');
             } else {
-                Utils.safeWarn('⚠️ فشل حفظ الإخطار في Google Sheets، سيتم المحاولة عبر autoSave');
+                Utils.safeWarn('⚠️ فشل حفظ الإخطار في قاعدة البيانات، سيتم المحاولة عبر autoSave');
                 // Fallback: استخدام autoSave
                 await GoogleIntegration.autoSave('IncidentNotifications', AppState.appData.incidentNotifications);
             }
 
-            // إضافة التحقيق إلى Google Sheets
+            // إضافة التحقيق إلى قاعدة البيانات
             await GoogleIntegration.sendRequest({
                 action: 'addIncident',
                 data: investigationData
@@ -7484,7 +7484,7 @@ const Incidents = {
                 Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
             }
 
-            // حذف من Google Sheets
+            // حذف من قاعدة البيانات
             if (deletedIncident) {
                 // إرسال بيانات المستخدم للتحقق من الصلاحيات في Backend
                 const userData = {
@@ -9553,7 +9553,7 @@ const Incidents = {
                 // مزامنة في الخلفية بدون تعطيل واجهة المستخدم
                 const safeIncidentDateIso = (this.getIncidentDateValue(incident) || new Date()).toISOString();
                 const updatePayload = {
-                    // بيانات الحادث الأساسية (مطلوبة في حالة عدم وجود الحادث في Google Sheets)
+                    // بيانات الحادث الأساسية (مطلوبة في حالة عدم وجود الحادث في قاعدة البيانات)
                     id: incident.id,
                     title: incident.title || 'حادث بدون عنوان',
                     description: incident.description || '',

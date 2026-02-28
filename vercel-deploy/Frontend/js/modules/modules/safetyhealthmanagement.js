@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SafetyHealthManagement Module
  * ØªÙ… Ø§Ø³ØªØ®Ø±Ø§Ø¬Ù‡ Ù…Ù† app-modules.js
  */
@@ -1289,7 +1289,7 @@ const SafetyHealthManagement = {
                 employee = EmployeeHelper.findByCode(employeeCode);
             }
 
-            // If not found in cache, try to fetch from Google Sheets
+            // If not found in cache, try to fetch from قاعدة البيانات
             if (!employee) {
                 try {
                     // Try to read from Employees sheet directly

@@ -1,4 +1,4 @@
-/* ========================================
+﻿/* ========================================
    نظام السلامة المهنية - أمريكانا HSE
    app-utils.js - الدوال المساعدة والثوابت
    ======================================== */
@@ -257,7 +257,7 @@ const Permissions = {
                 // محاولة تحليل JSON أولاً
                 return JSON.parse(permissions);
             } catch (error) {
-                // إذا فشل تحليل JSON، قد تكون الصلاحيات بصيغة key: value من Google Sheets
+                // إذا فشل تحليل JSON، قد تكون الصلاحيات بصيغة key: value من قاعدة البيانات
                 const trimmed = permissions.trim();
                 if (trimmed && (trimmed.includes(':') || trimmed.includes('\n'))) {
                     try {
@@ -2867,8 +2867,8 @@ const Utils = {
                 allArgsText.includes('upload-manager') ||
                 (allArgsText.includes('cannot read properties of undefined') && allArgsText.includes('document')) ||
                 allArgsText.includes('uploadmanager.js') ||
-                firstArgStr.includes('معرف google sheets غير محدد') ||
-                firstArgStr.includes('google sheets id') ||
+                firstArgStr.includes('معرف قاعدة البيانات غير محدد') ||
+                firstArgStr.includes('قاعدة البيانات id') ||
                 firstArgStr.includes('spreadsheet id') ||
                 firstArgStr.includes('sendrequest (savetosheet)') ||
                 firstArgStr.includes('sendrequest (appendtosheet)') ||
@@ -2897,8 +2897,8 @@ const Utils = {
                     combined.includes('upload-manager') ||
                     (combined.includes('cannot read properties of undefined') && combined.includes('document')) ||
                     combined.includes('uploadmanager.js') ||
-                    combined.includes('معرف google sheets غير محدد') ||
-                    combined.includes('google sheets id') ||
+                    combined.includes('معرف قاعدة البيانات غير محدد') ||
+                    combined.includes('قاعدة البيانات id') ||
                     combined.includes('spreadsheet id')) {
                     return; // تجاهل هذه الأخطاء
                 }
@@ -2927,14 +2927,14 @@ const Utils = {
             return; // تجاهل هذه الأخطاء تماماً
         }
 
-        // تجاهل أخطاء "Failed to fetch" المتعلقة بـ Google Sheets عندما تكون غير مفعّلة
-        if (allText.includes('خطأ في طلب google sheets') &&
+        // تجاهل أخطاء "Failed to fetch" المتعلقة بـ قاعدة البيانات عندما تكون غير مفعّلة
+        if (allText.includes('خطأ في طلب قاعدة البيانات') &&
             (allText.includes('failed to fetch') || allText.includes('networkerror'))) {
-            // التحقق من حالة Google Sheets
+            // التحقق من حالة قاعدة البيانات
             const isGoogleAppsScriptEnabled = window.AppState?.googleConfig?.appsScript?.enabled &&
                 window.AppState?.googleConfig?.appsScript?.scriptUrl;
             if (!isGoogleAppsScriptEnabled) {
-                return; // تجاهل الخطأ إذا كانت Google Sheets غير مفعّلة
+                return; // تجاهل الخطأ إذا كانت قاعدة البيانات غير مفعّلة
             }
         }
 
@@ -3086,19 +3086,19 @@ const Utils = {
      * تسجيل تحذيرات آمن
      */
     safeWarn(...args) {
-        // تجاهل التحذيرات المتعلقة بـ Google Sheets و Chrome Extensions
+        // تجاهل التحذيرات المتعلقة بـ قاعدة البيانات و Chrome Extensions
         if (args.length > 0) {
             const argsStr = args.map(arg => String(arg || '')).join(' ');
             if (argsStr.includes('runtime.lastError') ||
                 argsStr.includes('message port closed') ||
                 argsStr.includes('translator') ||
-                argsStr.includes('معرف Google Sheets غير محدد') ||
-                argsStr.includes('Google Sheets ID') ||
+                argsStr.includes('معرف قاعدة البيانات غير محدد') ||
+                argsStr.includes('قاعدة البيانات ID') ||
                 argsStr.includes('Spreadsheet ID') ||
                 argsStr.includes('sendRequest (saveToSheet)') ||
                 argsStr.includes('sendRequest (appendToSheet)') ||
                 argsStr.includes('sendRequest (readFromSheet)') ||
-                argsStr.includes('معرف Google Sheets غير معرف')) {
+                argsStr.includes('معرف قاعدة البيانات غير معرف')) {
                 return; // تجاهل هذه التحذيرات
             }
 
@@ -6396,4 +6396,5 @@ if (typeof window !== 'undefined') {
 // const Notification = window.Notification;
 // const Utils = window.Utils;
 // const Loading = window.Loading;
+
 

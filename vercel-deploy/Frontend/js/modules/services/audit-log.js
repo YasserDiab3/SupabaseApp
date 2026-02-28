@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Audit Log Service
  * Handles system audit logging
  */
@@ -65,4 +65,5 @@ const AuditLog = {
 if (typeof window !== 'undefined') {
     window.AuditLog = AuditLog;
 }
+
 

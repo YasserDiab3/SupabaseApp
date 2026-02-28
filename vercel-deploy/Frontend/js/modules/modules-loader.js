@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Modules Loader
  * محمل الموديولات - يقوم بتحميل جميع الموديولات المقسمة
  * 
@@ -293,3 +293,4 @@ if (document.readyState === 'loading') {
 } else {
     loadAllModules();
 }
+

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Employees Module
  * ØªÙ… Ø§Ø³ØªØ®Ø±Ø§Ø¬Ù‡ Ù…Ù† app-modules.js
  */
@@ -260,7 +260,7 @@ const Employees = {
         try {
             const canAddOrImport = this.canAddOrImport();
 
-            // ⚡️ مهم: عرض Skeleton فوراً بدون انتظار المزامنة مع Google Sheets
+            // ⚡️ مهم: عرض Skeleton فوراً بدون انتظار المزامنة مع قاعدة البيانات
             // هذا يمنع "الواجهة فارغة" و Timeout في AppTester (مهلة 15 ثانية للـ UI)
             section.innerHTML = `
                 <div class="section-header">
@@ -976,7 +976,7 @@ const Employees = {
     },
 
     /**
-     * تحميل بيانات الموظفين من قاعدة البيانات (Google Sheets)
+     * تحميل بيانات الموظفين من قاعدة البيانات (قاعدة البيانات)
      */
     async loadEmployeesFromBackend(forceReload = false) {
         // منع التحميل المتزامن المتكرر
@@ -1082,7 +1082,7 @@ const Employees = {
                         }
 
                         if (AppState.debugMode) {
-                            Utils.safeLog(`✅ تم تحميل ${sheetResult.data.length} موظف من Google Sheets`);
+                            Utils.safeLog(`✅ تم تحميل ${sheetResult.data.length} موظف من قاعدة البيانات`);
                         }
                         this.cache.isUpdating = false;
                         return true;
@@ -2538,7 +2538,7 @@ const Employees = {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-            // حفظ تلقائي في Google Sheets
+            // حفظ تلقائي في قاعدة البيانات
             await GoogleIntegration.autoSave('Employees', AppState.appData.employees);
 
             // تحديث Cache
@@ -2996,7 +2996,7 @@ const Employees = {
                 Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
             }
             
-            // حفظ تلقائي في Google Sheets
+            // حفظ تلقائي في قاعدة البيانات
             await GoogleIntegration.autoSave('Employees', AppState.appData.employees);
             
             // ✅ محاولة استخدام deactivateEmployee من Backend إذا كان متاحاً
@@ -3004,7 +3004,7 @@ const Employees = {
                 try {
                     await GoogleIntegration.sendToAppsScript('deactivateEmployee', { employeeId: id });
                 } catch (error) {
-                    Utils.safeWarn('⚠️ فشل إلغاء تفعيل الموظف من Google Sheets، سيتم المحاولة لاحقاً:', error);
+                    Utils.safeWarn('⚠️ فشل إلغاء تفعيل الموظف من قاعدة البيانات، سيتم المحاولة لاحقاً:', error);
                 }
             }
             
@@ -3059,7 +3059,7 @@ const Employees = {
         } else {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
-            // حفظ تلقائي في Google Sheets
+            // حفظ تلقائي في قاعدة البيانات
             await GoogleIntegration.autoSave('Employees', AppState.appData.employees);
             
             // تحديث Cache

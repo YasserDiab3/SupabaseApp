@@ -1,4 +1,4 @@
-/**
+﻿/**
  * CSS Splitter Script
  * يقسم ملف CSS الكبير إلى ملفات أصغر حسب الأقسام
  */
@@ -210,3 +210,4 @@ fs.writeFileSync(
 
 console.log('\n✅ CSS splitting completed!');
 console.log(`   Created ${Object.keys(splitFiles).length} files in css/ directory`);
+

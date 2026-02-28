@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Script to convert SVG icons to PNG format
  * Run: node convert-icons-to-png.js
  */
@@ -55,3 +55,4 @@ async function main() {
 }
 
 main().catch(console.error);
+

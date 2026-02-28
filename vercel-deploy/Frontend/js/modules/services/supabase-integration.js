@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Supabase Backend Integration
  * واجهة مطابقة لـ GoogleIntegration لاستخدام نفس التطبيق مع Supabase Edge Functions
  * يستخدم: AppState.useSupabaseBackend, AppState.supabaseUrl, AppState.supabaseAnonKey
@@ -370,3 +370,4 @@
     global.SupabaseIntegration = SupabaseIntegration;
     global.GoogleIntegration = SupabaseIntegration;
 })(typeof window !== 'undefined' ? window : this);
+

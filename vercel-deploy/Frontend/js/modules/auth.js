@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Auth Module - موديول المصادقة
  * تم استخراجه من app-modules.js لتحسين الأداء
  */
@@ -2482,3 +2482,4 @@ window.Auth = {
 if (typeof window !== 'undefined') {
     window.Auth = window.Auth || Auth;
 }
+

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * FireEquipment Module
  * تم استخراجه من app-modules.js
  */
@@ -717,7 +717,7 @@ FireEquipment = {
                 // تحويل الخريطة إلى مصفوفة
                 AppState.appData.fireEquipmentAssets = Array.from(existingMap.values());
                 assetsUpdated = true;
-                Utils.safeLog(`✅ تم تحميل ودمج ${equipmentResult.value.data.length} معدّة من Google Sheets (إجمالي: ${AppState.appData.fireEquipmentAssets.length})`);
+                Utils.safeLog(`✅ تم تحميل ودمج ${equipmentResult.value.data.length} معدّة من قاعدة البيانات (إجمالي: ${AppState.appData.fireEquipmentAssets.length})`);
             }
 
             // معالجة نتائج بيانات الفحوصات
@@ -749,7 +749,7 @@ FireEquipment = {
                 // تحويل الخريطة إلى مصفوفة
                 AppState.appData.fireEquipmentInspections = Array.from(existingMap.values());
                 inspectionsUpdated = true;
-                Utils.safeLog(`✅ تم تحميل ودمج ${inspectionsResult.value.data.length} فحص من Google Sheets (إجمالي: ${AppState.appData.fireEquipmentInspections.length})`);
+                Utils.safeLog(`✅ تم تحميل ودمج ${inspectionsResult.value.data.length} فحص من قاعدة البيانات (إجمالي: ${AppState.appData.fireEquipmentInspections.length})`);
             }
 
             // معالجة نتائج طلبات الموافقة
@@ -827,7 +827,7 @@ FireEquipment = {
             }
         } catch (error) {
             const errorMsg = error.message || error.toString() || '';
-            Utils.safeError('❌ خطأ في تحميل بيانات معدات الحريق من Google Sheets:', error);
+            Utils.safeError('❌ خطأ في تحميل بيانات معدات الحريق من قاعدة البيانات:', error);
 
             // عرض رسالة خطأ واضحة للمستخدم
             if (errorMsg.includes('انتهت مهلة الاتصال') || errorMsg.includes('timeout')) {
@@ -4169,7 +4169,7 @@ FireEquipment = {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
 
-        // حفظ في Google Sheets - استخدام الطريقة الآمنة
+        // حفظ في قاعدة البيانات - استخدام الطريقة الآمنة
         if (AppState.googleConfig?.appsScript?.enabled) {
             try {
                 Utils.safeLog('🔄 بدء حفظ بيانات معدات الحريق...');
@@ -4217,7 +4217,7 @@ FireEquipment = {
 
                 Utils.safeLog('✅ تم حفظ جميع البيانات بنجاح');
             } catch (error) {
-                Utils.safeWarn('⚠️ فشل حفظ بيانات معدات الحريق في Google Sheets:', error);
+                Utils.safeWarn('⚠️ فشل حفظ بيانات معدات الحريق في قاعدة البيانات:', error);
 
                 // استخدام autoSave كبديل فقط في حالة الفشل
                 if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
@@ -4243,7 +4243,7 @@ FireEquipment = {
                     GoogleIntegration.autoSave('FireEquipmentInspections', inspectionsPayload)
                 ]);
             } catch (error) {
-                Utils.safeWarn('⚠️ فشل حفظ بيانات معدات الحريق في Google Sheets', error);
+                Utils.safeWarn('⚠️ فشل حفظ بيانات معدات الحريق في قاعدة البيانات', error);
             }
         }
     },
@@ -4989,7 +4989,7 @@ FireEquipment = {
 
         Loading.show();
         try {
-            // ✅ حذف من Google Sheets أولاً (قبل الحذف المحلي)
+            // ✅ حذف من قاعدة البيانات أولاً (قبل الحذف المحلي)
             let deleteSuccess = false;
             if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
                 try {
@@ -6114,7 +6114,7 @@ FireEquipment = {
                 localStorage.setItem('fire_equipment_approval_requests', JSON.stringify(requests));
             }
 
-            // حفظ في Google Sheets إذا كان متاحاً
+            // حفظ في قاعدة البيانات إذا كان متاحاً
             if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
                 try {
                     const updateResult = await GoogleIntegration.sendRequest({
@@ -6213,7 +6213,7 @@ FireEquipment = {
                 localStorage.setItem('fire_equipment_approval_requests', JSON.stringify(requests));
             }
 
-            // حفظ في Google Sheets إذا كان متاحاً
+            // حفظ في قاعدة البيانات إذا كان متاحاً
             if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
                 try {
                     const updateResult = await GoogleIntegration.sendRequest({
@@ -6517,13 +6517,13 @@ FireEquipment = {
                 localStorage.setItem('fire_equipment_approval_requests', JSON.stringify(requests));
             }
 
-            // حذف من Google Sheets إذا كان متاحاً
+            // حذف من قاعدة البيانات إذا كان متاحاً
             if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.sendRequest) {
                 await GoogleIntegration.sendRequest({
                     action: 'deleteFireEquipmentApprovalRequest',
                     data: { requestId }
                 }).catch(error => {
-                    Utils.safeWarn('⚠️ تعذر حذف الطلب من Google Sheets:', error);
+                    Utils.safeWarn('⚠️ تعذر حذف الطلب من قاعدة البيانات:', error);
                 });
             }
 

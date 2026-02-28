@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Enhanced Loading Screen
  * شاشة تحميل محسنة مع شريط تقدم وإحصائيات
  */
@@ -274,3 +274,4 @@ const EnhancedLoader = {
 if (typeof window !== 'undefined') {
     window.EnhancedLoader = EnhancedLoader;
 }
+

@@ -225,7 +225,7 @@ const IssueTracking = {
             
             // التحقق من تفعيل Google Integration
             if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
-                this.showEmptyState('يجب تفعيل Google Integration أولاً');
+                this.showEmptyState('يجب تفعيل الاتصال بقاعدة البيانات أولاً');
                 return;
             }
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Google Integration Service
  * Handles backend integration (Script/Sheets) and data synchronization
  */
@@ -512,7 +512,7 @@ const GoogleIntegration = {
                     errorMsg.includes('url غير') ||
                     errorMsg.includes('scripturl') ||
                     errorMsg.includes('spreadsheet') ||
-                    errorMsg.includes('معرف google sheets');
+                    errorMsg.includes('معرف قاعدة البيانات');
 
                 if (!isCircuitBreakerError && !isConfigError) {
                     // التحقق من هل هو recordFailure
@@ -3175,3 +3175,4 @@ const GoogleIntegration = {
 if (typeof window !== 'undefined') {
     window.GoogleIntegration = GoogleIntegration;
 }
+

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Auto Compatibility Check Script
  * فحص تلقائي للتوافق عند تحميل التطبيق
  * يتم تشغيله تلقائياً عند فتح index.html
@@ -351,3 +351,4 @@
         disableAlways: () => localStorage.setItem('enable-compat-check', 'false')
     };
 })();
+

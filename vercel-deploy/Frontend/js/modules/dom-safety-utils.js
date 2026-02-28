@@ -1,4 +1,4 @@
-/**
+﻿/**
  * DOM Safety Utilities
  * أدوات السلامة للتعامل مع DOM
  * 
@@ -879,3 +879,4 @@
     safeLog('✅ تم تحميل DOM Safety Utilities');
 
 })();
+

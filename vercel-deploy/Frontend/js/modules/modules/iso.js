@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ISO Module
  * ØªÙ… Ø§Ø³ØªØ®Ø±Ø§Ø¬Ù‡ Ù…Ù† app-modules.js
  */
@@ -569,7 +569,7 @@ const ISO = {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
 
-            // حفظ تلقائي في Google Sheets
+            // حفظ تلقائي في قاعدة البيانات
             await GoogleIntegration.autoSave('ISODocuments', AppState.appData.isoDocuments);
 
             Loading.hide();
@@ -710,7 +710,7 @@ const ISO = {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
 
-            // حفظ تلقائي في Google Sheets
+            // حفظ تلقائي في قاعدة البيانات
             await GoogleIntegration.autoSave('ISOProcedures', AppState.appData.isoProcedures);
 
             Loading.hide();
@@ -906,9 +906,9 @@ const ISO = {
             // 4. تحديث القائمة فوراً
             this.load();
             
-            // 5. معالجة المهام الخلفية (Google Sheets) في الخلفية
+            // 5. معالجة المهام الخلفية (قاعدة البيانات) في الخلفية
             GoogleIntegration.autoSave('ISOForms', AppState.appData.isoForms).catch(error => {
-                Utils.safeError('خطأ في حفظ Google Sheets:', error);
+                Utils.safeError('خطأ في حفظ قاعدة البيانات:', error);
             });
         } catch (error) {
             Notification.error('حدث خطأ: ' + error.message);
@@ -2027,7 +2027,7 @@ const ISO = {
             `;
         }
 
-        // جلب البيانات من Google Sheets
+        // جلب البيانات من قاعدة البيانات
         let documentCodes = [];
         let documentVersions = [];
 

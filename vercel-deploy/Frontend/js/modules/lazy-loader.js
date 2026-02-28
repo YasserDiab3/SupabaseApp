@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Lazy Loader System
  * نظام تحميل ديناميكي للموديولات لتحسين أداء التطبيق
  * 
@@ -281,3 +281,4 @@ const LazyLoader = {
 if (typeof window !== 'undefined') {
     window.LazyLoader = LazyLoader;
 }
+

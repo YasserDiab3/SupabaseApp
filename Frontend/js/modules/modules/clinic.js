@@ -2506,7 +2506,7 @@ const Clinic = {
                     window.DataManager.save();
                 }
 
-                // حذف من Google Sheets
+                // حذف من قاعدة البيانات
                 await GoogleIntegration.sendRequest({
                     action: 'deleteMedication',
                     data: { medicationId: id }
@@ -6949,7 +6949,7 @@ const Clinic = {
                 window.DataManager.save();
             }
 
-            // حفظ في Google Sheets
+            // حفظ في قاعدة البيانات
             if (AppState.googleConfig?.appsScript?.enabled) {
                 try {
                     // استخدام updateClinicVisit مع حذف فعلي من البيانات
@@ -6966,7 +6966,7 @@ const Clinic = {
                         }
                     });
                 } catch (error) {
-                    Utils.safeWarn('⚠️ فشل حذف الزيارة من Google Sheets، سيتم المحاولة لاحقاً:', error);
+                    Utils.safeWarn('⚠️ فشل حذف الزيارة من قاعدة البيانات، سيتم المحاولة لاحقاً:', error);
                     // في حالة الفشل، نستخدم autoSave كبديل فقط
                     if (typeof GoogleIntegration !== 'undefined' && GoogleIntegration.autoSave) {
                         await GoogleIntegration.autoSave('ClinicVisits', AppState.appData.clinicVisits).catch(() => {
@@ -8036,7 +8036,7 @@ const Clinic = {
                     }
                 }, 100);
 
-                // المزامنة مع Google Sheets في الخلفية
+                // المزامنة مع قاعدة البيانات في الخلفية
                 (async () => {
                     try {
                         if (isEdit) {
@@ -8051,7 +8051,7 @@ const Clinic = {
                             });
                         }
                     } catch (syncError) {
-                        Utils.safeWarn('⚠️ خطأ في المزامنة مع Google Sheets:', syncError);
+                        Utils.safeWarn('⚠️ خطأ في المزامنة مع قاعدة البيانات:', syncError);
                     }
                 })();
 
@@ -8394,7 +8394,7 @@ const Clinic = {
                     }
                 }, 100);
 
-                // المزامنة مع Google Sheets في الخلفية
+                // المزامنة مع قاعدة البيانات في الخلفية
                 (async () => {
                     try {
                         if (isEdit) {
@@ -8402,16 +8402,16 @@ const Clinic = {
                                 action: 'updateInjury',
                                 data: { injuryId: payload.id, updateData: payload }
                             });
-                            Utils.safeLog('✅ تم حفظ البيانات في Google Sheets (تحديث)');
+                            Utils.safeLog('✅ تم حفظ البيانات في قاعدة البيانات (تحديث)');
                         } else {
                             await GoogleIntegration.sendRequest({
                                 action: 'addInjury',
                                 data: payload
                             });
-                            Utils.safeLog('✅ تم حفظ البيانات في Google Sheets (إضافة)');
+                            Utils.safeLog('✅ تم حفظ البيانات في قاعدة البيانات (إضافة)');
                         }
                     } catch (syncError) {
-                        Utils.safeWarn('⚠️ خطأ في المزامنة مع Google Sheets:', syncError);
+                        Utils.safeWarn('⚠️ خطأ في المزامنة مع قاعدة البيانات:', syncError);
                     }
                 })();
 
@@ -9183,7 +9183,7 @@ const Clinic = {
                     }
                 }, 100);
 
-                // المزامنة مع Google Sheets في الخلفية
+                // المزامنة مع قاعدة البيانات في الخلفية
                 (async () => {
                     try {
                         if (hasInventoryChange) {
@@ -9237,7 +9237,7 @@ const Clinic = {
                             }
                         }));
                     } catch (syncError) {
-                        Utils.safeWarn('⚠️ خطأ في المزامنة مع Google Sheets:', syncError);
+                        Utils.safeWarn('⚠️ خطأ في المزامنة مع قاعدة البيانات:', syncError);
                     }
                 })();
 
@@ -9440,7 +9440,7 @@ const Clinic = {
                     }
                 }, 100);
 
-                // المزامنة مع Google Sheets في الخلفية
+                // المزامنة مع قاعدة البيانات في الخلفية
                 (async () => {
                     try {
                         if (isEdit) {
@@ -9464,7 +9464,7 @@ const Clinic = {
                             }
                         }));
                     } catch (syncError) {
-                        Utils.safeWarn('⚠️ خطأ في المزامنة مع Google Sheets:', syncError);
+                        Utils.safeWarn('⚠️ خطأ في المزامنة مع قاعدة البيانات:', syncError);
                     }
                 })();
 
@@ -11174,7 +11174,7 @@ const Clinic = {
             )
                 .then(result => {
                     if (result && result.success && Array.isArray(result.data)) {
-                        // ✅ تطبيع الأدوية فور تحميلها (الأرقام قد تأتي كـ string من Google Sheets)
+                        // ✅ تطبيع الأدوية فور تحميلها (الأرقام قد تأتي كـ string من قاعدة البيانات)
                         const normalizedMeds = result.data.map(m => this.normalizeMedicationRecord(m));
                         AppState.appData.medications = normalizedMeds;
                         AppState.appData.clinicMedications = normalizedMeds;
@@ -12431,7 +12431,7 @@ const Clinic = {
                 requestDate: new Date().toISOString()
             };
 
-            // حفظ في Google Sheets
+            // حفظ في قاعدة البيانات
             const result = await GoogleIntegration.sendRequest({
                 action: 'addSupplyRequest',
                 data: request
@@ -13257,7 +13257,7 @@ const Clinic = {
                 this.renderVisitsTab();
             }
 
-            // المزامنة مع Google Sheets في الخلفية
+            // المزامنة مع قاعدة البيانات في الخلفية
             (async () => {
                 try {
                     // ✅ Debug: تسجيل formData.createdBy قبل الإرسال (فقط في وضع التطوير)

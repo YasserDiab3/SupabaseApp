@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ========================================
  * تحسينات JavaScript للوحة التحكم
  * Enhanced Dashboard Interactions
@@ -549,3 +549,4 @@
 
     log('✨ Dashboard enhancements loaded successfully!');
 })();
+

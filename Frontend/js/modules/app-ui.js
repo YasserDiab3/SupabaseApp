@@ -2272,23 +2272,46 @@ window.UI = {
         } catch (e) { return []; }
     },
 
-    /** هل المستخدم الحالي قد شاهد سياسة/تعليمات ما بعد الدخول مسبقاً (مرة واحدة فقط لكل مستخدم) */
+    /** مدة (بالأيام) بعدها نعيد عرض سياسة السلامة مرة أخرى */
+    _POST_LOGIN_POLICY_RECURRENCE_DAYS: 10,
+
+    /**
+     * هل المستخدم الحالي قد شاهد سياسة ما بعد الدخول ضمن المدة المحددة (10 أيام)؟
+     * - أول تسجيل دخول في المتصفح → نعرض السياسة.
+     * - إذا مرّ أكثر من 10 أيام منذ آخر اطّلاع → نعرض السياسة مرة أخرى.
+     * - خلال 10 أيام من آخر اطّلاع → لا نعرض.
+     */
     _currentUserHasSeenPostLoginPolicy() {
         try {
             const user = AppState.currentUser;
             if (!user) return true;
-            const validSeen = (v) => {
-                const s = String(v || '').trim().toLowerCase();
-                return s !== '' && s !== 'undefined' && s !== 'null';
+            const recurrenceMs = (this._POST_LOGIN_POLICY_RECURRENCE_DAYS || 10) * 24 * 60 * 60 * 1000;
+            const now = Date.now();
+
+            const getLastSeenMs = (seenAt) => {
+                if (!seenAt) return 0;
+                const s = String(seenAt).trim();
+                if (s === '' || s === 'undefined' || s === 'null') return 0;
+                const d = new Date(s);
+                return isNaN(d.getTime()) ? 0 : d.getTime();
             };
-            if (validSeen(user.postLoginPolicySeenAt)) return true;
-            const users = AppState.appData?.users;
-            if (Array.isArray(users)) {
+
+            let lastSeenMs = getLastSeenMs(user.postLoginPolicySeenAt);
+            if (lastSeenMs === 0 && Array.isArray(AppState.appData?.users)) {
                 const email = (user.email || '').toLowerCase().trim();
-                const found = users.find(u => (u && (String(u.email || '').toLowerCase().trim() === email || String(u.id || '') === String(user.id || ''))));
-                if (found && validSeen(found.postLoginPolicySeenAt)) return true;
+                const found = AppState.appData.users.find(u => u && (String(u.email || '').toLowerCase().trim() === email || String(u.id || '') === String(user.id || '')));
+                if (found) lastSeenMs = getLastSeenMs(found.postLoginPolicySeenAt);
             }
-            return false;
+            if (lastSeenMs === 0) {
+                try {
+                    const key = 'hse_policy_last_seen_' + (user.email || user.id || '').toString().toLowerCase().trim();
+                    const stored = localStorage.getItem(key);
+                    if (stored) lastSeenMs = getLastSeenMs(stored);
+                } catch (e) { /* ignore */ }
+            }
+
+            if (lastSeenMs === 0) return false;
+            return (now - lastSeenMs) < recurrenceMs;
         } catch (e) { return false; }
     },
 
@@ -2314,6 +2337,11 @@ window.UI = {
         if (typeof window.Auth !== 'undefined' && typeof window.Auth.updateUserSession === 'function') {
             window.Auth.updateUserSession();
         }
+        // حفظ في localStorage لهذا المتصفح لدعم قاعدة الـ 10 أيام
+        try {
+            const key = 'hse_policy_last_seen_' + (user.email || user.id || '').toString().toLowerCase().trim();
+            if (key.length > 20) localStorage.setItem(key, seenAt);
+        } catch (e) { /* ignore */ }
     },
 
     /**

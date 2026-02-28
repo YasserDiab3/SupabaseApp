@@ -564,7 +564,7 @@
                         }
                         Utils.safeError('خطأ في المزامنة:', error);
                         if (notifyOnError) {
-                            Notification.error('خطأ في المزامنة مع Google Sheets: ' + error.message);
+                            Notification.error('خطأ في المزامنة مع قاعدة البيانات: ' + error.message);
                         }
                         return false;
                     }

@@ -1,5 +1,5 @@
-/**
- * تحسينات المزامنة مع Google Sheets
+﻿/**
+ * تحسينات المزامنة مع قاعدة البيانات
  * Sync Improvements Module
  * 
  * Features:
@@ -288,7 +288,7 @@
                     var hasGoogleSheets = AppState.googleConfig?.appsScript?.enabled && AppState.googleConfig?.appsScript?.scriptUrl;
                     if (!useSupabase && !hasGoogleSheets) {
                         if (!silent) {
-                            Utils.safeLog('قاعدة البيانات غير متصلة (لا Supabase ولا Google Sheets) - سيتم استخدام البيانات المحلية');
+                            Utils.safeLog('قاعدة البيانات غير متصلة (لا Supabase ولا قاعدة البيانات) - سيتم استخدام البيانات المحلية');
                             Notification.warning('قاعدة البيانات غير متصلة. يتم استخدام البيانات المحلية فقط');
                         }
                         return false;
@@ -564,7 +564,7 @@
                         }
                         Utils.safeError('خطأ في المزامنة:', error);
                         if (notifyOnError) {
-                            Notification.error('خطأ في المزامنة مع Google Sheets: ' + error.message);
+                            Notification.error('خطأ في المزامنة مع قاعدة البيانات: ' + error.message);
                         }
                         return false;
                     }
@@ -575,3 +575,4 @@
         }, 2000); // انتظار 2 ثانية للتأكد من تحميل جميع الملفات
     });
 })();
+
