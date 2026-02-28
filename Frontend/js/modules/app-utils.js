@@ -317,7 +317,6 @@ const Permissions = {
     },
 
     async ensureFormSettingsState(forceReload = false) {
-        // ✅ إصلاح: إعادة تحميل البيانات من Google Sheets عند forceReload لضمان الحصول على أحدث البيانات
         if (forceReload || !this.formSettingsState) {
             await this.initFormSettingsState();
         }
@@ -339,12 +338,14 @@ const Permissions = {
     },
 
     async initFormSettingsState() {
-        // محاولة تحميل إعدادات الشركة من Google Sheets أولاً
-        if (AppState.googleConfig?.appsScript?.enabled && typeof GoogleIntegration !== 'undefined') {
+        const useSupabase = AppState.useSupabaseBackend === true;
+        const hasBackend = (useSupabase || (AppState.googleConfig?.appsScript?.enabled && AppState.googleConfig?.appsScript?.scriptUrl)) && typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.sendToAppsScript === 'function';
+        // تحميل إعدادات الشركة من قاعدة البيانات (Supabase أو الخادم)
+        if (hasBackend) {
             try {
                 const companyResult = await GoogleIntegration.sendToAppsScript('getCompanySettings', {});
                 if (companyResult && companyResult.success && companyResult.data) {
-                    // تحديث AppState ببيانات الشركة من Google Sheets
+                    // تحديث AppState ببيانات الشركة من قاعدة البيانات
                     AppState.companySettings = Object.assign({}, AppState.companySettings, {
                         name: companyResult.data.name || AppState.companySettings?.name,
                         secondaryName: companyResult.data.secondaryName || AppState.companySettings?.secondaryName,
@@ -391,21 +392,19 @@ const Permissions = {
                         }));
                     }
 
-                    Utils.safeLog('✅ تم تحميل إعدادات الشركة من Google Sheets بنجاح');
+                    Utils.safeLog('✅ تم تحميل إعدادات الشركة من قاعدة البيانات بنجاح');
                 }
             } catch (error) {
-                Utils.safeWarn('⚠️ فشل تحميل إعدادات الشركة من Google Sheets:', error);
+                Utils.safeWarn('⚠️ فشل تحميل إعدادات الشركة من قاعدة البيانات:', error);
             }
         }
 
-        // ✅ إصلاح: محاولة تحميل الإعدادات من Google Sheets أولاً
-        // ✅ إصلاح: هذا يعمل لجميع المستخدمين بعد المزامنة وتسجيل الدخول
-        if (AppState.googleConfig?.appsScript?.enabled && typeof GoogleIntegration !== 'undefined') {
+        // تحميل إعدادات النماذج (المواقع والأماكن) من قاعدة البيانات (Supabase أو الخادم)
+        if (hasBackend) {
             try {
-                // ✅ إصلاح: تحميل مباشر من قاعدة البيانات بدون تأخير
                 const result = await GoogleIntegration.sendToAppsScript('getFormSettings', {});
                 if (result && result.success && result.data) {
-                    // ✅ إصلاح: تحديث AppState بالبيانات من Google Sheets مع التأكد من وجود الأماكن الفرعية
+                    // تحديث AppState بالبيانات من قاعدة البيانات مع التأكد من وجود الأماكن الفرعية
                     if (Array.isArray(result.data.sites) && result.data.sites.length > 0) {
                         // ✅ إصلاح: التأكد من أن كل موقع يحتوي على places (حتى لو كانت مصفوفة فارغة)
                         // ✅ إصلاح: ربط صحيح للأماكن بالمواقع باستخدام String() لضمان المطابقة
@@ -464,24 +463,19 @@ const Permissions = {
                         dm.saveCompanySettings();
                     }
 
-                    Utils.safeLog('✅ تم تحميل إعدادات النماذج من Google Sheets بنجاح');
+                    Utils.safeLog('✅ تم تحميل إعدادات النماذج من قاعدة البيانات بنجاح');
                 } else {
-                    // ✅ إصلاح: إذا فشل التحميل، نستخدم البيانات المحلية
-                    Utils.safeWarn('⚠️ لم يتم تحميل إعدادات النماذج من Google Sheets - استخدام البيانات المحلية');
-                    // ✅ إصلاح: التأكد من وجود مصفوفة فارغة على الأقل
                     if (!AppState.appData.observationSites) {
                         AppState.appData.observationSites = [];
                     }
                 }
             } catch (error) {
-                Utils.safeWarn('⚠️ فشل تحميل إعدادات النماذج من Google Sheets، سيتم استخدام البيانات المحلية:', error);
-                // ✅ إصلاح: التأكد من وجود مصفوفة فارغة على الأقل
+                Utils.safeWarn('⚠️ فشل تحميل إعدادات النماذج من قاعدة البيانات، سيتم استخدام البيانات المحلية:', error);
                 if (!AppState.appData.observationSites) {
                     AppState.appData.observationSites = [];
                 }
             }
         } else {
-            // ✅ إصلاح: إذا لم يكن Google Sheets مفعّل، نستخدم البيانات المحلية
             if (!AppState.appData.observationSites) {
                 AppState.appData.observationSites = [];
             }
@@ -829,7 +823,7 @@ const Permissions = {
         const card = document.getElementById('form-settings-card');
         if (!card) return;
 
-        // ✅ إصلاح: إعادة تحميل البيانات من Google Sheets عند فتح التبويب لضمان الحصول على أحدث البيانات
+        // إعادة تحميل البيانات من قاعدة البيانات عند فتح التبويب
         // forceReload = true لضمان تحميل جميع المواقع (50 موقع) من قاعدة البيانات
         await this.ensureFormSettingsState(true); // forceReload = true
         
@@ -1205,13 +1199,25 @@ const Permissions = {
             dm.saveCompanySettings();
         }
 
-        // مزامنة مع Google Sheets إذا كان متاحاً
-        if (AppState.googleConfig?.appsScript?.enabled && typeof GoogleIntegration !== 'undefined') {
+        // إعداد المواقع مع siteId لكل مكان لضمان التسجيل الصحيح في قاعدة البيانات
+        const sitesForBackend = sites.map(site => ({
+            id: site.id,
+            name: site.name,
+            places: (site.places || []).map(place => ({
+                id: place.id,
+                name: place.name,
+                siteId: site.id
+            }))
+        }));
+
+        const useSupabaseSave = AppState.useSupabaseBackend === true;
+        const canSaveToBackend = (useSupabaseSave || (AppState.googleConfig?.appsScript?.enabled && AppState.googleConfig?.appsScript?.scriptUrl)) && typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.sendToAppsScript === 'function';
+        if (canSaveToBackend) {
             try {
                 const userData = AppState.currentUser || {};
                 const result = await GoogleIntegration.sendToAppsScript('saveFormSettings', {
                     id: 'FORM-SETTINGS-1',
-                    sites: sites,
+                    sites: sitesForBackend,
                     departments: departments,
                     safetyTeam: safetyTeam,
                     userData: {
@@ -1223,12 +1229,12 @@ const Permissions = {
                 });
 
                 if (result && result.success) {
-                    Utils.safeLog('✅ تم حفظ إعدادات النماذج في Google Sheets بنجاح');
+                    Utils.safeLog('✅ تم حفظ إعدادات النماذج في قاعدة البيانات بنجاح');
                 } else {
-                    Utils.safeWarn('⚠️ فشل حفظ إعدادات النماذج في Google Sheets:', result?.message);
+                    Utils.safeWarn('⚠️ فشل حفظ إعدادات النماذج في قاعدة البيانات:', result?.message);
                 }
             } catch (error) {
-                Utils.safeWarn('⚠️ خطأ أثناء مزامنة إعدادات النماذج مع Google Sheets:', error);
+                Utils.safeWarn('⚠️ خطأ أثناء حفظ إعدادات النماذج في قاعدة البيانات:', error);
             }
         }
 
@@ -1246,7 +1252,18 @@ const Permissions = {
         });
 
         Notification.success('تم حفظ إعدادات النماذج بنجاح.');
-        this.initFormSettingsState();
+
+        // تحديث الحالة من البيانات المحفوظة بدل إعادة التحميل من الخادم (لتجنب استبدال الأماكن إذا تأخرت قاعدة البيانات)
+        if (this.formSettingsState) {
+            this.formSettingsState.sites = sites.map(site => ({
+                id: site.id,
+                name: site.name,
+                description: (state.sites || []).find(s => s.id === site.id)?.description || '',
+                places: (site.places || []).map(place => ({ id: place.id, name: place.name, siteId: site.id }))
+            }));
+            this.formSettingsState.departments = departments.slice();
+            this.formSettingsState.safetyTeam = safetyTeam.slice();
+        }
         this.refreshFormSettingsUI();
     },
 
