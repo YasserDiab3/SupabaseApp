@@ -204,12 +204,15 @@ const Violations = {
                             </tr>
                         </thead>
                         <tbody>
-                            ${violations.map((violation, index) => `
+                            ${violations.map((violation, index) => {
+                                const isC = !!(violation.contractorName || violation.personType === 'contractor');
+                                const displayName = isC ? (violation.contractorWorker || violation.contractorName || '-') : (violation.employeeName || '-');
+                                return `
                                 <tr style="background: ${index % 2 === 0 ? '#ffffff' : '#fef2f2'}; transition: all 0.2s ease;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='${index % 2 === 0 ? '#ffffff' : '#fef2f2'}'">
                                     <td style="padding: 14px 12px; text-align: center; border-bottom: 1px solid #fecaca; font-weight: 500;">
                                         <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
                                             <i class="fas ${violation.employeeName ? 'fa-user-tie' : 'fa-hard-hat'}" style="color: ${violation.employeeName ? '#3b82f6' : '#f59e0b'};"></i>
-                                            ${Utils.escapeHTML(violation.employeeName || violation.contractorName || '-')}
+                                            ${Utils.escapeHTML(displayName)}
                                         </div>
                                     </td>
                                     <td style="padding: 14px 12px; text-align: center; border-bottom: 1px solid #fecaca;">
@@ -248,7 +251,8 @@ const Violations = {
                                         </div>
                                     </td>
                                 </tr>
-                            `).join('')}
+                            `;
+                            }).join('')}
                         </tbody>
                     </table>
                 </div>
@@ -669,7 +673,10 @@ const Violations = {
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>اسم المقاول</th>
+                        <th>اسم المخالف</th>
+                        <th>المقاول</th>
+                        <th>الوظيفة</th>
+                        <th>الإدارة</th>
                         <th>نوع المخالفة</th>
                         <th>التاريخ</th>
                         <th>الشدة</th>
@@ -681,7 +688,10 @@ const Violations = {
                 <tbody>
                     ${violations.map(violation => `
                         <tr>
+                            <td>${Utils.escapeHTML(violation.contractorWorker || violation.contractorName || '')}</td>
                             <td>${Utils.escapeHTML(violation.contractorName || '')}</td>
+                            <td>${Utils.escapeHTML(violation.contractorPosition || '-')}</td>
+                            <td>${Utils.escapeHTML(violation.contractorDepartment || '-')}</td>
                             <td>${Utils.escapeHTML(violation.violationType || '')}</td>
                             <td>${violation.violationDate ? Utils.formatDate(violation.violationDate) : '-'}</td>
                             <td>
@@ -2333,6 +2343,13 @@ const Violations = {
         const violation = AppState.appData.violations.find(v => v.id === id);
         if (!violation) return;
 
+        const isContractor = !!(violation.contractorName || violation.personType === 'contractor');
+        const violatorName = isContractor ? (violation.contractorWorker || violation.contractorName || '-') : (violation.employeeName || '-');
+        const violatorCodeOrContractor = isContractor ? (violation.contractorName || '-') : (violation.employeeCode || violation.employeeNumber || '-');
+        const violatorPosition = isContractor ? (violation.contractorPosition || '-') : (violation.employeePosition || '-');
+        const violatorDepartment = isContractor ? (violation.contractorDepartment || '-') : (violation.employeeDepartment || '-');
+        const codeOrContractorLabel = isContractor ? 'المقاول' : 'الكود الوظيفي';
+
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
         modal.innerHTML = `
@@ -2348,7 +2365,7 @@ const Violations = {
                 </div>
                 <div class="modal-body" style="padding: 24px;">
                     <div class="space-y-4">
-                        <!-- معلومات المخالف -->
+                        <!-- معلومات المخالف (نفس هيكل نموذج الموظفين: الاسم، الكود/المقاول، الوظيفة، الإدارة) -->
                         <div style="background: #fef2f2; border-radius: 12px; padding: 16px; margin-bottom: 16px;">
                             <h3 style="font-weight: 600; color: #991b1b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
                                 <i class="fas fa-user"></i> معلومات المخالف
@@ -2356,26 +2373,20 @@ const Violations = {
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="text-sm font-semibold text-gray-600">اسم المخالف:</label>
-                                    <p class="text-gray-800 font-medium">${Utils.escapeHTML(violation.employeeName || violation.contractorName || '-')}</p>
+                                    <p class="text-gray-800 font-medium">${Utils.escapeHTML(violatorName)}</p>
                                 </div>
-                                ${violation.employeeCode ? `
                                 <div>
-                                    <label class="text-sm font-semibold text-gray-600">الكود الوظيفي:</label>
-                                    <p class="text-gray-800">${Utils.escapeHTML(violation.employeeCode || violation.employeeNumber || '-')}</p>
+                                    <label class="text-sm font-semibold text-gray-600">${codeOrContractorLabel}:</label>
+                                    <p class="text-gray-800">${Utils.escapeHTML(violatorCodeOrContractor)}</p>
                                 </div>
-                                ` : ''}
-                                ${violation.employeePosition ? `
                                 <div>
                                     <label class="text-sm font-semibold text-gray-600">الوظيفة:</label>
-                                    <p class="text-gray-800">${Utils.escapeHTML(violation.employeePosition || '-')}</p>
+                                    <p class="text-gray-800">${Utils.escapeHTML(violatorPosition)}</p>
                                 </div>
-                                ` : ''}
-                                ${violation.employeeDepartment || violation.contractorDepartment ? `
                                 <div>
                                     <label class="text-sm font-semibold text-gray-600">الإدارة:</label>
-                                    <p class="text-gray-800">${Utils.escapeHTML(violation.employeeDepartment || violation.contractorDepartment || '-')}</p>
+                                    <p class="text-gray-800">${Utils.escapeHTML(violatorDepartment)}</p>
                                 </div>
-                                ` : ''}
                             </div>
                         </div>
 
@@ -2478,16 +2489,23 @@ const Violations = {
             const qrCode = typeof QRCode !== 'undefined' ? QRCode.generate(qrCodeData, 100) : null;
             const formCode = violation.isoCode || `VIOL-${violation.id?.substring(0, 8) || 'UNKNOWN'}`;
 
+            const isContractorPdf = !!(violation.contractorName || violation.personType === 'contractor');
+            const pdfViolatorName = isContractorPdf ? (violation.contractorWorker || violation.contractorName || '') : (violation.employeeName || '');
+            const pdfCodeOrContractor = isContractorPdf ? (violation.contractorName || '') : (violation.employeeCode || violation.employeeNumber || '');
+            const pdfCodeLabel = isContractorPdf ? 'المقاول' : 'الكود الوظيفي';
+            const pdfPosition = isContractorPdf ? (violation.contractorPosition || '') : (violation.employeePosition || '');
+            const pdfDepartment = isContractorPdf ? (violation.contractorDepartment || '') : (violation.employeeDepartment || '');
+
             const htmlContent = FormHeader.generatePDFHTML(
                 formCode,
                 'تقرير مخالفة',
                 `
                 <table>
                     <tr><th>كود ISO</th><td>${Utils.escapeHTML(violation.isoCode || '')}</td></tr>
-                    <tr><th>اسم المخالف</th><td>${Utils.escapeHTML(violation.employeeName || violation.contractorName || '')}</td></tr>
-                    ${violation.employeeCode ? `<tr><th>الكود الوظيفي</th><td>${Utils.escapeHTML(violation.employeeCode || violation.employeeNumber || '')}</td></tr>` : ''}
-                    ${violation.employeePosition ? `<tr><th>الوظيفة</th><td>${Utils.escapeHTML(violation.employeePosition || '')}</td></tr>` : ''}
-                    ${violation.employeeDepartment || violation.contractorDepartment ? `<tr><th>الإدارة</th><td>${Utils.escapeHTML(violation.employeeDepartment || violation.contractorDepartment || '')}</td></tr>` : ''}
+                    <tr><th>اسم المخالف</th><td>${Utils.escapeHTML(pdfViolatorName)}</td></tr>
+                    <tr><th>${pdfCodeLabel}</th><td>${Utils.escapeHTML(pdfCodeOrContractor)}</td></tr>
+                    <tr><th>الوظيفة</th><td>${Utils.escapeHTML(pdfPosition)}</td></tr>
+                    <tr><th>الإدارة</th><td>${Utils.escapeHTML(pdfDepartment)}</td></tr>
                     <tr><th>نوع المخالفة</th><td>${Utils.escapeHTML(violation.violationType || '')}</td></tr>
                     <tr><th>تاريخ المخالفة</th><td>${violation.violationDate ? Utils.formatDate(violation.violationDate) : '-'}</td></tr>
                     <tr><th>الموقع</th><td>${Utils.escapeHTML(violation.violationLocation || '')}</td></tr>
