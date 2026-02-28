@@ -1772,7 +1772,8 @@ window.Auth = {
                                             passwordHash: dbUser.passwordHash || user.passwordHash,
                                             password: '***',
                                             loginTime: user.loginTime || AppState.currentUser?.loginTime, // الحفاظ على وقت تسجيل الدخول
-                                            id: dbUser.id || user.id || AppState.currentUser?.id // الحفاظ على ID
+                                            id: dbUser.id || user.id || AppState.currentUser?.id, // الحفاظ على ID
+                                            postLoginPolicySeenAt: user.postLoginPolicySeenAt || dbUser.postLoginPolicySeenAt // عدم إظهار السياسة مرة أخرى بعد إعادة التحميل
                                         };
                                         
                                         console.log('✅ [AUTH] AppState.currentUser.name بعد التحديث التلقائي (localStorage):', AppState.currentUser.name);
@@ -1798,7 +1799,7 @@ window.Auth = {
                             }
                         }
                         
-                        // حفظ في sessionStorage أيضاً
+                        // حفظ في sessionStorage أيضاً (مع postLoginPolicySeenAt لعدم إظهار السياسة مرة أخرى عند إعادة التحميل)
                         const safeUserData = {
                             email: AppState.currentUser.email,
                             name: AppState.currentUser.name,
@@ -1806,7 +1807,8 @@ window.Auth = {
                             department: AppState.currentUser.department,
                             permissions: AppState.currentUser.permissions,
                             id: AppState.currentUser.id,
-                            loginTime: AppState.currentUser.loginTime
+                            loginTime: AppState.currentUser.loginTime,
+                            postLoginPolicySeenAt: AppState.currentUser.postLoginPolicySeenAt
                         };
                         sessionStorage.setItem('hse_current_session', JSON.stringify(safeUserData));
                         Utils.safeLog('✅ تم استعادة الجلسة من localStorage - المستخدم مسجل دخول');

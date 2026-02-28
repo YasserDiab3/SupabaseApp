@@ -84,8 +84,8 @@
                 // المرحلة 4: واجهة المستخدم
                 await this.phaseUI();
                 
-                // حد أقصى 2 ثانية لرسالة "جاري التحقق من الجلسة" ثم إزالتها وعدم إظهارها مرة أخرى
-                this._startSessionCheckOverlayMaxTimer(2000);
+                // حد أقصى 1.5 ثانية لرسالة التحقق من الجلسة ثم إزالتها (احتياطاً إذا لم تُزَل في phaseUI)
+                this._startSessionCheckOverlayMaxTimer(1500);
                 // انتظار Auth بحد أقصى 2 ثانية ثم التحقق من الجلسة فوراً لتسريع التحميل
                 await this._waitForAuthMax(2000);
                 this.checkAndRestoreSession();
@@ -364,6 +364,9 @@
             if (notificationLoaded) {
                 this.updateLoader(70, 'تم تحميل Notification');
             }
+
+            // إزالة شاشة "جاري التحقق من الجلسة" فور انتهاء تحميل الواجهة حتى لا تبقى ظاهرة عند إعادة التحميل
+            this._removeSessionCheckOverlay();
             
             this.endPhase(this.phases.UI);
         },
