@@ -41,7 +41,25 @@ const ActionTrackingRegister = {
                 noActions: 'لا توجد إجراءات مسجلة',
                 noResults: 'لا توجد نتائج للبحث',
                 listLoadError: 'حدث خطأ في تحميل البيانات',
-                retry: 'إعادة المحاولة'
+                retry: 'إعادة المحاولة',
+                printAll: 'طباعة الكل',
+                exportAll: 'تصدير الكل',
+                exportExcel: 'تصدير Excel',
+                exportPdf: 'تصدير PDF',
+                tableDate: 'تاريخ الملاحظة',
+                tableType: 'نوع الملاحظة',
+                tableClassification: 'التصنيف',
+                tableIssue: 'الملاحظة / الخطر',
+                tableResponsible: 'المسؤول',
+                tableDueDate: 'تاريخ التنفيذ المستهدف',
+                tableStatus: 'الحالة',
+                tableRisk: 'مستوى الخطورة',
+                tableActions: 'الإجراءات',
+                actionView: 'عرض التفاصيل',
+                actionPrintExport: 'طباعة وتصدير',
+                actionPrint: 'طباعة',
+                actionEdit: 'تعديل',
+                actionDelete: 'حذف'
             },
             en: {
                 title: 'Action Tracking Register',
@@ -65,7 +83,25 @@ const ActionTrackingRegister = {
                 noActions: 'No actions recorded',
                 noResults: 'No search results',
                 listLoadError: 'An error occurred while loading data',
-                retry: 'Retry'
+                retry: 'Retry',
+                printAll: 'Print All',
+                exportAll: 'Export All',
+                exportExcel: 'Export Excel',
+                exportPdf: 'Export PDF',
+                tableDate: 'Observation Date',
+                tableType: 'Observation Type',
+                tableClassification: 'Classification',
+                tableIssue: 'Issue / Hazard',
+                tableResponsible: 'Responsible',
+                tableDueDate: 'Target Due Date',
+                tableStatus: 'Status',
+                tableRisk: 'Risk Level',
+                tableActions: 'Actions',
+                actionView: 'View Details',
+                actionPrintExport: 'Print & Export',
+                actionPrint: 'Print',
+                actionEdit: 'Edit',
+                actionDelete: 'Delete'
             }
         };
         return {
@@ -307,20 +343,20 @@ const ActionTrackingRegister = {
                         </div>
                     </div>
                     <div class="flex items-center justify-end gap-2 mt-4 pt-4 border-t">
-                        <button id="action-print-all-btn" class="btn-secondary btn-sm" title="طباعة جميع الإجراءات">
-                            <i class="fas fa-print ml-1"></i>طباعة الكل
+                        <button id="action-print-all-btn" class="btn-secondary btn-sm" title="${t('printAll')}">
+                            <i class="fas fa-print ml-1"></i>${t('printAll')}
                         </button>
                         <div class="dropdown" style="position: relative;">
-                            <button id="action-export-all-btn" class="btn-secondary btn-sm" title="تصدير جميع الإجراءات">
-                                <i class="fas fa-file-export ml-1"></i>تصدير الكل
+                            <button id="action-export-all-btn" class="btn-secondary btn-sm" title="${t('exportAll')}">
+                                <i class="fas fa-file-export ml-1"></i>${t('exportAll')}
                                 <i class="fas fa-chevron-down mr-1" style="font-size: 10px;"></i>
                             </button>
                             <div class="dropdown-menu" id="action-export-all-menu" style="position: absolute; top: 100%; right: 0; margin-top: 4px; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); min-width: 150px; z-index: 1000; display: none;">
                                 <a href="#" onclick="ActionTrackingRegister.exportAllToExcel(); return false;" class="dropdown-item" style="display: block; padding: 8px 12px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">
-                                    <i class="fas fa-file-excel ml-2" style="color: #1d6f42;"></i>تصدير Excel
+                                    <i class="fas fa-file-excel ml-2" style="color: #1d6f42;"></i>${t('exportExcel')}
                                 </a>
                                 <a href="#" onclick="ActionTrackingRegister.exportAllToPDF(); return false;" class="dropdown-item" style="display: block; padding: 8px 12px; color: #333; text-decoration: none;">
-                                    <i class="fas fa-file-pdf ml-2" style="color: #dc3545;"></i>تصدير PDF
+                                    <i class="fas fa-file-pdf ml-2" style="color: #dc3545;"></i>${t('exportPdf')}
                                 </a>
                             </div>
                         </div>
@@ -334,15 +370,15 @@ const ActionTrackingRegister = {
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>تاريخ الملاحظة</th>
-                                        <th>نوع الملاحظة</th>
-                                        <th>التصنيف</th>
-                                        <th>الملاحظة / الخطر</th>
-                                        <th>المسؤول</th>
-                                        <th>تاريخ التنفيذ المستهدف</th>
-                                        <th>الحالة</th>
-                                        <th>مستوى الخطورة</th>
-                                        <th>الإجراءات</th>
+                                        <th>${t('tableDate')}</th>
+                                        <th>${t('tableType')}</th>
+                                        <th>${t('tableClassification')}</th>
+                                        <th>${t('tableIssue')}</th>
+                                        <th>${t('tableResponsible')}</th>
+                                        <th>${t('tableDueDate')}</th>
+                                        <th>${t('tableStatus')}</th>
+                                        <th>${t('tableRisk')}</th>
+                                        <th>${t('tableActions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody id="action-table-body">
@@ -387,7 +423,7 @@ const ActionTrackingRegister = {
                         <td colspan="10" style="text-align: center; padding: 40px;">
                             <i class="fas fa-clipboard-list text-4xl text-gray-300 mb-4"></i>
                             <p class="text-gray-500 mb-4">${t('noActions')}</p>
-                            <button id="add-action-empty-btn" class="btn-primary">
+                            <button id="add-action-empty-btn" class="btn-primary mt-4">
                                 <i class="fas fa-plus ml-2"></i>
                                 ${t('addAction')}
                             </button>
@@ -446,30 +482,30 @@ const ActionTrackingRegister = {
                         </td>
                         <td>
                             <div class="flex gap-1">
-                                <button onclick="ActionTrackingRegister.viewAction('${action.id}')" class="btn-icon btn-icon-primary" title="عرض التفاصيل">
+                                <button onclick="ActionTrackingRegister.viewAction('${action.id}')" class="btn-icon btn-icon-primary" title="${t('actionView')}">
                                     <i class="fas fa-eye"></i>
                                 </button>
                                 <div class="dropdown" style="position: relative;">
-                                    <button class="btn-icon btn-icon-secondary" title="طباعة وتصدير" style="position: relative;">
+                                    <button class="btn-icon btn-icon-secondary" title="${t('actionPrintExport')}" style="position: relative;">
                                         <i class="fas fa-print"></i>
                                     </button>
                                     <div class="dropdown-menu" style="position: absolute; top: 100%; left: 0; margin-top: 4px; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); min-width: 180px; z-index: 1000; display: none;">
                                         <a href="#" onclick="ActionTrackingRegister.printAction('${action.id}'); return false;" class="dropdown-item" style="display: block; padding: 8px 12px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">
-                                            <i class="fas fa-print ml-2"></i>طباعة
+                                            <i class="fas fa-print ml-2"></i>${t('actionPrint')}
                                         </a>
                                         <a href="#" onclick="ActionTrackingRegister.exportActionToExcel('${action.id}'); return false;" class="dropdown-item" style="display: block; padding: 8px 12px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">
-                                            <i class="fas fa-file-excel ml-2" style="color: #1d6f42;"></i>تصدير Excel
+                                            <i class="fas fa-file-excel ml-2" style="color: #1d6f42;"></i>${t('exportExcel')}
                                         </a>
                                         <a href="#" onclick="ActionTrackingRegister.exportActionToPDF('${action.id}'); return false;" class="dropdown-item" style="display: block; padding: 8px 12px; color: #333; text-decoration: none;">
-                                            <i class="fas fa-file-pdf ml-2" style="color: #dc3545;"></i>تصدير PDF
+                                            <i class="fas fa-file-pdf ml-2" style="color: #dc3545;"></i>${t('exportPdf')}
                                         </a>
                                     </div>
                                 </div>
-                                <button onclick="ActionTrackingRegister.editEntry('${action.id}')" class="btn-icon btn-icon-info" title="تعديل">
+                                <button onclick="ActionTrackingRegister.editEntry('${action.id}')" class="btn-icon btn-icon-info" title="${t('actionEdit')}">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 ${this.isAdmin() ? `
-                                    <button onclick="ActionTrackingRegister.deleteEntry('${action.id}')" class="btn-icon btn-icon-danger" title="حذف">
+                                    <button onclick="ActionTrackingRegister.deleteEntry('${action.id}')" class="btn-icon btn-icon-danger" title="${t('actionDelete')}">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 ` : ''}
@@ -511,7 +547,7 @@ const ActionTrackingRegister = {
                 container.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-search text-4xl text-gray-300 mb-4"></i>
-                        <p class="text-gray-500">لا توجد نتائج للبحث</p>
+                        <p class="text-gray-500">${t('noResults')}</p>
                     </div>
                 `;
                 return;
@@ -523,15 +559,15 @@ const ActionTrackingRegister = {
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>تاريخ الملاحظة</th>
-                                <th>نوع الملاحظة</th>
-                                <th>التصنيف</th>
-                                <th>الملاحظة / الخطر</th>
-                                <th>المسؤول</th>
-                                <th>تاريخ التنفيذ المستهدف</th>
-                                <th>الحالة</th>
-                                <th>مستوى الخطورة</th>
-                                <th>الإجراءات</th>
+                                <th>${t('tableDate')}</th>
+                                <th>${t('tableType')}</th>
+                                <th>${t('tableClassification')}</th>
+                                <th>${t('tableIssue')}</th>
+                                <th>${t('tableResponsible')}</th>
+                                <th>${t('tableDueDate')}</th>
+                                <th>${t('tableStatus')}</th>
+                                <th>${t('tableRisk')}</th>
+                                <th>${t('tableActions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -566,30 +602,30 @@ const ActionTrackingRegister = {
                                     </td>
                                     <td>
                                         <div class="flex gap-1">
-                                            <button onclick="ActionTrackingRegister.viewAction('${action.id}')" class="btn-icon btn-icon-primary" title="عرض التفاصيل">
+                                            <button onclick="ActionTrackingRegister.viewAction('${action.id}')" class="btn-icon btn-icon-primary" title="${t('actionView')}">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                             <div class="dropdown" style="position: relative;">
-                                                <button class="btn-icon btn-icon-secondary" title="طباعة وتصدير" style="position: relative;">
+                                                <button class="btn-icon btn-icon-secondary" title="${t('actionPrintExport')}" style="position: relative;">
                                                     <i class="fas fa-print"></i>
                                                 </button>
                                                 <div class="dropdown-menu" style="position: absolute; top: 100%; left: 0; margin-top: 4px; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); min-width: 180px; z-index: 1000; display: none;">
                                                     <a href="#" onclick="ActionTrackingRegister.printAction('${action.id}'); return false;" class="dropdown-item" style="display: block; padding: 8px 12px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">
-                                                        <i class="fas fa-print ml-2"></i>طباعة
+                                                        <i class="fas fa-print ml-2"></i>${t('actionPrint')}
                                                     </a>
                                                     <a href="#" onclick="ActionTrackingRegister.exportActionToExcel('${action.id}'); return false;" class="dropdown-item" style="display: block; padding: 8px 12px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">
-                                                        <i class="fas fa-file-excel ml-2" style="color: #1d6f42;"></i>تصدير Excel
+                                                        <i class="fas fa-file-excel ml-2" style="color: #1d6f42;"></i>${t('exportExcel')}
                                                     </a>
                                                     <a href="#" onclick="ActionTrackingRegister.exportActionToPDF('${action.id}'); return false;" class="dropdown-item" style="display: block; padding: 8px 12px; color: #333; text-decoration: none;">
-                                                        <i class="fas fa-file-pdf ml-2" style="color: #dc3545;"></i>تصدير PDF
+                                                        <i class="fas fa-file-pdf ml-2" style="color: #dc3545;"></i>${t('exportPdf')}
                                                     </a>
                                                 </div>
                                             </div>
-                                            <button onclick="ActionTrackingRegister.editEntry('${action.id}')" class="btn-icon btn-icon-info" title="تعديل">
+                                            <button onclick="ActionTrackingRegister.editEntry('${action.id}')" class="btn-icon btn-icon-info" title="${t('actionEdit')}">
                                                 <i class="fas fa-edit"></i>
                                             </button>
                                             ${this.isAdmin() ? `
-                                                <button onclick="ActionTrackingRegister.deleteEntry('${action.id}')" class="btn-icon btn-icon-danger" title="حذف">
+                                                <button onclick="ActionTrackingRegister.deleteEntry('${action.id}')" class="btn-icon btn-icon-danger" title="${t('actionDelete')}">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             ` : ''}

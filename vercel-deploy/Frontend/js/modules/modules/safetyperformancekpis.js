@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SafetyPerformanceKPIs Module
  * ØªÙ… Ø§Ø³ØªØ®Ø±Ø§Ø¬Ù‡ Ù…Ù† app-modules.js
  */
@@ -11,10 +11,93 @@ const SafetyPerformanceKPIs = {
         startDate: '',
         endDate: ''
     },
+    _languageChangeBound: false,
     kpiTargets: {},
 
+    getCurrentLanguage() {
+        try {
+            return localStorage.getItem('language') || (typeof AppState !== 'undefined' && AppState.currentLanguage) || 'ar';
+        } catch (e) {
+            return 'ar';
+        }
+    },
+
+    getTranslations() {
+        const lang = this.getCurrentLanguage();
+        const translations = {
+            ar: {
+                title: 'مؤشرات الأداء لإدارة السلامة',
+                subtitle: 'تتبع وتحليل مؤشرات الأداء الرئيسية للسلامة عبر كل الإدارات والمواقع',
+                loading: 'جاري التحميل...',
+                preparingUI: 'جاري تجهيز الواجهة...',
+                noPermission: 'ليس لديك صلاحية للوصول إلى هذا القسم',
+                redirectDashboard: 'سيتم تحويلك إلى لوحة التحكم',
+                loadError: 'حدث خطأ في تحميل البيانات',
+                retry: 'إعادة المحاولة',
+                exportExcel: 'تصدير Excel',
+                exportPdf: 'تصدير PDF',
+                settingsTargets: 'إعدادات الأهداف',
+                filtersSearch: 'التصفية والبحث',
+                period: 'الفترة الزمنية',
+                monthly: 'شهري',
+                quarterly: 'ربع سنوي',
+                yearly: 'سنوي',
+                custom: 'مخصص',
+                fromDate: 'من تاريخ',
+                toDate: 'إلى تاريخ',
+                department: 'الإدارة',
+                location: 'الموقع',
+                allDepartments: 'جميع الإدارات',
+                allLocations: 'جميع المواقع',
+                applyFilters: 'تطبيق التصفية',
+                resetFilters: 'إعادة تعيين'
+            },
+            en: {
+                title: 'Safety Performance KPIs',
+                subtitle: 'Track and analyze key safety performance indicators across departments and locations',
+                loading: 'Loading...',
+                preparingUI: 'Preparing interface...',
+                noPermission: 'You do not have permission to access this section',
+                redirectDashboard: 'You will be redirected to dashboard',
+                loadError: 'An error occurred while loading data',
+                retry: 'Retry',
+                exportExcel: 'Export Excel',
+                exportPdf: 'Export PDF',
+                settingsTargets: 'Target Settings',
+                filtersSearch: 'Filters & Search',
+                period: 'Time Period',
+                monthly: 'Monthly',
+                quarterly: 'Quarterly',
+                yearly: 'Yearly',
+                custom: 'Custom',
+                fromDate: 'From Date',
+                toDate: 'To Date',
+                department: 'Department',
+                location: 'Location',
+                allDepartments: 'All Departments',
+                allLocations: 'All Locations',
+                applyFilters: 'Apply Filters',
+                resetFilters: 'Reset'
+            }
+        };
+        return {
+            lang,
+            t: (key) => (translations[lang] && translations[lang][key]) ? translations[lang][key] : key
+        };
+    },
+
     async load() {
+        const { t } = this.getTranslations();
         const section = document.getElementById('safety-performance-kpis-section');
+
+        if (!this._languageChangeBound) {
+            this._languageChangeBound = true;
+            document.addEventListener('language-changed', () => {
+                if (document.getElementById('safety-performance-kpis-section')?.classList.contains('active')) {
+                    this.load();
+                }
+            });
+        }
 
         // التحقق من الصلاحيات - فقط للمدير
         const isAdmin = (() => {
@@ -33,21 +116,20 @@ const SafetyPerformanceKPIs = {
         })();
 
         if (!isAdmin) {
-            // لا تترك الواجهة فارغة (مهم لاختبار AppTester)
             if (section) {
                 section.innerHTML = `
                     <div class="content-card">
                         <div class="card-body">
                             <div class="empty-state">
                                 <i class="fas fa-lock text-4xl text-gray-300 mb-4"></i>
-                                <p class="text-gray-500">ليس لديك صلاحية للوصول إلى هذا القسم</p>
-                                <p class="text-sm text-gray-400 mt-2">سيتم تحويلك إلى لوحة التحكم</p>
+                                <p class="text-gray-500">${t('noPermission')}</p>
+                                <p class="text-sm text-gray-400 mt-2">${t('redirectDashboard')}</p>
                             </div>
                         </div>
                     </div>
                 `;
             }
-            Notification.error('ليس لديك صلاحية للوصول إلى هذا القسم');
+            Notification.error(t('noPermission'));
             UI.showSection('dashboard');
             return;
         }
@@ -68,11 +150,12 @@ const SafetyPerformanceKPIs = {
                     <div>
                         <h1 class="section-title">
                             <i class="fas fa-gauge-high ml-3"></i>
-                            مؤشرات الأداء لإدارة السلامة
+                            ${t('title')}
                         </h1>
-                        <p class="section-subtitle">جاري التحميل...</p>
+                        <p class="section-subtitle">${t('loading')}</p>
                     </div>
                 </div>
+
                 <div class="content-card mt-6">
                     <div class="card-body">
                         <div class="empty-state">
@@ -81,7 +164,7 @@ const SafetyPerformanceKPIs = {
                                     <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div>
                                 </div>
                             </div>
-                            <p class="text-gray-500">جاري تجهيز الواجهة...</p>
+                            <p class="text-gray-500">${t('preparingUI')}</p>
                         </div>
                     </div>
                 </div>
@@ -111,18 +194,19 @@ const SafetyPerformanceKPIs = {
                         <div>
                             <h1 class="section-title">
                                 <i class="fas fa-gauge-high ml-3"></i>
-                                مؤشرات الأداء لإدارة السلامة
+                                ${t('title')}
                             </h1>
                         </div>
                     </div>
+
                     <div class="content-card mt-6">
                         <div class="card-body">
                             <div class="empty-state">
                                 <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                <p class="text-gray-500 mb-4">حدث خطأ في تحميل البيانات</p>
+                                <p class="text-gray-500 mb-4">${t('loadError')}</p>
                                 <button onclick="SafetyPerformanceKPIs.load()" class="btn-primary">
                                     <i class="fas fa-redo ml-2"></i>
-                                    إعادة المحاولة
+                                    ${t('retry')}
                                 </button>
                             </div>
                         </div>
@@ -131,11 +215,11 @@ const SafetyPerformanceKPIs = {
             }
 
             section.innerHTML = content;
-            
+
             // تهيئة الأحداث بعد عرض الواجهة
             try {
                 this.setupEventListeners();
-                
+
                 // تحديث KPIs فوراً بعد عرض الواجهة (حتى لو كانت البيانات فارغة)
                 // هذا يضمن عدم بقاء الواجهة فارغة بعد التحميل
                 try {
@@ -146,7 +230,7 @@ const SafetyPerformanceKPIs = {
                 } catch (error) {
                     Utils.safeWarn('⚠️ خطأ في updateAllKPIs الأولي:', error);
                 }
-                
+
                 // تحديث KPIs بعد تحميل البيانات من Backend (للتحديث)
                 setTimeout(() => {
                     try {
@@ -165,20 +249,21 @@ const SafetyPerformanceKPIs = {
                     <div>
                         <h1 class="section-title">
                             <i class="fas fa-gauge-high ml-3"></i>
-                            مؤشرات الأداء لإدارة السلامة
+                            ${t('title')}
                         </h1>
                     </div>
                 </div>
+
                 <div class="mt-6">
                     <div class="content-card">
                         <div class="card-body">
                             <div class="empty-state">
                                 <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                <p class="text-gray-500 mb-2">حدث خطأ أثناء تحميل البيانات</p>
+                                <p class="text-gray-500 mb-2">${t('loadError')}</p>
                                 <p class="text-sm text-gray-400 mb-4">${error && error.message ? Utils.escapeHTML(error.message) : 'خطأ غير معروف'}</p>
                                 <button onclick="SafetyPerformanceKPIs.load()" class="btn-primary">
                                     <i class="fas fa-redo ml-2"></i>
-                                    إعادة المحاولة
+                                    ${t('retry')}
                                 </button>
                             </div>
                         </div>
@@ -189,28 +274,29 @@ const SafetyPerformanceKPIs = {
     },
 
     async render() {
+        const { t } = this.getTranslations();
         return `
             <div class="section-header">
                 <div class="flex items-center justify-between flex-wrap gap-4">
                     <div>
                         <h1 class="section-title">
                             <i class="fas fa-gauge-high ml-3"></i>
-                            ${(typeof i18n !== 'undefined' && i18n.translate) ? i18n.translate('kpis.title') : 'مؤشرات الأداء لإدارة السلامة (Safety Performance KPIs)'}
+                            ${(typeof i18n !== 'undefined' && i18n.translate) ? i18n.translate('kpis.title') : t('title')}
                         </h1>
-                        <p class="section-subtitle">${(typeof i18n !== 'undefined' && i18n.translate) ? i18n.translate('kpis.subtitle') : 'تتبع وتحليل مؤشرات الأداء الرئيسية للسلامة عبر كل الإدارات والمواقع'}</p>
+                        <p class="section-subtitle">${(typeof i18n !== 'undefined' && i18n.translate) ? i18n.translate('kpis.subtitle') : t('subtitle')}</p>
                     </div>
                     <div class="flex gap-2">
                         <button id="kpis-export-excel-btn" class="btn-success">
                             <i class="fas fa-file-excel ml-2"></i>
-                            تصدير Excel
+                            ${t('exportExcel')}
                         </button>
                         <button id="kpis-export-pdf-btn" class="btn-secondary">
                             <i class="fas fa-file-pdf ml-2"></i>
-                            تصدير PDF
+                            ${t('exportPdf')}
                         </button>
                         <button id="kpis-settings-btn" class="btn-primary">
                             <i class="fas fa-cog ml-2"></i>
-                            إعدادات الأهداف
+                            ${t('settingsTargets')}
                         </button>
                     </div>
                 </div>
@@ -221,39 +307,39 @@ const SafetyPerformanceKPIs = {
                 <div class="card-header">
                     <h2 class="card-title">
                         <i class="fas fa-filter ml-2"></i>
-                        التصفية والبحث
+                        ${t('filtersSearch')}
                     </h2>
                 </div>
                 <div class="card-body">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">الفترة الزمنية</label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">${t('period')}</label>
                             <select id="kpi-filter-period" class="form-input">
-                                <option value="monthly">شهري</option>
-                                <option value="quarterly">ربع سنوي</option>
-                                <option value="yearly">سنوي</option>
-                                <option value="custom">مخصص</option>
+                                <option value="monthly">${t('monthly')}</option>
+                                <option value="quarterly">${t('quarterly')}</option>
+                                <option value="yearly">${t('yearly')}</option>
+                                <option value="custom">${t('custom')}</option>
                             </select>
                         </div>
                         <div id="kpi-custom-dates" class="hidden">
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">من تاريخ</label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">${t('fromDate')}</label>
                             <input type="date" id="kpi-filter-start-date" class="form-input">
                         </div>
                         <div id="kpi-custom-dates-end" class="hidden">
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">إلى تاريخ</label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">${t('toDate')}</label>
                             <input type="date" id="kpi-filter-end-date" class="form-input">
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">الإدارة</label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">${t('department')}</label>
                             <select id="kpi-filter-department" class="form-input">
-                                <option value="">جميع الإدارات</option>
+                                <option value="">${t('allDepartments')}</option>
                                 ${this.getDepartmentOptions()}
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">الموقع</label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">${t('location')}</label>
                             <select id="kpi-filter-location" class="form-input">
-                                <option value="">جميع المواقع</option>
+                                <option value="">${t('allLocations')}</option>
                                 ${this.getLocationOptions()}
                             </select>
                         </div>
@@ -261,11 +347,11 @@ const SafetyPerformanceKPIs = {
                     <div class="mt-4 flex gap-2">
                         <button id="kpi-apply-filters" class="btn-primary">
                             <i class="fas fa-search ml-2"></i>
-                            تطبيق التصفية
+                            ${t('applyFilters')}
                         </button>
                         <button id="kpi-reset-filters" class="btn-secondary">
                             <i class="fas fa-redo ml-2"></i>
-                            إعادة تعيين
+                            ${t('resetFilters')}
                         </button>
                     </div>
                 </div>
