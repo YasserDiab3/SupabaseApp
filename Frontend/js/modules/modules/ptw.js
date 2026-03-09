@@ -4,6 +4,154 @@
  */
 // ===== PTW Module (Permit to Work) =====
 const PTW = {
+    _languageChangeBound: false,
+
+    getCurrentLanguage() {
+        try {
+            return localStorage.getItem('language') || (typeof AppState !== 'undefined' && AppState.currentLanguage) || 'ar';
+        } catch (e) {
+            return 'ar';
+        }
+    },
+
+    getTranslations() {
+        const lang = this.getCurrentLanguage();
+        const translations = {
+            ar: {
+                title: 'تصاريح العمل',
+                permits: 'تصاريح العمل',
+                permit: 'تصريح عمل',
+                permitNumber: 'رقم التصريح',
+                permitType: 'نوع التصريح',
+                workType: 'نوع العمل',
+                location: 'الموقع',
+                description: 'الوصف',
+                requestedBy: 'طلب بواسطة',
+                requestedDate: 'تاريخ الطلب',
+                startDate: 'تاريخ البدء',
+                endDate: 'تاريخ الانتهاء',
+                status: 'الحالة',
+                pending: 'قيد الانتظار',
+                approved: 'موافق عليه',
+                rejected: 'مرفوض',
+                completed: 'مكتمل',
+                cancelled: 'ملغي',
+                search: 'بحث',
+                addPermit: 'إضافة تصريح',
+                editPermit: 'تعديل التصريح',
+                deletePermit: 'حذف التصريح',
+                approvePermit: 'الموافقة على التصريح',
+                rejectPermit: 'رفض التصريح',
+                loading: 'جاري التحميل...',
+                errorLoading: 'خطأ في تحميل البيانات',
+                noData: 'لا توجد بيانات',
+                confirmDelete: 'هل أنت متأكد من حذف هذا التصريح؟',
+                permitDeleted: 'تم حذف التصريح بنجاح',
+                permitSaved: 'تم حفظ التصريح بنجاح',
+                requiredField: 'هذا الحقل مطلوب',
+                selectType: 'اختر النوع',
+                hotWork: 'عمل ساخن',
+                coldWork: 'عمل بارد',
+                confinedSpace: 'مساحة محدودة',
+                electricalWork: 'عمل كهربائي',
+                excavation: 'حفر',
+                workingAtHeight: 'عمل على ارتفاع',
+                lifting: 'رفع',
+                approvals: 'الموافقات',
+                approver: 'الموافق',
+                approvalDate: 'تاريخ الموافقة',
+                comments: 'تعليقات',
+                assignApprover: 'تعيين موافق',
+                viewDetails: 'عرض التفاصيل',
+                exportPermits: 'تصدير التصاريح',
+                totalPermits: 'إجمالي التصاريح',
+                pendingPermits: 'التصاريح المعلقة',
+                approvedPermits: 'التصاريح الموافق عليها',
+                rejectedPermits: 'التصاريح المرفوضة',
+                operations: 'العمليات',
+                view: 'عرض',
+                edit: 'تعديل',
+                delete: 'حذف',
+                approve: 'موافقة',
+                reject: 'رفض',
+                cancel: 'إلغاء',
+                save: 'حفظ',
+                close: 'إغلاق',
+                submit: 'إرسال',
+                download: 'تحميل',
+                print: 'طباعة'
+            },
+            en: {
+                title: 'Permit to Work',
+                permits: 'Permit to Work',
+                permit: 'Permit',
+                permitNumber: 'Permit Number',
+                permitType: 'Permit Type',
+                workType: 'Work Type',
+                location: 'Location',
+                description: 'Description',
+                requestedBy: 'Requested By',
+                requestedDate: 'Requested Date',
+                startDate: 'Start Date',
+                endDate: 'End Date',
+                status: 'Status',
+                pending: 'Pending',
+                approved: 'Approved',
+                rejected: 'Rejected',
+                completed: 'Completed',
+                cancelled: 'Cancelled',
+                search: 'Search',
+                addPermit: 'Add Permit',
+                editPermit: 'Edit Permit',
+                deletePermit: 'Delete Permit',
+                approvePermit: 'Approve Permit',
+                rejectPermit: 'Reject Permit',
+                loading: 'Loading...',
+                errorLoading: 'Error loading data',
+                noData: 'No data available',
+                confirmDelete: 'Are you sure you want to delete this permit?',
+                permitDeleted: 'Permit deleted successfully',
+                permitSaved: 'Permit saved successfully',
+                requiredField: 'This field is required',
+                selectType: 'Select Type',
+                hotWork: 'Hot Work',
+                coldWork: 'Cold Work',
+                confinedSpace: 'Confined Space',
+                electricalWork: 'Electrical Work',
+                excavation: 'Excavation',
+                workingAtHeight: 'Working at Height',
+                lifting: 'Lifting',
+                approvals: 'Approvals',
+                approver: 'Approver',
+                approvalDate: 'Approval Date',
+                comments: 'Comments',
+                assignApprover: 'Assign Approver',
+                viewDetails: 'View Details',
+                exportPermits: 'Export Permits',
+                totalPermits: 'Total Permits',
+                pendingPermits: 'Pending Permits',
+                approvedPermits: 'Approved Permits',
+                rejectedPermits: 'Rejected Permits',
+                operations: 'Operations',
+                view: 'View',
+                edit: 'Edit',
+                delete: 'Delete',
+                approve: 'Approve',
+                reject: 'Reject',
+                cancel: 'Cancel',
+                save: 'Save',
+                close: 'Close',
+                submit: 'Submit',
+                download: 'Download',
+                print: 'Print'
+            }
+        };
+        return {
+            lang,
+            t: (key) => (translations[lang] && translations[lang][key]) ? translations[lang][key] : key
+        };
+    },
+
     approvals: [], // مصفوفة الموافقات
     formApprovals: [],
     formCircuitOwnerId: '__default__',
@@ -914,6 +1062,18 @@ const PTW = {
     },
 
     async load() {
+        const { t } = this.getTranslations();
+
+        // Setup language change listener
+        if (!this._languageChangeBound) {
+            this._languageChangeBound = true;
+            document.addEventListener('language-changed', () => {
+                if (document.getElementById('ptw-section')?.classList.contains('active')) {
+                    this.load();
+                }
+            });
+        }
+
         // التحقق من وجود التبعيات المطلوبة
         if (typeof Utils === 'undefined') {
             console.error('Utils غير متوفر!');

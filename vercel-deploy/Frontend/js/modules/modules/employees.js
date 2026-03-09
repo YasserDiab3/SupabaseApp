@@ -1,9 +1,113 @@
-﻿/**
+/**
  * Employees Module
  * ØªÙ… Ø§Ø³ØªØ®Ø±Ø§Ø¬Ù‡ Ù…Ù† app-modules.js
  */
 // ===== Employees Module (قاعدة بيانات الموظين) =====
 const Employees = {
+    _languageChangeBound: false,
+
+    getCurrentLanguage() {
+        try {
+            return localStorage.getItem('language') || (typeof AppState !== 'undefined' && AppState.currentLanguage) || 'ar';
+        } catch (e) {
+            return 'ar';
+        }
+    },
+
+    getTranslations() {
+        const lang = this.getCurrentLanguage();
+        const translations = {
+            ar: {
+                title: 'قاعدة بيانات الموظفين',
+                employees: 'الموظفين',
+                employee: 'موظف',
+                name: 'الاسم',
+                email: 'البريد الإلكتروني',
+                phone: 'رقم الهاتف',
+                position: 'المنصب',
+                department: 'الإدارة',
+                hireDate: 'تاريخ التعيين',
+                salary: 'الراتب',
+                status: 'الحالة',
+                active: 'نشط',
+                inactive: 'غير نشط',
+                search: 'بحث',
+                addEmployee: 'إضافة موظف',
+                editEmployee: 'تعديل الموظف',
+                deleteEmployee: 'حذف الموظف',
+                importEmployees: 'استيراد الموظفين',
+                exportEmployees: 'تصدير الموظفين',
+                loading: 'جاري التحميل...',
+                errorLoading: 'خطأ في تحميل البيانات',
+                noData: 'لا توجد بيانات',
+                confirmDelete: 'هل أنت متأكد من حذف هذا الموظف؟',
+                employeeDeleted: 'تم حذف الموظف بنجاح',
+                employeeSaved: 'تم حفظ الموظف بنجاح',
+                invalidEmail: 'البريد الإلكتروني غير صحيح',
+                requiredField: 'هذا الحقل مطلوب',
+                selectFile: 'اختر ملف',
+                dragDrop: 'اسحب وأفلت الملف هنا',
+                supportedFormats: 'الصيغ المدعومة: XLSX, XLS, CSV',
+                totalEmployees: 'إجمالي الموظفين',
+                activeEmployees: 'الموظفين النشطين',
+                inactiveEmployees: 'الموظفين غير النشطين',
+                operations: 'العمليات',
+                view: 'عرض',
+                edit: 'تعديل',
+                delete: 'حذف',
+                cancel: 'إلغاء',
+                save: 'حفظ',
+                close: 'إغلاق'
+            },
+            en: {
+                title: 'Employees Database',
+                employees: 'Employees',
+                employee: 'Employee',
+                name: 'Name',
+                email: 'Email',
+                phone: 'Phone',
+                position: 'Position',
+                department: 'Department',
+                hireDate: 'Hire Date',
+                salary: 'Salary',
+                status: 'Status',
+                active: 'Active',
+                inactive: 'Inactive',
+                search: 'Search',
+                addEmployee: 'Add Employee',
+                editEmployee: 'Edit Employee',
+                deleteEmployee: 'Delete Employee',
+                importEmployees: 'Import Employees',
+                exportEmployees: 'Export Employees',
+                loading: 'Loading...',
+                errorLoading: 'Error loading data',
+                noData: 'No data available',
+                confirmDelete: 'Are you sure you want to delete this employee?',
+                employeeDeleted: 'Employee deleted successfully',
+                employeeSaved: 'Employee saved successfully',
+                invalidEmail: 'Invalid email address',
+                requiredField: 'This field is required',
+                selectFile: 'Select file',
+                dragDrop: 'Drag and drop file here',
+                supportedFormats: 'Supported formats: XLSX, XLS, CSV',
+                totalEmployees: 'Total Employees',
+                activeEmployees: 'Active Employees',
+                inactiveEmployees: 'Inactive Employees',
+                operations: 'Operations',
+                view: 'View',
+                edit: 'Edit',
+                delete: 'Delete',
+                cancel: 'Cancel',
+                save: 'Save',
+                close: 'Close'
+            }
+        };
+        return {
+            lang,
+            t: (key) => (translations[lang] && translations[lang][key]) ? translations[lang][key] : key
+        };
+    },
+
     // Cache للبيانات مع timestamp
     cache: {
         data: null,
@@ -215,6 +319,18 @@ const Employees = {
     },
 
     async load() {
+        const { t } = this.getTranslations();
+
+        // Setup language change listener
+        if (!this._languageChangeBound) {
+            this._languageChangeBound = true;
+            document.addEventListener('language-changed', () => {
+                if (document.getElementById('employees-section')?.classList.contains('active')) {
+                    this.load();
+                }
+            });
+        }
+
         // التحقق من وجود التبعيات المطلوبة
         if (typeof Utils === 'undefined') {
             console.error('Utils غير متوفر!');
@@ -229,11 +345,11 @@ const Employees = {
                         <div class="card-body">
                             <div class="empty-state">
                                 <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                <p class="text-gray-500 mb-2">تعذر تحميل قاعدة بيانات الموظفين</p>
-                                <p class="text-sm text-gray-400">AppState غير متوفر حالياً. جرّب تحديث الصفحة.</p>
+                                <p class="text-gray-500 mb-2">${t('errorLoading')}</p>
+                                <p class="text-sm text-gray-400">AppState ${t('errorLoading')}. جرّب تحديث الصفحة.</p>
                                 <button onclick="location.reload()" class="btn-primary mt-4">
                                     <i class="fas fa-redo ml-2"></i>
-                                    تحديث الصفحة
+                                    ${t('retry')}
                                 </button>
                             </div>
                         </div>
@@ -268,19 +384,19 @@ const Employees = {
                         <div>
                             <h1 class="section-title">
                                 <i class="fas fa-user-tie ml-3"></i>
-                                قاعدة بيانات الموظفين
+                                ${t('title')}
                             </h1>
-                            <p class="section-subtitle">${canAddOrImport ? 'إدارة بيانات الموظفين مع إمكانية استيراد من Excel' : 'عرض وبحث في قاعدة بيانات الموظفين'}</p>
+                            <p class="section-subtitle">${canAddOrImport ? t('employees') + ' - ' + t('importEmployees') : t('employees') + ' - ' + t('search')}</p>
                         </div>
                         ${canAddOrImport ? `
                         <div class="flex gap-2">
                             <button id="import-employees-excel-btn" class="btn-secondary">
                                 <i class="fas fa-file-excel ml-2"></i>
-                                استيراد من Excel
+                                ${t('importEmployees')}
                             </button>
                             <button id="add-employee-btn" class="btn-primary">
                                 <i class="fas fa-plus ml-2"></i>
-                                إضافة موظف جديد
+                                ${t('addEmployee')}
                             </button>
                         </div>
                         ` : ''}
@@ -295,7 +411,7 @@ const Employees = {
                                         <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div>
                                     </div>
                                 </div>
-                                <p class="text-gray-500">جاري تحميل قائمة الموظفين...</p>
+                                <p class="text-gray-500">${t('loading')}</p>
                             </div>
                         </div>
                     </div>
@@ -315,10 +431,10 @@ const Employees = {
                                 <div class="card-body">
                                     <div class="empty-state">
                                         <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                        <p class="text-gray-500 mb-4">حدث خطأ في تحميل البيانات</p>
+                                        <p class="text-gray-500 mb-4">${t('errorLoading')}</p>
                                         <button onclick="Employees.load()" class="btn-primary">
                                             <i class="fas fa-redo ml-2"></i>
-                                            إعادة المحاولة
+                                            ${t('retry')}
                                         </button>
                                     </div>
                                 </div>
@@ -387,10 +503,10 @@ const Employees = {
                         <div class="card-body">
                             <div class="empty-state">
                                 <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                <p class="text-gray-500 mb-4">حدث خطأ أثناء تحميل البيانات</p>
+                                <p class="text-gray-500 mb-4">${t('errorLoading')}</p>
                                 <button onclick="Employees.load()" class="btn-primary">
                                     <i class="fas fa-redo ml-2"></i>
-                                    إعادة المحاولة
+                                    ${t('retry')}
                                 </button>
                             </div>
                         </div>
