@@ -97,7 +97,16 @@ const DailyObservations = {
                 'filter.all': 'الكل',
                 'filter.searchPlaceholder': 'ابحث...',
                 'empty.noObservations': 'لا توجد ملاحظات مسجلة',
-                'empty.noMatching': 'لا توجد ملاحظات مطابقة لعوامل التصفية الحالية'
+                'empty.noMatching': 'لا توجد ملاحظات مطابقة لعوامل التصفية الحالية',
+                'modal.updates': 'التحديثات',
+                'modal.comments': 'التعليقات',
+                'modal.timeLog': 'السجل الزمني',
+                'modal.noUpdates': 'لا توجد تحديثات',
+                'modal.noComments': 'لا توجد تعليقات',
+                'modal.noTimeLog': 'لا يوجد سجل زمني',
+                'modal.progress': 'التقدم',
+                'modal.from': 'من',
+                'modal.to': 'إلى'
             },
             en: {
                 'title.observationsRegistry': 'Observations Registry',
@@ -115,7 +124,16 @@ const DailyObservations = {
                 'filter.all': 'All',
                 'filter.searchPlaceholder': 'Search...',
                 'empty.noObservations': 'No observations recorded',
-                'empty.noMatching': 'No observations match the current filter criteria'
+                'empty.noMatching': 'No observations match the current filter criteria',
+                'modal.updates': 'Updates',
+                'modal.comments': 'Comments',
+                'modal.timeLog': 'Timeline',
+                'modal.noUpdates': 'No updates',
+                'modal.noComments': 'No comments',
+                'modal.noTimeLog': 'No timeline entries',
+                'modal.progress': 'Progress',
+                'modal.from': 'From',
+                'modal.to': 'To'
             }
         };
 
@@ -4110,7 +4128,7 @@ const DailyObservations = {
                             type="text" 
                             id="ppt-template-id-input" 
                             class="form-input font-mono text-sm" 
-                            placeholder="أدخل File ID من رابط Google Slides"
+                            placeholder="أدخل معرف الملف من رابط العرض التقديمي"
                             value="${currentTemplateId ? Utils.escapeHTML(currentTemplateId) : ''}"
                         >
                         <p class="text-xs text-gray-500 mt-2">
@@ -6270,13 +6288,14 @@ const DailyObservations = {
      */
     refreshUpdatesSection(observationId) {
         try {
+            const { t } = this.getTranslations();
             // البحث عن modal الملاحظة (الذي يحتوي على "تفاصيل الملاحظة")
             const allModals = document.querySelectorAll('.modal-overlay');
             let observationModal = null;
             
             for (const modal of allModals) {
                 const title = modal.querySelector('.modal-title');
-                if (title && title.textContent.includes('تفاصيل الملاحظة')) {
+                if (title && (title.textContent.includes('تفاصيل الملاحظة') || title.textContent.includes('Observation Details'))) {
                     observationModal = modal;
                     break;
                 }
@@ -6290,7 +6309,7 @@ const DailyObservations = {
             
             for (const section of allSections) {
                 const heading = section.querySelector('h3');
-                if (heading && heading.textContent.includes('التحديثات')) {
+                if (heading && (heading.textContent.includes(t('modal.updates')) || heading.textContent.includes('Updates'))) {
                     updatesSection = section;
                     break;
                 }
@@ -6316,7 +6335,7 @@ const DailyObservations = {
             // تحديث العنوان
             const heading = updatesSection.querySelector('h3');
             if (heading) {
-                heading.innerHTML = `<i class="fas fa-sync-alt ml-2"></i>التحديثات (${updates.length})`;
+                heading.innerHTML = `<i class="fas fa-sync-alt ml-2"></i>${t('modal.updates')} (${updates.length})`;
             }
 
             // البحث عن container التحديثات
@@ -6338,7 +6357,7 @@ const DailyObservations = {
                                 ${update.progress !== undefined ? `
                                     <div class="mt-2">
                                         <div class="flex items-center justify-between text-xs mb-1">
-                                            <span>التقدم</span>
+                                            <span>${t('modal.progress')}</span>
                                             <span>${update.progress}%</span>
                                         </div>
                                         <div class="w-full bg-gray-200 rounded-full h-2">
@@ -6369,10 +6388,10 @@ const DailyObservations = {
             } else {
                 if (updatesContainer) {
                     if (updatesContainer.tagName === 'P') {
-                        updatesContainer.textContent = 'لا توجد تحديثات';
+                        updatesContainer.textContent = t('modal.noUpdates');
                         updatesContainer.className = 'text-gray-500 text-sm';
                     } else {
-                        updatesContainer.innerHTML = '<p class="text-gray-500 text-sm">لا توجد تحديثات</p>';
+                        updatesContainer.innerHTML = `<p class="text-gray-500 text-sm">${t('modal.noUpdates')}</p>`;
                     }
                 } else {
                     // إضافة رسالة "لا توجد تحديثات"
@@ -6380,7 +6399,7 @@ const DailyObservations = {
                     if (headingDiv) {
                         const emptyMsg = document.createElement('p');
                         emptyMsg.className = 'text-gray-500 text-sm';
-                        emptyMsg.textContent = 'لا توجد تحديثات';
+                        emptyMsg.textContent = t('modal.noUpdates');
                         headingDiv.insertAdjacentElement('afterend', emptyMsg);
                     }
                 }
@@ -6395,13 +6414,14 @@ const DailyObservations = {
      */
     refreshCommentsSection(observationId) {
         try {
+            const { t } = this.getTranslations();
             // البحث عن modal الملاحظة (الذي يحتوي على "تفاصيل الملاحظة")
             const allModals = document.querySelectorAll('.modal-overlay');
             let observationModal = null;
             
             for (const modal of allModals) {
                 const title = modal.querySelector('.modal-title');
-                if (title && title.textContent.includes('تفاصيل الملاحظة')) {
+                if (title && (title.textContent.includes('تفاصيل الملاحظة') || title.textContent.includes('Observation Details'))) {
                     observationModal = modal;
                     break;
                 }
@@ -6415,7 +6435,7 @@ const DailyObservations = {
             
             for (const section of allSections) {
                 const heading = section.querySelector('h3');
-                if (heading && heading.textContent.includes('التعليقات')) {
+                if (heading && (heading.textContent.includes(t('modal.comments')) || heading.textContent.includes('Comments'))) {
                     commentsSection = section;
                     break;
                 }
@@ -6441,7 +6461,7 @@ const DailyObservations = {
             // تحديث العنوان
             const heading = commentsSection.querySelector('h3');
             if (heading) {
-                heading.innerHTML = `<i class="fas fa-comments ml-2"></i>التعليقات (${comments.length})`;
+                heading.innerHTML = `<i class="fas fa-comments ml-2"></i>${t('modal.comments')} (${comments.length})`;
             }
 
             // البحث عن container التعليقات
@@ -6483,10 +6503,10 @@ const DailyObservations = {
             } else {
                 if (commentsContainer) {
                     if (commentsContainer.tagName === 'P') {
-                        commentsContainer.textContent = 'لا توجد تعليقات';
+                        commentsContainer.textContent = t('modal.noComments');
                         commentsContainer.className = 'text-gray-500 text-sm';
                     } else {
-                        commentsContainer.innerHTML = '<p class="text-gray-500 text-sm">لا توجد تعليقات</p>';
+                        commentsContainer.innerHTML = `<p class="text-gray-500 text-sm">${t('modal.noComments')}</p>`;
                     }
                 } else {
                     // إضافة رسالة "لا توجد تعليقات"
@@ -6494,7 +6514,7 @@ const DailyObservations = {
                     if (headingDiv) {
                         const emptyMsg = document.createElement('p');
                         emptyMsg.className = 'text-gray-500 text-sm';
-                        emptyMsg.textContent = 'لا توجد تعليقات';
+                        emptyMsg.textContent = t('modal.noComments');
                         headingDiv.insertAdjacentElement('afterend', emptyMsg);
                     }
                 }
@@ -6509,13 +6529,14 @@ const DailyObservations = {
      */
     refreshTimeLogSection(observationId) {
         try {
+            const { t } = this.getTranslations();
             // البحث عن modal الملاحظة (الذي يحتوي على "تفاصيل الملاحظة")
             const allModals = document.querySelectorAll('.modal-overlay');
             let observationModal = null;
             
             for (const modal of allModals) {
                 const title = modal.querySelector('.modal-title');
-                if (title && title.textContent.includes('تفاصيل الملاحظة')) {
+                if (title && (title.textContent.includes('تفاصيل الملاحظة') || title.textContent.includes('Observation Details'))) {
                     observationModal = modal;
                     break;
                 }
@@ -6529,7 +6550,7 @@ const DailyObservations = {
             
             for (const section of allSections) {
                 const heading = section.querySelector('h3');
-                if (heading && heading.textContent.includes('السجل الزمني')) {
+                if (heading && (heading.textContent.includes(t('modal.timeLog')) || heading.textContent.includes('Timeline'))) {
                     timeLogSection = section;
                     break;
                 }
@@ -6572,8 +6593,8 @@ const DailyObservations = {
                                     <p class="text-sm text-gray-700 mt-1">${Utils.escapeHTML(log.note || '')}</p>
                                     ${log.action === 'status_changed' && log.oldStatus && log.newStatus ? `
                                         <p class="text-xs text-gray-500 mt-1">
-                                            من: <span class="badge badge-secondary">${Utils.escapeHTML(log.oldStatus)}</span>
-                                            إلى: <span class="badge badge-info">${Utils.escapeHTML(log.newStatus)}</span>
+                                            ${t('modal.from')}: <span class="badge badge-secondary">${Utils.escapeHTML(log.oldStatus)}</span>
+                                            ${t('modal.to')}: <span class="badge badge-info">${Utils.escapeHTML(log.newStatus)}</span>
                                         </p>
                                     ` : ''}
                                 </div>
@@ -6601,10 +6622,10 @@ const DailyObservations = {
             } else {
                 if (timeLogContainer) {
                     if (timeLogContainer.tagName === 'P') {
-                        timeLogContainer.textContent = 'لا يوجد سجل زمني';
+                        timeLogContainer.textContent = t('modal.noTimeLog');
                         timeLogContainer.className = 'text-gray-500 text-sm';
                     } else {
-                        timeLogContainer.innerHTML = '<p class="text-gray-500 text-sm">لا يوجد سجل زمني</p>';
+                        timeLogContainer.innerHTML = `<p class="text-gray-500 text-sm">${t('modal.noTimeLog')}</p>`;
                     }
                 } else {
                     // إضافة رسالة "لا يوجد سجل زمني"
@@ -6613,7 +6634,7 @@ const DailyObservations = {
                     if (headingParent) {
                         const emptyMsg = document.createElement('p');
                         emptyMsg.className = 'text-gray-500 text-sm';
-                        emptyMsg.textContent = 'لا يوجد سجل زمني';
+                        emptyMsg.textContent = t('modal.noTimeLog');
                         headingParent.insertAdjacentElement('afterend', emptyMsg);
                     }
                 }

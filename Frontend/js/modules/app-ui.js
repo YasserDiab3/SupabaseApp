@@ -12,6 +12,15 @@ window.UI = {
     _loginScreenRetryCount: 0, // عداد محاولات استعادة الجلسة
     _backgroundSyncInterval: null, // ✅ مزامنة تلقائية دورية في الخلفية
     _backgroundSyncIntervalTime: 2 * 60 * 1000, // 2 دقيقة (120000 مللي ثانية) - محسّن ليتناسب مع عمليات التسجيل والحفظ والاستدعاء
+
+    getCurrentLanguage() {
+        return localStorage.getItem('language') || AppState?.currentLanguage || 'ar';
+    },
+
+    t(arText, enText) {
+        return this.getCurrentLanguage() === 'ar' ? arText : enText;
+    },
+
     /**
      * عرض شاشة تسجيل الدخول
      */
@@ -123,7 +132,7 @@ window.UI = {
             const submitBtn = loginForm.querySelector('button[type="submit"]');
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-sign-in-alt ml-2" aria-hidden="true"></i> تسجيل الدخول';
+                submitBtn.innerHTML = `<i class="fas fa-sign-in-alt ml-2" aria-hidden="true"></i> ${this.t('تسجيل الدخول', 'Sign In')}`;
             }
         }
 
@@ -2524,7 +2533,7 @@ window.UI = {
                     }
                 }, 1000);
             } else if (timerEl) {
-                timerEl.textContent = 'اضغط «لقد اطّلعت» أو «تخطي» للمتابعة';
+                timerEl.textContent = this.t('اضغط «لقد اطّلعت» أو «تخطي» للمتابعة', 'Press "I Acknowledge" or "Skip" to continue');
             }
         };
 
@@ -4063,7 +4072,7 @@ window.UI = {
                 mobileUserName.style.display = AppState.currentUser.email ? 'block' : 'none';
             }
         } else {
-            if (nameEl) nameEl.textContent = 'المستخدم';
+            if (nameEl) nameEl.textContent = this.t('المستخدم', 'User');
             if (emailEl) emailEl.textContent = 'user@example.com';
             if (mobileUserName) mobileUserName.textContent = '';
             if (mobileUserName) mobileUserName.style.display = 'none';
@@ -7779,15 +7788,22 @@ window.UI = {
         const statusBtn = document.getElementById('user-connection-status');
         const statusIcon = document.getElementById('user-connection-icon');
         const statusText = document.getElementById('user-connection-text');
+        const labels = {
+            connected: this.t('متصل', 'Connected'),
+            disconnected: this.t('غير متصل', 'Disconnected'),
+            connectionStatus: this.t('حالة الاتصال', 'Connection Status'),
+            lastLogin: this.t('آخر تسجيل دخول', 'Last Login'),
+            notSpecified: this.t('غير محدد', 'Not specified')
+        };
         
         if (!statusBtn || !statusIcon || !statusText) return;
 
         // إذا لم يكن هناك مستخدم مسجل دخول
         if (!AppState.currentUser || !AppState.currentUser.email) {
-            statusText.textContent = 'غير متصل';
+            statusText.textContent = labels.disconnected;
             statusBtn.classList.remove('connected', 'disconnected');
             statusBtn.classList.add('disconnected');
-            statusBtn.title = 'حالة الاتصال: غير متصل';
+            statusBtn.title = `${labels.connectionStatus}: ${labels.disconnected}`;
             // إيقاف التحديث التلقائي إذا لم يكن هناك مستخدم
             this.stopAutoRefreshConnectionStatus();
             return;
@@ -7833,22 +7849,22 @@ window.UI = {
         }
 
         if (isOnline) {
-            statusText.textContent = 'متصل';
+            statusText.textContent = labels.connected;
             statusBtn.classList.remove('disconnected');
             statusBtn.classList.add('connected');
         } else {
             // إذا لم يكن المستخدم موجوداً أو كان isOnline = false
-            statusText.textContent = 'غير متصل';
+            statusText.textContent = labels.disconnected;
             statusBtn.classList.remove('connected');
             statusBtn.classList.add('disconnected');
         }
 
         // تحديث title الزر
         if (user) {
-            const lastLogin = user.lastLogin ? Utils.formatDateTime(user.lastLogin) : 'غير محدد';
-            statusBtn.title = `حالة الاتصال: ${isOnline ? 'متصل' : 'غير متصل'} | آخر تسجيل دخول: ${lastLogin}`;
+            const lastLogin = user.lastLogin ? Utils.formatDateTime(user.lastLogin) : labels.notSpecified;
+            statusBtn.title = `${labels.connectionStatus}: ${isOnline ? labels.connected : labels.disconnected} | ${labels.lastLogin}: ${lastLogin}`;
         } else {
-            statusBtn.title = `حالة الاتصال: ${isOnline ? 'متصل' : 'غير متصل'}`;
+            statusBtn.title = `${labels.connectionStatus}: ${isOnline ? labels.connected : labels.disconnected}`;
         }
     },
 

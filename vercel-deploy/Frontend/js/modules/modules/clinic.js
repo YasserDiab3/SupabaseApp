@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Clinic Module
  * ØªÙ… Ø§Ø³ØªØ®Ø±Ø§Ø¬Ù‡ Ù…Ù† app-modules.js
  */
@@ -110,6 +110,7 @@ const Clinic = {
                 // Buttons
                 'btn.registerVisit': 'Register Visit',
                 'btn.refresh': 'Refresh',
+                'btn.importExcel': 'Import Excel',
                 'btn.exportExcel': 'Export Excel',
                 'btn.exportPDF': 'Export PDF',
                 'btn.reset': 'Reset',
@@ -2857,8 +2858,9 @@ const Clinic = {
     },
 
     showImportMedicationsExcelModal() {
+        const { t } = this.getTranslations();
         if (typeof XLSX === 'undefined') {
-            Notification?.error?.('مكتبة Excel غير متوفرة');
+            Notification?.error?.(t('مكتبة Excel غير متوفرة', 'Excel library is not available'));
             return;
         }
         const modal = document.createElement('div');
@@ -2866,24 +2868,24 @@ const Clinic = {
         modal.innerHTML = `
             <div class="modal-content" style="max-width: 800px;">
                 <div class="modal-header">
-                    <h2 class="modal-title"><i class="fas fa-file-import ml-2"></i>استيراد الأدوية من ملف Excel</h2>
+                    <h2 class="modal-title"><i class="fas fa-file-import ml-2"></i>${t('استيراد الأدوية من ملف Excel', 'Import Medications from Excel')}</h2>
                     <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <div class="modal-body space-y-4">
                     <div class="bg-blue-50 border border-blue-200 rounded p-4">
-                        <p class="text-sm text-blue-800 mb-2"><strong>تعليمات الاستيراد:</strong></p>
-                        <p class="text-sm text-blue-700">يجب أن يحتوي الملف على الأعمدة: اسم الدواء، نوع الدواء، الاستخدام، تاريخ الشراء، تاريخ انتهاء الصلاحية، الحالة (اختياري)، الكمية أو الرصيد.</p>
+                        <p class="text-sm text-blue-800 mb-2"><strong>${t('تعليمات الاستيراد:', 'Import Instructions:')}</strong></p>
+                        <p class="text-sm text-blue-700">${t('يجب أن يحتوي الملف على الأعمدة: اسم الدواء، نوع الدواء، الاستخدام، تاريخ الشراء، تاريخ انتهاء الصلاحية، الحالة (اختياري)، الكمية أو الرصيد.', 'The file must contain columns: Medication Name, Medication Type, Usage, Purchase Date, Expiry Date, Status (optional), Quantity or Balance.')}</p>
                     </div>
                     <div>
                         <label for="medications-excel-file-input" class="block text-sm font-semibold text-gray-700 mb-2">
-                            <i class="fas fa-file-excel ml-2"></i>اختر ملف Excel (.xlsx, .xls)
+                            <i class="fas fa-file-excel ml-2"></i>${t('اختر ملف Excel (.xlsx, .xls)', 'Choose Excel file (.xlsx, .xls)')}
                         </label>
                         <input type="file" id="medications-excel-file-input" accept=".xlsx,.xls" class="form-input">
                     </div>
                     <div id="medications-import-preview" class="hidden">
-                        <h3 class="text-sm font-semibold mb-2">معاينة (أول 5 صفوف):</h3>
+                        <h3 class="text-sm font-semibold mb-2">${t('معاينة (أول 5 صفوف):', 'Preview (first 5 rows):')}</h3>
                         <div class="max-h-60 overflow-auto border rounded">
                             <table class="data-table text-xs">
                                 <thead id="medications-preview-head"></thead>
@@ -2894,9 +2896,9 @@ const Clinic = {
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">إلغاء</button>
+                    <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">${t('إلغاء', 'Cancel')}</button>
                     <button id="medications-import-confirm-btn" class="btn-primary" disabled>
-                        <i class="fas fa-upload ml-2"></i>استيراد البيانات
+                        <i class="fas fa-upload ml-2"></i>${t('استيراد البيانات', 'Import data')}
                     </button>
                 </div>
             </div>
@@ -2934,19 +2936,20 @@ const Clinic = {
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
                     if (!Array.isArray(rows) || rows.length === 0) {
-                        Notification?.warning?.('الملف فارغ أو لا يحتوي على بيانات.');
+                        Notification?.warning?.(t('الملف فارغ أو لا يحتوي على بيانات.', 'The file is empty or has no data.'));
                         return;
                     }
                     importedRows = rows;
                     const headers = Object.keys(rows[0]);
                     if (previewHead) previewHead.innerHTML = '<tr>' + headers.map(h => '<th class="px-2 py-1">' + Utils.escapeHTML(String(h)) + '</th>').join('') + '</tr>';
                     if (previewBody) previewBody.innerHTML = rows.slice(0, 5).map(row => '<tr>' + headers.map(h => '<td class="px-2 py-1">' + Utils.escapeHTML(String(row[h] ?? '')) + '</td>').join('') + '</tr>').join('');
-                    if (previewCount) previewCount.textContent = 'إجمالي الصفوف: ' + rows.length;
+                    if (previewCount) previewCount.textContent = t('إجمالي الصفوف: ', 'Total rows: ') + rows.length;
+
                     previewContainer?.classList.remove('hidden');
                     if (confirmBtn) confirmBtn.disabled = false;
                 } catch (err) {
                     Utils.safeError('قراءة ملف الأدوية:', err);
-                    Notification?.error?.('فشل قراءة الملف: ' + (err.message || err));
+                    Notification?.error?.(t('فشل قراءة الملف: ', 'Failed to read file: ') + (err.message || err));
                 }
             };
             reader.readAsArrayBuffer(file);
@@ -2955,7 +2958,7 @@ const Clinic = {
         fileInput?.addEventListener('change', handleFileChange);
         confirmBtn?.addEventListener('click', () => {
             if (importedRows.length === 0) {
-                Notification?.warning?.('يرجى اختيار ملف يحتوي على بيانات.');
+                Notification?.warning?.(t('يرجى اختيار ملف يحتوي على بيانات.', 'Please choose a file with data.'));
                 return;
             }
             this.processImportedMedications(importedRows, modal);
@@ -3003,8 +3006,9 @@ const Clinic = {
     },
 
     processImportedMedications(rows, modal) {
+        const { t } = this.getTranslations();
         if (!Array.isArray(rows) || rows.length === 0) {
-            Notification?.warning?.('لا توجد بيانات صالحة للاستيراد.');
+            Notification?.warning?.(t('لا توجد بيانات صالحة للاستيراد.', 'No valid data to import.'));
             return;
         }
         this.ensureData();
@@ -3038,14 +3042,19 @@ const Clinic = {
         }
         if (modal) modal.remove();
         if (successCount > 0) {
-            Notification?.success?.('تم استيراد ' + successCount + ' دواء بنجاح' + (skipCount ? '، وتخطي ' + skipCount + ' صف' : ''));
+            Notification?.success?.(
+                t('تم استيراد ', 'Imported ') +
+                successCount +
+                t(' دواء بنجاح', ' medications successfully') +
+                (skipCount ? (t('، وتخطي ', ', skipped ') + skipCount + t(' صف', ' rows')) : '')
+            );
         } else {
-            Notification?.warning?.('لم يتم استيراد أي دواء. تحقق من صيغة الملف.');
+            Notification?.warning?.(t('لم يتم استيراد أي دواء. تحقق من صيغة الملف.', 'No medications were imported. Check the file format.'));
         }
         if (errors.length > 0 && errors.length <= 5) {
-            Notification?.error?.('أخطاء: ' + errors.join('؛ '));
+            Notification?.error?.(t('أخطاء: ', 'Errors: ') + errors.join('؛ '));
         } else if (errors.length > 5) {
-            Notification?.error?.('أخطاء في الاستيراد: ' + errors.slice(0, 3).join('؛ ') + ' ...');
+            Notification?.error?.(t('أخطاء في الاستيراد: ', 'Import errors: ') + errors.slice(0, 3).join('؛ ') + ' ...');
         }
     },
 
