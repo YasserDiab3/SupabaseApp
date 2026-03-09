@@ -20,7 +20,69 @@ const ChangeManagement = {
         },
         currentRequest: null,
         _loadInProgress: false,
-        _searchDebounce: null
+        _searchDebounce: null,
+        _languageChangeBound: false
+    },
+
+    getCurrentLanguage() {
+        try {
+            return localStorage.getItem('language') || (typeof AppState !== 'undefined' && AppState.currentLanguage) || 'ar';
+        } catch (e) {
+            return 'ar';
+        }
+    },
+
+    getTranslations() {
+        const lang = this.getCurrentLanguage();
+        const translations = {
+            ar: {
+                title: 'إدارة التغيرات',
+                subtitle: 'تسجيل وموافقة ومتابعة طلبات التغيير (تقني، إداري، تنظيمي)',
+                statistics: 'الإحصائيات',
+                addRequest: 'إضافة طلب تغيير',
+                requestsTab: 'الطلبات',
+                registerTab: 'سجل التغييرات',
+                registerTitle: 'جميع الطلبات المسجلة والمستلمة مع حالتها',
+                exportExcel: 'تصدير Excel',
+                exportPDF: 'تصدير PDF',
+                noRequestsInRegister: 'لا توجد طلبات في السجل',
+                loadError: 'حدث خطأ أثناء تحميل البيانات',
+                retry: 'إعادة المحاولة',
+                requestsTitle: 'الطلبات',
+                noChangeRequests: 'لا توجد طلبات تغيير',
+                dbNotEnabled: 'يجب تفعيل الاتصال بقاعدة البيانات أولاً',
+                requestsLoadError: 'حدث خطأ أثناء تحميل الطلبات',
+                untitled: 'بدون عنوان',
+                unknown: 'غير محدد',
+                view: 'عرض'
+            },
+            en: {
+                title: 'Change Management',
+                subtitle: 'Register, approve, and track change requests (technical, administrative, organizational)',
+                statistics: 'Statistics',
+                addRequest: 'Add Change Request',
+                requestsTab: 'Requests',
+                registerTab: 'Change Register',
+                registerTitle: 'All registered and received requests with current status',
+                exportExcel: 'Export Excel',
+                exportPDF: 'Export PDF',
+                noRequestsInRegister: 'No requests in register',
+                loadError: 'An error occurred while loading data',
+                retry: 'Retry',
+                requestsTitle: 'Requests',
+                noChangeRequests: 'No change requests',
+                dbNotEnabled: 'Database connection must be enabled first',
+                requestsLoadError: 'An error occurred while loading requests',
+                untitled: 'Untitled',
+                unknown: 'Unknown',
+                view: 'View'
+            }
+        };
+
+        return {
+            lang,
+            t: (key) => (translations[lang] && translations[lang][key]) ? translations[lang][key] : key
+        };
     },
 
     /**
@@ -35,6 +97,18 @@ const ChangeManagement = {
             return;
         }
 
+        const { t } = this.getTranslations();
+
+        if (!this.state._languageChangeBound) {
+            this.state._languageChangeBound = true;
+            document.addEventListener('language-changed', () => {
+                if ((typeof AppState !== 'undefined' && AppState.currentSection === 'change-management') ||
+                    (section && section.classList.contains('active'))) {
+                    this.load();
+                }
+            });
+        }
+
         try {
             section.innerHTML = `
                 <div class="section-header">
@@ -42,18 +116,18 @@ const ChangeManagement = {
                         <div>
                             <h1 class="section-title">
                                 <i class="fas fa-exchange-alt ml-3"></i>
-                                إدارة التغيرات
+                                ${t('title')}
                             </h1>
-                            <p class="section-subtitle">تسجيل وموافقة ومتابعة طلبات التغيير (تقني، إداري، تنظيمي)</p>
+                            <p class="section-subtitle">${t('subtitle')}</p>
                         </div>
                         <div class="flex gap-2">
                             <button type="button" id="change-btn-statistics" class="btn-secondary" onclick="ChangeManagement.showStatistics()">
                                 <i class="fas fa-chart-bar ml-2"></i>
-                                الإحصائيات
+                                ${t('statistics')}
                             </button>
                             <button type="button" id="change-btn-add" class="btn-primary" onclick="ChangeManagement.showCreateForm()">
                                 <i class="fas fa-plus ml-2"></i>
-                                إضافة طلب تغيير
+                                ${t('addRequest')}
                             </button>
                         </div>
                     </div>
@@ -61,10 +135,10 @@ const ChangeManagement = {
                 <div class="mt-4">
                     <div class="change-tabs flex gap-1 border-b border-gray-200 pb-0">
                         <button type="button" class="change-tab-btn tab-btn active" data-tab="requests" onclick="ChangeManagement.switchTab('requests')">
-                            <i class="fas fa-list ml-2"></i> الطلبات
+                            <i class="fas fa-list ml-2"></i> ${t('requestsTab')}
                         </button>
                         <button type="button" class="change-tab-btn tab-btn" data-tab="register" onclick="ChangeManagement.switchTab('register')">
-                            <i class="fas fa-history ml-2"></i> سجل التغييرات
+                            <i class="fas fa-history ml-2"></i> ${t('registerTab')}
                         </button>
                     </div>
                 </div>
@@ -74,18 +148,18 @@ const ChangeManagement = {
                 <div class="mt-6" id="change-tab-register" style="display:none;">
                     <div class="content-card">
                         <div class="card-header border-b border-gray-200 px-4 py-3 flex items-center justify-between flex-wrap gap-2" style="background: var(--bg-secondary);">
-                            <h3 class="card-title text-lg font-semibold" style="margin: 0;">جميع الطلبات المسجلة والمستلمة مع حالتها</h3>
+                            <h3 class="card-title text-lg font-semibold" style="margin: 0;">${t('registerTitle')}</h3>
                             <div class="flex gap-2">
-                                <button type="button" class="btn-secondary btn-sm" onclick="ChangeManagement.exportToExcel()" title="تصدير إلى Excel">
-                                    <i class="fas fa-file-excel ml-2"></i> تصدير Excel
+                                <button type="button" class="btn-secondary btn-sm" onclick="ChangeManagement.exportToExcel()" title="${t('exportExcel')}">
+                                    <i class="fas fa-file-excel ml-2"></i> ${t('exportExcel')}
                                 </button>
-                                <button type="button" class="btn-secondary btn-sm" onclick="ChangeManagement.exportToPDF()" title="تصدير إلى PDF">
-                                    <i class="fas fa-file-pdf ml-2"></i> تصدير PDF
+                                <button type="button" class="btn-secondary btn-sm" onclick="ChangeManagement.exportToPDF()" title="${t('exportPDF')}">
+                                    <i class="fas fa-file-pdf ml-2"></i> ${t('exportPDF')}
                                 </button>
                             </div>
                         </div>
                         <div class="card-body">
-                            <div id="change-register-list-container"><p class="text-gray-500">لا توجد طلبات في السجل</p></div>
+                            <div id="change-register-list-container"><p class="text-gray-500">${t('noRequestsInRegister')}</p></div>
                         </div>
                     </div>
                 </div>
@@ -98,16 +172,16 @@ const ChangeManagement = {
             if (typeof Utils !== 'undefined' && Utils.safeError) Utils.safeError('خطأ في تحميل موديول إدارة التغيرات:', error);
             section.innerHTML = `
                 <div class="section-header">
-                    <h1 class="section-title"><i class="fas fa-exchange-alt ml-3"></i> إدارة التغيرات</h1>
+                    <h1 class="section-title"><i class="fas fa-exchange-alt ml-3"></i> ${t('title')}</h1>
                 </div>
                 <div class="mt-6">
                     <div class="content-card">
                         <div class="card-body">
                             <div class="empty-state">
                                 <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                <p class="text-gray-500 mb-4">حدث خطأ أثناء تحميل البيانات</p>
+                                <p class="text-gray-500 mb-4">${t('loadError')}</p>
                                 <button type="button" onclick="ChangeManagement.load()" class="btn-primary">
-                                    <i class="fas fa-redo ml-2"></i> إعادة المحاولة
+                                    <i class="fas fa-redo ml-2"></i> ${t('retry')}
                                 </button>
                             </div>
                         </div>
@@ -118,22 +192,23 @@ const ChangeManagement = {
     },
 
     renderRequestsListHTML() {
+        const { t } = this.getTranslations();
         return `
             <div class="content-card">
                 <div class="card-header border-b border-gray-200 px-4 py-3 flex items-center justify-between flex-wrap gap-2" style="background: var(--bg-secondary);">
-                    <h3 class="card-title text-lg font-semibold" style="margin: 0;">الطلبات</h3>
+                    <h3 class="card-title text-lg font-semibold" style="margin: 0;">${t('requestsTitle')}</h3>
                     <div class="flex gap-2">
-                        <button type="button" class="btn-secondary btn-sm" onclick="ChangeManagement.exportToExcel()" title="تصدير إلى Excel">
-                            <i class="fas fa-file-excel ml-2"></i> تصدير Excel
+                        <button type="button" class="btn-secondary btn-sm" onclick="ChangeManagement.exportToExcel()" title="${t('exportExcel')}">
+                            <i class="fas fa-file-excel ml-2"></i> ${t('exportExcel')}
                         </button>
-                        <button type="button" class="btn-secondary btn-sm" onclick="ChangeManagement.exportToPDF()" title="تصدير إلى PDF">
-                            <i class="fas fa-file-pdf ml-2"></i> تصدير PDF
+                        <button type="button" class="btn-secondary btn-sm" onclick="ChangeManagement.exportToPDF()" title="${t('exportPDF')}">
+                            <i class="fas fa-file-pdf ml-2"></i> ${t('exportPDF')}
                         </button>
                     </div>
                 </div>
                 <div class="card-body">
                     <div id="change-requests-list-container">
-                        <div class="empty-state py-8" id="change-requests-initial"><p class="text-gray-500">لا توجد طلبات تغيير</p></div>
+                        <div class="empty-state py-8" id="change-requests-initial"><p class="text-gray-500">${t('noChangeRequests')}</p></div>
                     </div>
                 </div>
             </div>
@@ -145,8 +220,10 @@ const ChangeManagement = {
         if (!container) return;
         if (this.state._loadInProgress) return;
 
+        const { t } = this.getTranslations();
+
         if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
-            container.innerHTML = this.showEmptyState('يجب تفعيل الاتصال بقاعدة البيانات أولاً');
+            container.innerHTML = this.showEmptyState(t('dbNotEnabled'));
             return;
         }
 
@@ -167,11 +244,11 @@ const ChangeManagement = {
                 }
             } else {
                 if (typeof Utils !== 'undefined' && Utils.safeError) Utils.safeError('خطأ في تحميل الطلبات:', response.message);
-                container.innerHTML = this.showEmptyState('حدث خطأ أثناء تحميل الطلبات');
+                container.innerHTML = this.showEmptyState(t('requestsLoadError'));
             }
         } catch (error) {
             if (typeof Utils !== 'undefined' && Utils.safeError) Utils.safeError('خطأ في تحميل الطلبات:', error);
-            container.innerHTML = this.showEmptyState('حدث خطأ أثناء تحميل الطلبات');
+            container.innerHTML = this.showEmptyState(t('requestsLoadError'));
         } finally {
             this.state._loadInProgress = false;
         }
@@ -202,8 +279,10 @@ const ChangeManagement = {
         const container = document.getElementById('change-requests-list-container');
         if (!container) return;
 
+        const { t } = this.getTranslations();
+
         if (!requests || requests.length === 0) {
-            container.innerHTML = this.showEmptyState('لا توجد طلبات تغيير');
+            container.innerHTML = this.showEmptyState(t('noChangeRequests'));
             return;
         }
 
@@ -217,11 +296,12 @@ const ChangeManagement = {
 
     renderRequestCard(req, safe) {
         if (!safe) safe = (v) => String(v || '');
+        const { t } = this.getTranslations();
         const id = safe(req.id);
-        const title = safe(req.title || 'بدون عنوان');
+        const title = safe(req.title || t('untitled'));
         const desc = (req.description || '').substring(0, 120);
         const descSafe = safe(desc + (req.description && req.description.length > 120 ? '...' : ''));
-        const requestedBy = safe(req.requestedBy || 'غير محدد');
+        const requestedBy = safe(req.requestedBy || t('unknown'));
         const statusColors = {
             'Draft': 'bg-gray-100 text-gray-800',
             'In Review': 'bg-blue-100 text-blue-800',
@@ -255,7 +335,7 @@ const ChangeManagement = {
                         </div>
                     </div>
                     <button type="button" onclick="event.stopPropagation(); ChangeManagement.showRequestDetail('${id}')" class="btn-secondary btn-sm">
-                        <i class="fas fa-eye ml-1"></i> عرض
+                        <i class="fas fa-eye ml-1"></i> ${t('view')}
                     </button>
                 </div>
             </div>
@@ -1109,29 +1189,46 @@ const ChangeManagement = {
     },
 
     getStatusLabel(s) {
-        const labels = { 'Draft': 'مسودة', 'In Review': 'قيد المراجعة', 'Approved': 'معتمد', 'Rejected': 'مرفوض', 'In Implementation': 'قيد التنفيذ', 'Completed': 'منفذ', 'Closed': 'مغلق' };
+        const labelsByLang = {
+            ar: { 'Draft': 'مسودة', 'In Review': 'قيد المراجعة', 'Approved': 'معتمد', 'Rejected': 'مرفوض', 'In Implementation': 'قيد التنفيذ', 'Completed': 'منفذ', 'Closed': 'مغلق' },
+            en: { 'Draft': 'Draft', 'In Review': 'In Review', 'Approved': 'Approved', 'Rejected': 'Rejected', 'In Implementation': 'In Implementation', 'Completed': 'Completed', 'Closed': 'Closed' }
+        };
+        const labels = labelsByLang[this.getCurrentLanguage()] || labelsByLang.ar;
         return labels[s] || s;
     },
 
     getChangeTypeLabel(s) {
-        const labels = { 'Technical': 'تقني', 'Administrative': 'إداري', 'Organizational': 'تنظيمي' };
+        const labelsByLang = {
+            ar: { 'Technical': 'تقني', 'Administrative': 'إداري', 'Organizational': 'تنظيمي' },
+            en: { 'Technical': 'Technical', 'Administrative': 'Administrative', 'Organizational': 'Organizational' }
+        };
+        const labels = labelsByLang[this.getCurrentLanguage()] || labelsByLang.ar;
         return labels[s] || s;
     },
 
     getPriorityLabel(s) {
-        const labels = { '1-VeryHigh': 'عالي جداً', '2-High': 'عالي', '3-Medium': 'متوسط', '4-Low': 'منخفض' };
+        const labelsByLang = {
+            ar: { '1-VeryHigh': 'عالي جداً', '2-High': 'عالي', '3-Medium': 'متوسط', '4-Low': 'منخفض' },
+            en: { '1-VeryHigh': 'Very High', '2-High': 'High', '3-Medium': 'Medium', '4-Low': 'Low' }
+        };
+        const labels = labelsByLang[this.getCurrentLanguage()] || labelsByLang.ar;
         return labels[s] || s;
     },
 
     getImpactLabel(s) {
-        const labels = { '1-Minor': 'بسيط', '2-Major': 'كبير', '3-Critical': 'حرج' };
+        const labelsByLang = {
+            ar: { '1-Minor': 'بسيط', '2-Major': 'كبير', '3-Critical': 'حرج' },
+            en: { '1-Minor': 'Minor', '2-Major': 'Major', '3-Critical': 'Critical' }
+        };
+        const labels = labelsByLang[this.getCurrentLanguage()] || labelsByLang.ar;
         return labels[s] || s;
     },
 
     formatDate(dateString) {
         if (!dateString) return '—';
         try {
-            return new Date(dateString).toLocaleDateString('ar-SA');
+            const locale = this.getCurrentLanguage() === 'en' ? 'en-US' : 'ar-SA';
+            return new Date(dateString).toLocaleDateString(locale);
         } catch (e) {
             return dateString;
         }
@@ -1448,4 +1545,3 @@ ${data.map(r => '<tr>' + (Object.keys(data[0] || {})).map(k => '<td>' + safe(r[k
         }
     }
 })();
-
