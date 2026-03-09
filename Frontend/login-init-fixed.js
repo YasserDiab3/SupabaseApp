@@ -652,6 +652,13 @@ Yasser.diab@icapp.com.eg`;
         const forgotOk = setupForgotPassword();
         const helpOk = setupHelpButton();
         const syncOk = setupSyncSettingsButton();
+        if (typeof window.UI !== 'undefined' && typeof window.UI.initLoginLanguageSelector === 'function') {
+            try {
+                window.UI.initLoginLanguageSelector();
+            } catch (e) {
+                console.warn('⚠️ تعذر تهيئة قائمة لغة تسجيل الدخول:', e);
+            }
+        }
         
         // زر إعداد المزامنة جديد وقد لا يكون موجوداً في نسخ قديمة
         const syncBtnExists = !!document.getElementById('sync-settings-btn');
@@ -819,6 +826,28 @@ Yasser.diab@icapp.com.eg`;
                     }, true);
                     helpBtn.dataset.handlerBound = 'true';
                 }
+            }
+
+            // Login language selector (inside login form)
+            const loginLangSelect = newForm.querySelector('#login-language-select');
+            if (loginLangSelect && loginLangSelect.dataset.handlerBound !== 'true') {
+                try {
+                    const currentLang = (localStorage.getItem('language') || 'ar') === 'en' ? 'en' : 'ar';
+                    loginLangSelect.value = currentLang;
+                } catch (e) {
+                    loginLangSelect.value = 'ar';
+                }
+
+                loginLangSelect.addEventListener('change', function (e) {
+                    const selectedLang = e.target.value === 'en' ? 'en' : 'ar';
+                    if (typeof window.UI !== 'undefined' && typeof window.UI.setLanguage === 'function') {
+                        window.UI.setLanguage(selectedLang);
+                    } else {
+                        try { localStorage.setItem('language', selectedLang); } catch (err) { /* ignore */ }
+                    }
+                }, true);
+
+                loginLangSelect.dataset.handlerBound = 'true';
             }
 
             // Sync settings button

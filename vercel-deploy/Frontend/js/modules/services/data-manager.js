@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Data Manager Service
  * Handles local data storage, sync queue management, and configuration persistence
  */
@@ -384,7 +384,7 @@ const DataManager = {
                     localStorage.setItem('hse_app_data', serialized);
                 } catch (e) {
                     if (e.name === 'QuotaExceededError' || e.code === 22 || (e.message && (e.message.includes('QuotaExceeded') || e.message.includes('quota')))) {
-                        if (this._tryFreeSpaceAndRetry(serialized)) return true;
+                        if (this._tryFreeSpaceAndRetry()) return true;
                         this._showQuotaWarningOnce();
                     }
                     return false;
@@ -456,17 +456,10 @@ const DataManager = {
     },
 
     /**
-     * إظهار تحذير امتلاء التخزين مرة واحدة كل 5 دقائق لتجنب إزعاج المستخدم
+     * تحذير امتلاء التخزين — لا يُعرض أي إشعار للمستخدم (المزامنة تتم تلقائياً عند الاتصال)
      */
     _showQuotaWarningOnce() {
-        const now = Date.now();
-        if (now - this._quotaWarningLastShown < this._QUOTA_WARNING_COOLDOWN_MS) {
-            return;
-        }
-        this._quotaWarningLastShown = now;
-        if (typeof Notification !== 'undefined') {
-            Notification.warning('التخزين المحلي ممتلئ. سيتم المزامنة مع قاعدة البيانات عند الاتصال.', { duration: 8000 });
-        }
+        // عدم إظهار أي رسالة للمستخدم
     },
 
     async loadCompanySettings(forceReload = false) {
@@ -764,5 +757,4 @@ const DataManager = {
 if (typeof window !== 'undefined') {
     window.DataManager = DataManager;
 }
-
 

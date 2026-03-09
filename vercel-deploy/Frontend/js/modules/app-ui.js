@@ -21,6 +21,133 @@ window.UI = {
         return this.getCurrentLanguage() === 'ar' ? arText : enText;
     },
 
+    getLoginTranslations(lang) {
+        const translations = {
+            ar: {
+                loginTitle: 'نظام إدارة السلامة والصحة المهنية',
+                usernameLabel: 'البريد الإلكتروني',
+                passwordLabel: 'كلمة المرور',
+                rememberMe: 'تذكرني',
+                forgotPassword: 'نسيت كلمة المرور؟',
+                signIn: 'تسجيل الدخول',
+                help: 'مساعدة / Help',
+                languageLabel: 'لغة النظام',
+                errorContact: 'في حالة وجود أي مشكلة، يُرجى التواصل مع مدير النظام على البريد التالي:',
+                copyright: '© Yasser Diab — كل الحقوق محفوظة 2025',
+                loginCount: 'عدد تسجيل الدخول للمستخدمين:',
+                trial: 'نسخة تجريبية',
+                privacyPolicy: 'سياسة الخصوصية'
+            },
+            en: {
+                loginTitle: 'Occupational Safety & Health Management System',
+                usernameLabel: 'Email Address',
+                passwordLabel: 'Password',
+                rememberMe: 'Remember me',
+                forgotPassword: 'Forgot password?',
+                signIn: 'Sign In',
+                help: 'Help',
+                languageLabel: 'System language',
+                errorContact: 'If you face any issue, please contact the system administrator at:',
+                copyright: '© Yasser Diab — All rights reserved 2025',
+                loginCount: 'User login count:',
+                trial: 'Trial Version',
+                privacyPolicy: 'Privacy Policy'
+            }
+        };
+
+        return translations[lang] || translations.ar;
+    },
+
+    updateLoginScreenLanguage() {
+        const lang = this.getCurrentLanguage();
+        const tr = this.getLoginTranslations(lang);
+        const isRTL = lang === 'ar';
+
+        const loginTitle = document.getElementById('login-title');
+        if (loginTitle) loginTitle.textContent = tr.loginTitle;
+
+        const usernameLabel = document.getElementById('login-username-label');
+        if (usernameLabel) usernameLabel.textContent = tr.usernameLabel;
+
+        const passwordLabel = document.getElementById('login-password-label');
+        if (passwordLabel) passwordLabel.textContent = tr.passwordLabel;
+
+        const rememberMeText = document.getElementById('remember-me-text');
+        if (rememberMeText) rememberMeText.textContent = tr.rememberMe;
+
+        const rememberCheckbox = document.getElementById('remember-me');
+        if (rememberCheckbox) rememberCheckbox.setAttribute('aria-label', tr.rememberMe);
+
+        const forgotPasswordLink = document.getElementById('forgot-password-link');
+        if (forgotPasswordLink) {
+            forgotPasswordLink.textContent = tr.forgotPassword;
+            forgotPasswordLink.setAttribute('aria-label', tr.forgotPassword);
+        }
+
+        const helpBtn = document.getElementById('help-btn');
+        if (helpBtn) {
+            helpBtn.setAttribute('aria-label', tr.help);
+            const icon = helpBtn.querySelector('i');
+            helpBtn.innerHTML = `${icon ? icon.outerHTML : '<i class="fas fa-question-circle ml-2" aria-hidden="true"></i>'} ${tr.help}`;
+        }
+
+        const languageLabel = document.getElementById('login-language-label');
+        if (languageLabel) {
+            const icon = languageLabel.querySelector('i');
+            languageLabel.innerHTML = `${icon ? icon.outerHTML : '<i class="fas fa-language ml-2"></i>'} ${tr.languageLabel}`;
+        }
+
+        const loginLangSelect = document.getElementById('login-language-select');
+        if (loginLangSelect) {
+            loginLangSelect.value = lang;
+            loginLangSelect.setAttribute('aria-label', tr.languageLabel);
+        }
+
+        const submitBtn = document.querySelector('#login-form button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.innerHTML = `<i class="fas fa-sign-in-alt ml-2" aria-hidden="true"></i> ${tr.signIn}`;
+            submitBtn.setAttribute('aria-label', tr.signIn);
+        }
+
+        const errorContactText = document.querySelector('#login-error-contact p');
+        if (errorContactText) {
+            const mailLink = errorContactText.querySelector('a');
+            errorContactText.innerHTML = `${tr.errorContact}<br>${mailLink ? mailLink.outerHTML : ''}`;
+        }
+
+        const footerCopyright = document.getElementById('login-footer-copyright');
+        if (footerCopyright) footerCopyright.textContent = tr.copyright;
+
+        const footerCountLabel = document.getElementById('login-footer-count-label');
+        if (footerCountLabel) footerCountLabel.textContent = tr.loginCount;
+
+        const footerTrial = document.getElementById('login-footer-trial');
+        if (footerTrial) footerTrial.textContent = tr.trial;
+
+        const privacyPolicyLink = document.getElementById('privacy-policy-link');
+        if (privacyPolicyLink) privacyPolicyLink.textContent = tr.privacyPolicy;
+
+        const loginScreen = document.getElementById('login-screen');
+        if (loginScreen) loginScreen.dir = isRTL ? 'rtl' : 'ltr';
+    },
+
+    initLoginLanguageSelector() {
+        const langSelect = document.getElementById('login-language-select');
+        if (!langSelect) return;
+        if (langSelect.dataset.languageBound === 'true') {
+            this.updateLoginScreenLanguage();
+            return;
+        }
+
+        langSelect.value = this.getCurrentLanguage();
+        langSelect.addEventListener('change', (e) => {
+            const selectedLang = e.target.value === 'en' ? 'en' : 'ar';
+            this.setLanguage(selectedLang);
+        });
+        langSelect.dataset.languageBound = 'true';
+        this.updateLoginScreenLanguage();
+    },
+
     /**
      * عرض شاشة تسجيل الدخول
      */
@@ -109,6 +236,9 @@ window.UI = {
         // إعادة تعيين العداد عند عرض شاشة الدخول فعلياً
         this._loginScreenRetryCount = 0;
 
+        // تطبيق اللغة المختارة قبل تسجيل الدخول على كامل الواجهة
+        this.setLanguage(this.getCurrentLanguage(), true);
+
         const loginScreen = document.getElementById('login-screen');
         const mainApp = document.getElementById('main-app');
         const usernameInput = document.getElementById('username');
@@ -156,6 +286,9 @@ window.UI = {
 
         // تحديث معلومات الشركة (الاسم)
         this.updateCompanyBranding();
+
+        // تهيئة قائمة اللغة في شاشة الدخول وتحديث نصوصها
+        this.initLoginLanguageSelector();
 
         // ملاحظة: تهيئة الأحداث تتم الآن في login-init-fixed.js
         // لا حاجة لإعادة تهيئة الأحداث هنا لتجنب التعارض
@@ -3271,13 +3404,19 @@ window.UI = {
     updateCompanyLogoHeaderPosition(sidebarOpen) {
         const header = document.getElementById('company-logo-header');
         if (!header) return;
+        const isRTL = (document.documentElement && document.documentElement.dir === 'rtl');
 
         // على الشاشات الكبيرة (> 1024px)، إذا كانت القائمة مفتوحة، الهيدر يكون بجانبها
         // وإذا كانت مغلقة، يكون كامل العرض
         if (window.innerWidth > 1024) {
             if (sidebarOpen) {
-                header.style.right = 'var(--sidebar-width)';
-                header.style.left = '0';
+                if (isRTL) {
+                    header.style.right = 'var(--sidebar-width)';
+                    header.style.left = '0';
+                } else {
+                    header.style.left = 'var(--sidebar-width)';
+                    header.style.right = '0';
+                }
             } else {
                 header.style.right = '0';
                 header.style.left = '0';
@@ -3537,7 +3676,9 @@ window.UI = {
                 const section = this.getAttribute('data-section');
                 if (section) {
                     UI.showSection(section);
-                    // ملاحظة: إغلاق القائمة الجانبية يتم الآن تلقائياً في showSection() لجميع أحجام الشاشات
+                    // إغلاق القائمة فور اختيار أي موديول من القائمة الجانبية
+                    // (السلوك المطلوب: فتح الوحدة ثم إغلاق السايدبار)
+                    UI.toggleSidebar(false);
                 }
             }, { passive: false });
         });
@@ -7915,6 +8056,8 @@ window.UI = {
      * @param {boolean} isInitialLoad - هل هذه تهيئة أولية؟ (لا نعرض إشعار إذا كان true)
      */
     setLanguage(lang, isInitialLoad = false) {
+        lang = lang === 'en' ? 'en' : 'ar';
+
         // حفظ اللغة
         localStorage.setItem('language', lang);
         if (AppState) {
@@ -7958,14 +8101,34 @@ window.UI = {
         // تحديث موضع app-shell
         const appShell = document.querySelector('.app-shell');
         if (appShell) {
-            if (isRTL) {
-                appShell.style.marginRight = 'var(--sidebar-width)';
-                appShell.style.marginLeft = '0';
-            } else {
-                appShell.style.marginLeft = 'var(--sidebar-width)';
-                appShell.style.marginRight = '0';
-            }
+            appShell.style.marginLeft = '';
+            appShell.style.marginRight = '';
         }
+
+        // إصلاح محاذاة sidebar + header/app-shell عند LTR/RTL
+        const directionStyleId = 'hse-direction-layout-fix';
+        let directionStyle = document.getElementById(directionStyleId);
+        if (!directionStyle) {
+            directionStyle = document.createElement('style');
+            directionStyle.id = directionStyleId;
+            document.head.appendChild(directionStyle);
+        }
+        directionStyle.textContent = `
+            [dir="rtl"] .sidebar:not(.open) { transform: translateX(100%) !important; }
+            [dir="ltr"] .sidebar:not(.open) { transform: translateX(-100%) !important; }
+            [dir="rtl"] .sidebar.open,
+            [dir="ltr"] .sidebar.open { transform: translateX(0) !important; }
+
+            @media (min-width: 1025px) {
+                [dir="rtl"] .sidebar.open ~ .app-shell { margin-right: var(--sidebar-width) !important; margin-left: 0 !important; }
+                [dir="rtl"] .sidebar:not(.open) ~ .app-shell { margin-right: 0 !important; margin-left: 0 !important; }
+                [dir="ltr"] .sidebar.open ~ .app-shell { margin-left: var(--sidebar-width) !important; margin-right: 0 !important; }
+                [dir="ltr"] .sidebar:not(.open) ~ .app-shell { margin-left: 0 !important; margin-right: 0 !important; }
+            }
+            @media (max-width: 1024px) {
+                .app-shell { margin-left: 0 !important; margin-right: 0 !important; }
+            }
+        `;
 
         // تحديث nav-item borders
         const navItems = document.querySelectorAll('.nav-item');
@@ -8010,12 +8173,9 @@ window.UI = {
             }
             
             // تحديث محاذاة العنصر نفسه
-            // الأيقونة تبقى على اليمين دائماً (كما في العربية)
             item.style.textAlign = isRTL ? 'right' : 'left';
-            item.style.justifyContent = 'flex-start'; // دائماً flex-start
-            // في RTL: row (الأيقونة على اليمين، النص على اليسار)
-            // في LTR: row-reverse (الأيقونة على اليمين، النص على اليسار)
-            item.style.flexDirection = isRTL ? 'row' : 'row-reverse';
+            item.style.justifyContent = 'flex-start';
+            item.style.flexDirection = 'row';
         });
         
         // إضافة CSS ديناميكي لتأثير hover و ::before
@@ -8070,6 +8230,9 @@ window.UI = {
         if (langText) {
             langText.textContent = lang === 'ar' ? 'العربية' : 'English';
         }
+
+        // تحديث شاشة تسجيل الدخول عند تغيير اللغة قبل/بعد تسجيل الدخول
+        this.updateLoginScreenLanguage();
 
         // تحديث جميع العناصر التي تحتوي على data-i18n (القائمة + لوحة التحكم)
         const translations = {
