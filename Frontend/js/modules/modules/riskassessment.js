@@ -19,6 +19,242 @@ const RiskAssessment = (() => {
         scheduleHandle: null
     };
 
+    const getCurrentLanguage = () => {
+        try {
+            return localStorage.getItem('language') || (typeof AppState !== 'undefined' && AppState.currentLanguage) || 'ar';
+        } catch (e) {
+            return 'ar';
+        }
+    };
+
+    const getTranslations = () => {
+        const lang = getCurrentLanguage();
+        const translations = {
+            ar: {
+                title: 'تقييم المخاطر',
+                subtitle: 'إدارة تقييمات المخاطر، متابعة الإجراءات التصحيحية، وتحليل مستويات الخطورة لحظيًا',
+                addNew: 'إضافة تقييم جديد',
+                exportExcel: 'تصدير Excel',
+                matrixRef: 'مصفوفة تقييم المخاطر (مرجع)',
+                registry: 'سجل تقييمات المخاطر',
+                searchPlaceholder: 'بحث عن نشاط، موقع، أو إجراء تصحيحي...',
+                allStatuses: 'جميع الحالات',
+                allRiskLevels: 'جميع مستويات المخاطر',
+                sortBy: 'ترتيب حسب:',
+                sortUpdated: 'آخر تحديث',
+                sortDate: 'تاريخ التقييم',
+                sortRisk: 'مستوى المخاطر',
+                sortStatus: 'الحالة',
+                resetFilters: 'إعادة الضبط',
+                loading: 'جاري التحميل...',
+                beforeControl: 'قبل التحكم',
+                afterControl: 'بعد التحكم',
+                actions: 'الإجراءات',
+                activityTask: 'النشاط/المهمة',
+                location: 'الموقع',
+                riskRates: 'معدلات المخاطر',
+                assessmentDate: 'تاريخ التقييم',
+                view: 'عرض',
+                edit: 'تعديل',
+                delete: 'حذف',
+                noMatchingAssessments: 'لا توجد تقييمات مخاطر مطابقة للمرشحات الحالية',
+                totalAssessments: 'إجمالي التقييمات',
+                requiresAction: 'يتطلب إجراء',
+                completed: 'مكتمل',
+                highCriticalRisk: 'مخاطر عالية/حرجة',
+                lastUpdated: 'آخر تحديث',
+                errorLoadData: 'حدث خطأ أثناء تحميل البيانات',
+                unknownError: 'خطأ غير معروف',
+                retry: 'إعادة المحاولة',
+                noDataExport: 'لا توجد بيانات لتصديرها في المرشحات الحالية',
+                sheetJsMissing: 'مكتبة SheetJS غير متوفرة',
+                exportSuccess: 'تم تصدير سجل تقييم المخاطر بنجاح',
+                exportFailed: 'فشل تصدير Excel:',
+                formAddTitle: 'إضافة تقييم مخاطر جديد',
+                formEditTitle: 'تعديل تقييم المخاطر',
+                cancel: 'إلغاء',
+                save: 'حفظ',
+                update: 'تحديث',
+                selectStatus: 'اختر الحالة',
+                selectOption: 'اختر',
+                effectivenessEffective: 'فعّال',
+                effectivenessPartial: 'جزئي',
+                effectivenessIneffective: 'غير فعّال',
+                requiredFields: 'يرجى استكمال الحقول الإجبارية',
+                riskNotCalculatedConfirm: 'لم يتم احتساب معدل الخطورة، هل ترغب في المتابعة؟',
+                updateSuccess: 'تم تحديث التقييم بنجاح',
+                addSuccess: 'تم إضافة التقييم بنجاح',
+                saveFailed: 'حدث خطأ أثناء حفظ التقييم:',
+                assessmentNotFound: 'تعذر العثور على التقييم المطلوب',
+                detailsTitle: 'تفاصيل تقييم المخاطر',
+                close: 'إغلاق',
+                createdAt: 'تم الإنشاء في',
+                deleteNotFound: 'التقييم غير موجود أو تم حذفه بالفعل',
+                deleteConfirm: 'هل أنت متأكد من حذف تقييم المخاطر للنشاط "{activity}"؟',
+                deleteSuccess: 'تم حذف التقييم بنجاح',
+                deleteFailed: 'حدث خطأ أثناء حذف التقييم:',
+                activityPlaceholder: 'وصف النشاط',
+                locationPlaceholder: 'موقع العمل',
+                processDescriptionPlaceholder: 'وصف مختصر للعملية أو المهمة',
+                hazardPlaceholder: 'حدد الخطر الرئيسي المرتبط بالعملية',
+                riskDescriptionPlaceholder: 'وصف تأثير الخطر وعواقبه المحتملة',
+                existingControlPlaceholder: 'وصف وسائل التحكم الحالية',
+                probabilityPlaceholder: '0 - 5',
+                severityPlaceholder: '0 - 5',
+                riskRatePlaceholder: 'سيتم الحساب تلقائيًا',
+                requiredControlPlaceholder: 'ما الوسائل الإضافية اللازمة للتحكم في الخطر؟',
+                additionalControlPlaceholder: 'أي وسائل تحكم إضافية مقترحة',
+                responsiblePersonPlaceholder: 'اسم المسؤول',
+                actionRequiredPlaceholder: 'حدد الإجراءات المطلوبة',
+                followUpPlaceholder: 'متطلبات المتابعة',
+                actionResponsiblePlaceholder: 'مسؤول المتابعة/التنفيذ',
+                sustainabilityPlaceholder: 'كيف سيتم ضمان استدامة التحكم؟',
+                'status.inReview': 'قيد المراجعة',
+                'status.actionRequired': 'يتطلب إجراء',
+                'status.completed': 'مكتمل'
+            },
+            en: {
+                title: 'Risk Assessment',
+                subtitle: 'Manage risk assessments, follow up corrective actions, and analyze risk levels in real time',
+                addNew: 'Add New Assessment',
+                exportExcel: 'Export Excel',
+                matrixRef: 'Risk Assessment Matrix (Reference)',
+                registry: 'Risk Assessment Register',
+                searchPlaceholder: 'Search activity, location, or corrective action...',
+                allStatuses: 'All Statuses',
+                allRiskLevels: 'All Risk Levels',
+                sortBy: 'Sort by:',
+                sortUpdated: 'Last Updated',
+                sortDate: 'Assessment Date',
+                sortRisk: 'Risk Level',
+                sortStatus: 'Status',
+                resetFilters: 'Reset',
+                loading: 'Loading...',
+                beforeControl: 'Before Control',
+                afterControl: 'After Control',
+                actions: 'Actions',
+                activityTask: 'Activity/Task',
+                location: 'Location',
+                riskRates: 'Risk Rates',
+                assessmentDate: 'Assessment Date',
+                view: 'View',
+                edit: 'Edit',
+                delete: 'Delete',
+                noMatchingAssessments: 'No risk assessments match current filters',
+                totalAssessments: 'Total Assessments',
+                requiresAction: 'Action Required',
+                completed: 'Completed',
+                highCriticalRisk: 'High/Critical Risk',
+                lastUpdated: 'Last Updated',
+                errorLoadData: 'An error occurred while loading data',
+                unknownError: 'Unknown error',
+                retry: 'Retry',
+                noDataExport: 'No data to export with current filters',
+                sheetJsMissing: 'SheetJS library is not available',
+                exportSuccess: 'Risk assessment register exported successfully',
+                exportFailed: 'Excel export failed:',
+                formAddTitle: 'Add New Risk Assessment',
+                formEditTitle: 'Edit Risk Assessment',
+                cancel: 'Cancel',
+                save: 'Save',
+                update: 'Update',
+                selectStatus: 'Select status',
+                selectOption: 'Select',
+                effectivenessEffective: 'Effective',
+                effectivenessPartial: 'Partial',
+                effectivenessIneffective: 'Ineffective',
+                requiredFields: 'Please complete required fields',
+                riskNotCalculatedConfirm: 'Risk rate is not calculated. Do you want to continue?',
+                updateSuccess: 'Assessment updated successfully',
+                addSuccess: 'Assessment added successfully',
+                saveFailed: 'Error while saving assessment:',
+                assessmentNotFound: 'Unable to find requested assessment',
+                detailsTitle: 'Risk Assessment Details',
+                close: 'Close',
+                createdAt: 'Created at',
+                deleteNotFound: 'Assessment not found or already deleted',
+                deleteConfirm: 'Are you sure you want to delete risk assessment for activity "{activity}"?',
+                deleteSuccess: 'Assessment deleted successfully',
+                deleteFailed: 'Error while deleting assessment:',
+                activityPlaceholder: 'Describe activity',
+                locationPlaceholder: 'Work location',
+                processDescriptionPlaceholder: 'Brief process or task description',
+                hazardPlaceholder: 'Specify the main hazard linked to the process',
+                riskDescriptionPlaceholder: 'Describe risk impact and possible consequences',
+                existingControlPlaceholder: 'Describe existing control measures',
+                probabilityPlaceholder: '0 - 5',
+                severityPlaceholder: '0 - 5',
+                riskRatePlaceholder: 'Calculated automatically',
+                requiredControlPlaceholder: 'What additional controls are required?',
+                additionalControlPlaceholder: 'Any proposed additional controls',
+                responsiblePersonPlaceholder: 'Responsible person name',
+                actionRequiredPlaceholder: 'Specify required actions',
+                followUpPlaceholder: 'Follow-up requirements',
+                actionResponsiblePlaceholder: 'Follow-up/implementation owner',
+                sustainabilityPlaceholder: 'How will control sustainability be ensured?',
+                'status.inReview': 'In Review',
+                'status.actionRequired': 'Action Required',
+                'status.completed': 'Completed'
+            }
+        };
+
+        return {
+            lang,
+            t: (key) => (translations[lang] && translations[lang][key]) ? translations[lang][key] : key
+        };
+    };
+
+    const STATUS_OPTIONS = [
+        { value: 'قيد المراجعة', key: 'status.inReview' },
+        { value: 'يتطلب إجراء', key: 'status.actionRequired' },
+        { value: 'مكتمل', key: 'status.completed' }
+    ];
+
+    const STATUS_LABELS = {
+        ar: {
+            'قيد المراجعة': 'قيد المراجعة',
+            'يتطلب إجراء': 'يتطلب إجراء',
+            'مكتمل': 'مكتمل',
+            'In Review': 'قيد المراجعة',
+            'Action Required': 'يتطلب إجراء',
+            'Completed': 'مكتمل'
+        },
+        en: {
+            'قيد المراجعة': 'In Review',
+            'يتطلب إجراء': 'Action Required',
+            'مكتمل': 'Completed',
+            'In Review': 'In Review',
+            'Action Required': 'Action Required',
+            'Completed': 'Completed'
+        }
+    };
+
+    const normalizeStatusValue = (status) => {
+        if (!status) return '';
+        if (status === 'In Review') return 'قيد المراجعة';
+        if (status === 'Action Required') return 'يتطلب إجراء';
+        if (status === 'Completed') return 'مكتمل';
+        return status;
+    };
+
+    const getStatusLabel = (status) => {
+        const normalized = normalizeStatusValue(status);
+        const lang = getCurrentLanguage();
+        return (STATUS_LABELS[lang] && STATUS_LABELS[lang][normalized]) || normalized || '-';
+    };
+
+    const EFFECTIVENESS_OPTIONS = [
+        { value: 'فعّال', ar: 'فعّال', en: 'Effective' },
+        { value: 'جزئي', ar: 'جزئي', en: 'Partial' },
+        { value: 'غير فعّال', ar: 'غير فعّال', en: 'Ineffective' }
+    ];
+
+    const getEffectivenessLabel = (value) => {
+        const option = EFFECTIVENESS_OPTIONS.find((item) => item.value === value || item.en === value || item.ar === value);
+        if (!option) return value || '—';
+        return getCurrentLanguage() === 'en' ? option.en : option.ar;
+    };
+
     const SELECTORS = {
         section: '#risk-assessment-section',
         content: '#risk-assessment-content',
@@ -31,10 +267,10 @@ const RiskAssessment = (() => {
     };
 
     const RISK_BRACKETS = [
-        { id: 'low', label: 'منخفضة (≤5)', min: 0, max: 5 },
-        { id: 'medium', label: 'متوسطة (6-10)', min: 6, max: 10 },
-        { id: 'high', label: 'مرتفعة (11-15)', min: 11, max: 15 },
-        { id: 'critical', label: 'حرجة (≥16)', min: 16, max: Infinity }
+        { id: 'low', ar: 'منخفضة (≤5)', en: 'Low (≤5)', min: 0, max: 5 },
+        { id: 'medium', ar: 'متوسطة (6-10)', en: 'Medium (6-10)', min: 6, max: 10 },
+        { id: 'high', ar: 'مرتفعة (11-15)', en: 'High (11-15)', min: 11, max: 15 },
+        { id: 'critical', ar: 'حرجة (≥16)', en: 'Critical (≥16)', min: 16, max: Infinity }
     ];
 
     const ensureDataStructure = () => {
@@ -93,7 +329,7 @@ const RiskAssessment = (() => {
     };
 
     const getBadgeClassForStatus = (status) => {
-        switch (status) {
+        switch (normalizeStatusValue(status)) {
             case 'مكتمل':
                 return 'success';
             case 'يتطلب إجراء':
@@ -104,10 +340,11 @@ const RiskAssessment = (() => {
         }
     };
 
-    const toArabicDate = (value) => {
+    const formatDateLocalized = (value) => {
         if (!value) return '-';
         try {
-            return Utils.formatDate(value);
+            const locale = getCurrentLanguage() === 'en' ? 'en-GB' : 'ar-SA';
+            return new Date(value).toLocaleDateString(locale);
         } catch (error) {
             Utils.safeWarn('تعذر تنسيق التاريخ', error);
             return '-';
@@ -140,7 +377,7 @@ const RiskAssessment = (() => {
             const additionalControl = normalizeValue(assessment.additionalControl).toLowerCase();
             const actionRequired = normalizeValue(assessment.actionRequired).toLowerCase();
             const responsible = normalizeValue(assessment.responsiblePerson).toLowerCase();
-            const statusMatch = status === 'all' || normalizeValue(assessment.status) === status;
+            const statusMatch = status === 'all' || normalizeStatusValue(normalizeValue(assessment.status)) === normalizeStatusValue(status);
             const riskMatch = matchesRiskBracket(getEffectiveRiskValue(assessment), riskBracket);
 
             const haystack = [
@@ -189,7 +426,8 @@ const RiskAssessment = (() => {
                 return (Number(valueA) - Number(valueB)) * multiplier;
             }
 
-            return valueA.localeCompare(valueB, 'ar', { sensitivity: 'base' }) * multiplier;
+            const locale = getCurrentLanguage() === 'en' ? 'en' : 'ar';
+            return valueA.localeCompare(valueB, locale, { sensitivity: 'base' }) * multiplier;
         });
     };
 
@@ -199,26 +437,27 @@ const RiskAssessment = (() => {
     };
 
     const renderShell = async (section) => {
+        const { t, lang } = getTranslations();
         section.innerHTML = `
             <div class="section-header">
                 <div class="flex items-center justify-between flex-wrap gap-4">
                     <div>
                         <h1 class="section-title">
                             <i class="fas fa-shield-alt ml-3"></i>
-                            تقييم المخاطر
+                            ${t('title')}
                         </h1>
                         <p class="section-subtitle">
-                            إدارة تقييمات المخاطر، متابعة الإجراءات التصحيحية، وتحليل مستويات الخطورة لحظيًا
+                            ${t('subtitle')}
                         </p>
                     </div>
                     <div class="flex items-center gap-3 flex-wrap">
                         <button id="add-risk-assessment-btn" class="btn-primary">
                             <i class="fas fa-plus ml-2"></i>
-                            إضافة تقييم جديد
+                            ${t('addNew')}
                         </button>
                         <button id="export-risk-excel-btn" class="btn-success">
                             <i class="fas fa-file-excel ml-2"></i>
-                            تصدير Excel
+                            ${t('exportExcel')}
                         </button>
                     </div>
                 </div>
@@ -231,7 +470,7 @@ const RiskAssessment = (() => {
                     <div class="card-header">
                         <h2 class="card-title flex items-center">
                             <i class="fas fa-th ml-2"></i>
-                            مصفوفة تقييم المخاطر (مرجع)
+                            ${t('matrixRef')}
                         </h2>
                     </div>
                     <div class="card-body flex justify-center">
@@ -247,28 +486,28 @@ const RiskAssessment = (() => {
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <h2 class="card-title flex items-center">
                                 <i class="fas fa-list ml-2"></i>
-                                سجل تقييمات المخاطر
+                                ${t('registry')}
                             </h2>
                             <form id="risk-assessment-filters" class="grid gap-3 md:grid-cols-4 w-full">
                                 <label class="input-group col-span-2">
                                     <span class="input-group-icon"><i class="fas fa-search"></i></span>
                                     <input type="search"
                                            class="form-input"
-                                           placeholder="بحث عن نشاط، موقع، أو إجراء تصحيحي..."
+                                           placeholder="${t('searchPlaceholder')}"
                                            data-filter="query"
                                            value="${state.filters.query}">
                                 </label>
                                 <select class="form-input" data-filter="status">
-                                    <option value="all" ${state.filters.status === 'all' ? 'selected' : ''}>جميع الحالات</option>
-                                    <option value="قيد المراجعة" ${state.filters.status === 'قيد المراجعة' ? 'selected' : ''}>قيد المراجعة</option>
-                                    <option value="يتطلب إجراء" ${state.filters.status === 'يتطلب إجراء' ? 'selected' : ''}>يتطلب إجراء</option>
-                                    <option value="مكتمل" ${state.filters.status === 'مكتمل' ? 'selected' : ''}>مكتمل</option>
+                                    <option value="all" ${state.filters.status === 'all' ? 'selected' : ''}>${t('allStatuses')}</option>
+                                    ${STATUS_OPTIONS.map((status) => `
+                                        <option value="${status.value}" ${state.filters.status === status.value ? 'selected' : ''}>${t(status.key)}</option>
+                                    `).join('')}
                                 </select>
                                 <select class="form-input" data-filter="riskBracket">
-                                    <option value="all" ${state.filters.riskBracket === 'all' ? 'selected' : ''}>جميع مستويات المخاطر</option>
+                                    <option value="all" ${state.filters.riskBracket === 'all' ? 'selected' : ''}>${t('allRiskLevels')}</option>
                                     ${RISK_BRACKETS.map((bracket) => `
                                         <option value="${bracket.id}" ${state.filters.riskBracket === bracket.id ? 'selected' : ''}>
-                                            ${bracket.label}
+                                            ${lang === 'en' ? bracket.en : bracket.ar}
                                         </option>
                                     `).join('')}
                                 </select>
@@ -279,12 +518,12 @@ const RiskAssessment = (() => {
                         <div class="flex items-center justify-between mb-4">
                             <div class="text-sm text-gray-500">
                                 <i class="fas fa-sort ml-1"></i>
-                                ترتيب حسب:
+                                ${t('sortBy')}
                                 <select class="form-input inline-block w-auto ml-2" data-sort-field>
-                                    <option value="updatedAt" ${state.sort.field === 'updatedAt' ? 'selected' : ''}>آخر تحديث</option>
-                                    <option value="date" ${state.sort.field === 'date' ? 'selected' : ''}>تاريخ التقييم</option>
-                                    <option value="riskLevel" ${state.sort.field === 'riskLevel' ? 'selected' : ''}>مستوى المخاطر</option>
-                                    <option value="status" ${state.sort.field === 'status' ? 'selected' : ''}>الحالة</option>
+                                    <option value="updatedAt" ${state.sort.field === 'updatedAt' ? 'selected' : ''}>${t('sortUpdated')}</option>
+                                    <option value="date" ${state.sort.field === 'date' ? 'selected' : ''}>${t('sortDate')}</option>
+                                    <option value="riskLevel" ${state.sort.field === 'riskLevel' ? 'selected' : ''}>${t('sortRisk')}</option>
+                                    <option value="status" ${state.sort.field === 'status' ? 'selected' : ''}>${t('sortStatus')}</option>
                                 </select>
                                 <button type="button" class="btn-icon ml-2" data-sort-direction>
                                     <i class="fas fa-sort-amount-${state.sort.direction === 'asc' ? 'up' : 'down'}"></i>
@@ -292,7 +531,7 @@ const RiskAssessment = (() => {
                             </div>
                             <button type="button" class="btn-secondary btn-sm" data-action="reset-filters">
                                 <i class="fas fa-undo ml-1"></i>
-                                إعادة الضبط
+                                ${t('resetFilters')}
                             </button>
                         </div>
                         <div id="risk-assessment-table-container" class="relative">
@@ -302,7 +541,7 @@ const RiskAssessment = (() => {
                                         <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div>
                                     </div>
                                 </div>
-                                <p class="text-gray-500">جاري التحميل...</p>
+                                <p class="text-gray-500">${t('loading')}</p>
                             </div>
                         </div>
                     </div>
@@ -319,6 +558,7 @@ const RiskAssessment = (() => {
     };
 
     const buildRow = (assessment) => {
+        const { t } = getTranslations();
         const fallbackRiskLevel = coalesceMetric(assessment.riskLevel, '');
         const initialRisk = coalesceMetric(assessment.initialRiskRate, fallbackRiskLevel);
         const residualRisk = coalesceMetric(assessment.residualRiskRate, fallbackRiskLevel);
@@ -327,36 +567,36 @@ const RiskAssessment = (() => {
             <tr data-id="${assessment.id}">
                 <td>
                     <div class="font-semibold text-gray-800">${Utils.escapeHTML(assessment.activity || '-')}</div>
-                    <div class="text-xs text-gray-500">${toArabicDate(assessment.createdAt)}</div>
+                    <div class="text-xs text-gray-500">${formatDateLocalized(assessment.createdAt)}</div>
                 </td>
                 <td>${Utils.escapeHTML(assessment.location || '-')}</td>
                 <td>
                     <div class="space-y-1">
                         <div class="flex items-center gap-2">
-                            <span class="text-xs text-gray-500">قبل التحكم:</span>
+                            <span class="text-xs text-gray-500">${t('beforeControl')}:</span>
                             ${formatRiskBadge(initialRisk)}
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="text-xs text-gray-500">بعد التحكم:</span>
+                            <span class="text-xs text-gray-500">${t('afterControl')}:</span>
                             ${formatRiskBadge(residualRisk)}
                         </div>
                     </div>
                 </td>
-                <td>${toArabicDate(assessment.date)}</td>
+                <td>${formatDateLocalized(assessment.date)}</td>
                 <td>
-                    <span class="badge badge-${getBadgeClassForStatus(assessment.status)}">
-                        ${assessment.status || '-'}
+                    <span class="badge badge-${getBadgeClassForStatus(normalizeStatusValue(assessment.status))}">
+                        ${getStatusLabel(assessment.status)}
                     </span>
                 </td>
                 <td class="w-32">
                     <div class="flex items-center gap-2 justify-end">
-                        <button class="btn-icon btn-icon-info" data-action="view" data-id="${assessment.id}" title="عرض">
+                        <button class="btn-icon btn-icon-info" data-action="view" data-id="${assessment.id}" title="${t('view')}">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button class="btn-icon btn-icon-primary" data-action="edit" data-id="${assessment.id}" title="تعديل">
+                        <button class="btn-icon btn-icon-primary" data-action="edit" data-id="${assessment.id}" title="${t('edit')}">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn-icon btn-icon-danger" data-action="delete" data-id="${assessment.id}" title="حذف">
+                        <button class="btn-icon btn-icon-danger" data-action="delete" data-id="${assessment.id}" title="${t('delete')}">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -368,15 +608,16 @@ const RiskAssessment = (() => {
     const renderTable = (assessments) => {
         const container = document.querySelector(SELECTORS.tableContainer);
         if (!container) return;
+        const { t } = getTranslations();
 
         if (!assessments.length) {
             container.innerHTML = `
                 <div class="empty-state" id="risk-assessment-empty-state">
                     <i class="fas fa-shield-alt text-4xl text-gray-300 mb-4"></i>
-                    <p class="text-gray-500">لا توجد تقييمات مخاطر مطابقة للمرشحات الحالية</p>
+                    <p class="text-gray-500">${t('noMatchingAssessments')}</p>
                     <button class="btn-primary mt-4" data-action="create">
                         <i class="fas fa-plus ml-2"></i>
-                        إضافة تقييم جديد
+                        ${t('addNew')}
                     </button>
                 </div>
             `;
@@ -389,12 +630,12 @@ const RiskAssessment = (() => {
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>النشاط/المهمة</th>
-                            <th>الموقع</th>
-                            <th>معدلات المخاطر</th>
-                            <th>تاريخ التقييم</th>
-                            <th>الحالة</th>
-                            <th class="text-right">الإجراءات</th>
+                            <th>${t('activityTask')}</th>
+                            <th>${t('location')}</th>
+                            <th>${t('riskRates')}</th>
+                            <th>${t('assessmentDate')}</th>
+                            <th>${t('sortStatus')}</th>
+                            <th class="text-right">${t('actions')}</th>
                         </tr>
                     </thead>
                     <tbody id="risk-assessment-table-body">
@@ -410,10 +651,11 @@ const RiskAssessment = (() => {
     const renderSummary = (assessments) => {
         const summaryRoot = document.querySelector(SELECTORS.summary);
         if (!summaryRoot) return;
+        const { t } = getTranslations();
 
         const total = assessments.length;
-        const requiresAction = assessments.filter((item) => item.status === 'يتطلب إجراء').length;
-        const completed = assessments.filter((item) => item.status === 'مكتمل').length;
+        const requiresAction = assessments.filter((item) => normalizeStatusValue(item.status) === 'يتطلب إجراء').length;
+        const completed = assessments.filter((item) => normalizeStatusValue(item.status) === 'مكتمل').length;
         const highRisk = assessments.filter((item) => {
             const level = getEffectiveRiskValue(item);
             return !Number.isNaN(level) && level >= 15;
@@ -425,27 +667,27 @@ const RiskAssessment = (() => {
 
         summaryRoot.innerHTML = `
             <div class="bg-white border border-gray-100 rounded-lg p-4 shadow-sm">
-                <div class="text-sm text-gray-500 mb-2">إجمالي التقييمات</div>
+                <div class="text-sm text-gray-500 mb-2">${t('totalAssessments')}</div>
                 <div class="text-3xl font-bold text-gray-800">${total}</div>
             </div>
             <div class="bg-white border border-gray-100 rounded-lg p-4 shadow-sm">
                 <div class="flex items-center justify-between">
                     <div>
-                        <div class="text-sm text-gray-500 mb-2">يتطلب إجراء</div>
+                        <div class="text-sm text-gray-500 mb-2">${t('requiresAction')}</div>
                         <div class="text-2xl font-semibold text-red-600">${requiresAction}</div>
                     </div>
                     <span class="badge badge-danger">${((requiresAction / (total || 1)) * 100).toFixed(0)}%</span>
                 </div>
             </div>
             <div class="bg-white border border-gray-100 rounded-lg p-4 shadow-sm">
-                <div class="text-sm text-gray-500 mb-2">مكتمل</div>
+                <div class="text-sm text-gray-500 mb-2">${t('completed')}</div>
                 <div class="text-2xl font-semibold text-emerald-600">${completed}</div>
             </div>
             <div class="bg-white border border-gray-100 rounded-lg p-4 shadow-sm">
-                <div class="text-sm text-gray-500 mb-2">مخاطر عالية/حرجة</div>
+                <div class="text-sm text-gray-500 mb-2">${t('highCriticalRisk')}</div>
                 <div class="text-2xl font-semibold text-orange-600">${highRisk}</div>
                 ${lastUpdated ? `<div class="text-xs text-gray-400 mt-2">
-                    <i class="fas fa-history ml-1"></i> آخر تحديث ${toArabicDate(lastUpdated)}
+                    <i class="fas fa-history ml-1"></i> ${t('lastUpdated')} ${formatDateLocalized(lastUpdated)}
                 </div>` : ''}
             </div>
         `;
@@ -538,6 +780,15 @@ const RiskAssessment = (() => {
             const section = document.querySelector(SELECTORS.section);
             if (!section) return;
 
+            if (!state._languageChangeBound) {
+                state._languageChangeBound = true;
+                document.addEventListener('language-changed', () => {
+                    if (document.querySelector(SELECTORS.section)?.classList.contains('active')) {
+                        this.load(true);
+                    }
+                });
+            }
+
             ensureDataStructure();
 
             if (forceRefresh) {
@@ -581,11 +832,11 @@ const RiskAssessment = (() => {
                                     <div class="card-body">
                                         <div class="empty-state">
                                             <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                            <p class="text-gray-500 mb-2">حدث خطأ أثناء تحميل البيانات</p>
-                                            <p class="text-sm text-gray-400 mb-4">${error && error.message ? Utils.escapeHTML(error.message) : 'خطأ غير معروف'}</p>
+                                            <p class="text-gray-500 mb-2">${getTranslations().t('errorLoadData')}</p>
+                                            <p class="text-sm text-gray-400 mb-4">${error && error.message ? Utils.escapeHTML(error.message) : getTranslations().t('unknownError')}</p>
                                             <button onclick="RiskAssessment.load()" class="btn-primary">
                                                 <i class="fas fa-redo ml-2"></i>
-                                                إعادة المحاولة
+                                                ${getTranslations().t('retry')}
                                             </button>
                                         </div>
                                     </div>
@@ -609,7 +860,7 @@ const RiskAssessment = (() => {
                             <div>
                                 <h1 class="section-title">
                                     <i class="fas fa-shield-alt ml-3"></i>
-                                    تقييم المخاطر
+                                    ${getTranslations().t('title')}
                                 </h1>
                             </div>
                         </div>
@@ -618,11 +869,11 @@ const RiskAssessment = (() => {
                                 <div class="card-body">
                                     <div class="empty-state">
                                         <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                        <p class="text-gray-500 mb-2">حدث خطأ أثناء تحميل البيانات</p>
-                                        <p class="text-sm text-gray-400 mb-4">${error && error.message ? Utils.escapeHTML(error.message) : 'خطأ غير معروف'}</p>
+                                        <p class="text-gray-500 mb-2">${getTranslations().t('errorLoadData')}</p>
+                                        <p class="text-sm text-gray-400 mb-4">${error && error.message ? Utils.escapeHTML(error.message) : getTranslations().t('unknownError')}</p>
                                         <button onclick="RiskAssessment.load()" class="btn-primary">
                                             <i class="fas fa-redo ml-2"></i>
-                                            إعادة المحاولة
+                                            ${getTranslations().t('retry')}
                                         </button>
                                     </div>
                                 </div>
@@ -631,7 +882,7 @@ const RiskAssessment = (() => {
                     `;
                 }
                 if (typeof Notification !== 'undefined' && Notification.error) {
-                    Notification.error('حدث خطأ أثناء تحميل تقييم المخاطر. يُرجى المحاولة مرة أخرى.', { duration: 5000 });
+                    Notification.error(`${getTranslations().t('errorLoadData')}.`, { duration: 5000 });
                 }
             }
         },
@@ -661,7 +912,7 @@ const RiskAssessment = (() => {
             const dataset = assessmentsOverride ?? getFilteredAssessments();
 
             if (!dataset.length) {
-                Notification?.info?.('لا توجد بيانات لتصديرها في المرشحات الحالية');
+                Notification?.info?.(getTranslations().t('noDataExport'));
                 return;
             }
 
@@ -669,7 +920,7 @@ const RiskAssessment = (() => {
                 Loading.show();
 
                 if (typeof XLSX === 'undefined') {
-                    throw new Error('مكتبة SheetJS غير متوفرة');
+                    throw new Error(getTranslations().t('sheetJsMissing'));
                 }
 
                 const excelData = dataset.map((risk) => ({
@@ -735,15 +986,16 @@ const RiskAssessment = (() => {
                     { wch: 18 }
                 ];
 
-                XLSX.utils.book_append_sheet(workbook, worksheet, 'تقييم المخاطر');
+                XLSX.utils.book_append_sheet(workbook, worksheet, getTranslations().t('title'));
 
                 const date = new Date().toISOString().slice(0, 10);
-                XLSX.writeFile(workbook, `سجل_تقييم_المخاطر_${date}.xlsx`);
+                const filePrefix = getCurrentLanguage() === 'en' ? 'risk_assessment_register' : 'سجل_تقييم_المخاطر';
+                XLSX.writeFile(workbook, `${filePrefix}_${date}.xlsx`);
 
-                Notification.success('تم تصدير سجل تقييم المخاطر بنجاح');
+                Notification.success(getTranslations().t('exportSuccess'));
             } catch (error) {
                 Utils.safeError('خطأ في تصدير Excel:', error);
-                Notification.error('فشل تصدير Excel: ' + error.message);
+                Notification.error(`${getTranslations().t('exportFailed')} ${error.message}`);
             } finally {
                 Loading.hide();
             }
@@ -751,12 +1003,14 @@ const RiskAssessment = (() => {
 
         async showForm(data = null) {
             const isEdit = Boolean(data);
+            const { t } = getTranslations();
+            const normalizedStatus = normalizeStatusValue(data?.status || '');
             const modal = document.createElement('div');
             modal.className = 'modal-overlay';
             modal.innerHTML = `
                 <div class="modal-content" style="max-width: 1100px;">
                     <div class="modal-header">
-                        <h2 class="modal-title">${isEdit ? 'تعديل تقييم المخاطر' : 'إضافة تقييم مخاطر جديد'}</h2>
+                        <h2 class="modal-title">${isEdit ? t('formEditTitle') : t('formAddTitle')}</h2>
                         <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
                             <i class="fas fa-times"></i>
                         </button>
@@ -767,12 +1021,12 @@ const RiskAssessment = (() => {
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">النشاط/المهمة *</label>
                                     <input type="text" id="risk-activity" required class="form-input"
-                                        value="${Utils.escapeHTML(data?.activity || '')}" placeholder="وصف النشاط">
+                                        value="${Utils.escapeHTML(data?.activity || '')}" placeholder="${t('activityPlaceholder')}">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">الموقع *</label>
                                     <input type="text" id="risk-location" required class="form-input"
-                                        value="${Utils.escapeHTML(data?.location || '')}" placeholder="موقع العمل">
+                                        value="${Utils.escapeHTML(data?.location || '')}" placeholder="${t('locationPlaceholder')}">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">التاريخ *</label>
@@ -782,10 +1036,10 @@ const RiskAssessment = (() => {
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">الحالة *</label>
                                     <select id="risk-status" required class="form-input">
-                                        <option value="">اختر الحالة</option>
-                                        <option value="قيد المراجعة" ${data?.status === 'قيد المراجعة' ? 'selected' : ''}>قيد المراجعة</option>
-                                        <option value="يتطلب إجراء" ${data?.status === 'يتطلب إجراء' ? 'selected' : ''}>يتطلب إجراء</option>
-                                        <option value="مكتمل" ${data?.status === 'مكتمل' ? 'selected' : ''}>مكتمل</option>
+                                        <option value="">${t('selectStatus')}</option>
+                                        ${STATUS_OPTIONS.map((status) => `
+                                            <option value="${status.value}" ${normalizedStatus === status.value ? 'selected' : ''}>${t(status.key)}</option>
+                                        `).join('')}
                                     </select>
                                 </div>
                             </section>
@@ -794,17 +1048,17 @@ const RiskAssessment = (() => {
                                 <div class="lg:col-span-1">
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">وصف العملية</label>
                                     <textarea id="risk-process-description" class="form-input" rows="4"
-                                        placeholder="وصف مختصر للعملية أو المهمة">${Utils.escapeHTML(data?.processDescription || '')}</textarea>
+                                        placeholder="${t('processDescriptionPlaceholder')}">${Utils.escapeHTML(data?.processDescription || '')}</textarea>
                                 </div>
                                 <div class="lg:col-span-1">
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">الخطر</label>
                                     <textarea id="risk-hazard" class="form-input" rows="4"
-                                        placeholder="حدد الخطر الرئيسي المرتبط بالعملية">${Utils.escapeHTML(data?.hazard || '')}</textarea>
+                                        placeholder="${t('hazardPlaceholder')}">${Utils.escapeHTML(data?.hazard || '')}</textarea>
                                 </div>
                                 <div class="lg:col-span-1">
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">الخطورة</label>
                                     <textarea id="risk-risk-description" class="form-input" rows="4"
-                                        placeholder="وصف تأثير الخطر وعواقبه المحتملة">${Utils.escapeHTML(data?.riskDescription || '')}</textarea>
+                                        placeholder="${t('riskDescriptionPlaceholder')}">${Utils.escapeHTML(data?.riskDescription || '')}</textarea>
                                 </div>
                             </section>
 
@@ -821,60 +1075,56 @@ const RiskAssessment = (() => {
                             </section>
 
                             <section class="border rounded-lg p-4 bg-gray-50 space-y-4">
-                                <header class="flex flex-wrap items-center justify-between gap-3">
-                                    <div>
-                                        <h3 class="text-lg font-semibold text-gray-800">تقييم المخاطر الحالي (قبل التحكم)</h3>
-                                        <p class="text-sm text-gray-500">تحديد وسيلة التحكم الحالية وحساب معدل الخطورة الحالي</p>
-                                    </div>
+                                <header>
+                                    <h3 class="text-lg font-semibold text-gray-800">تقييم المخاطر الحالي (قبل التحكم)</h3>
+                                    <p class="text-sm text-gray-500">تحديد وسيلة التحكم الحالية وحساب معدل الخطورة الحالي</p>
                                 </header>
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">وسيلة التحكم الحالية</label>
                                     <textarea id="risk-existing-control" class="form-input" rows="3"
-                                        placeholder="وصف وسائل التحكم الحالية">${Utils.escapeHTML(data?.existingControlMeasure || '')}</textarea>
+                                        placeholder="${t('existingControlPlaceholder')}">${Utils.escapeHTML(data?.existingControlMeasure || '')}</textarea>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">الاحتمالية (P)</label>
                                         <input type="number" id="risk-probability-initial" min="0" max="5" step="1" class="form-input"
-                                            value="${Utils.escapeHTML(data?.initialProbability ?? '')}" placeholder="0 - 5">
+                                            value="${Utils.escapeHTML(data?.initialProbability ?? '')}" placeholder="${t('probabilityPlaceholder')}">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">الشدة (S)</label>
                                         <input type="number" id="risk-severity-initial" min="0" max="5" step="1" class="form-input"
-                                            value="${Utils.escapeHTML(data?.initialSeverity ?? '')}" placeholder="0 - 5">
+                                            value="${Utils.escapeHTML(data?.initialSeverity ?? '')}" placeholder="${t('severityPlaceholder')}">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">معدل الخطورة (R = S × P)</label>
                                         <input type="text" id="risk-rate-initial" readonly class="form-input bg-gray-100"
-                                            value="${Utils.escapeHTML(data?.initialRiskRate ?? '')}" placeholder="سيتم الحساب تلقائيًا">
+                                            value="${Utils.escapeHTML(data?.initialRiskRate ?? '')}" placeholder="${t('riskRatePlaceholder')}">
                                     </div>
                                 </div>
                             </section>
 
                             <section class="border rounded-lg p-4 bg-white space-y-4">
-                                <header class="flex flex-wrap items-center justify-between gap-3">
-                                    <div>
-                                        <h3 class="text-lg font-semibold text-gray-800">وسائل التحكم المطلوبة والتخطيط</h3>
-                                        <p class="text-sm text-gray-500">تحديد الوسائل المطلوبة والمسؤول والتواريخ المخطط لها</p>
-                                    </div>
+                                <header>
+                                    <h3 class="text-lg font-semibold text-gray-800">وسائل التحكم المطلوبة والتخطيط</h3>
+                                    <p class="text-sm text-gray-500">تحديد الوسائل المطلوبة والمسؤول والتواريخ المخطط لها</p>
                                 </header>
                                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">وسيلة التحكم المطلوبة</label>
                                         <textarea id="risk-required-control" class="form-input" rows="3"
-                                            placeholder="ما الوسائل الإضافية اللازمة للتحكم في الخطر؟">${Utils.escapeHTML(data?.requiredControlMeasure || '')}</textarea>
+                                            placeholder="${t('requiredControlPlaceholder')}">${Utils.escapeHTML(data?.requiredControlMeasure || '')}</textarea>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">وسيلة التحكم الإضافية</label>
                                         <textarea id="risk-additional-control" class="form-input" rows="3"
-                                            placeholder="أي وسائل تحكم إضافية مقترحة">${Utils.escapeHTML(data?.additionalControl || '')}</textarea>
+                                            placeholder="${t('additionalControlPlaceholder')}">${Utils.escapeHTML(data?.additionalControl || '')}</textarea>
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">المسؤول عن التنفيذ</label>
                                         <input type="text" id="risk-responsible-person" class="form-input"
-                                            value="${Utils.escapeHTML(data?.responsiblePerson || '')}" placeholder="اسم المسؤول">
+                                            value="${Utils.escapeHTML(data?.responsiblePerson || '')}" placeholder="${t('responsiblePersonPlaceholder')}">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">التاريخ المخطط</label>
@@ -884,29 +1134,29 @@ const RiskAssessment = (() => {
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">الاحتمالية (P)</label>
                                         <input type="number" id="risk-probability-residual" min="0" max="5" step="1" class="form-input"
-                                            value="${Utils.escapeHTML(data?.residualProbability ?? '')}" placeholder="0 - 5">
+                                            value="${Utils.escapeHTML(data?.residualProbability ?? '')}" placeholder="${t('probabilityPlaceholder')}">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">الشدة (S)</label>
                                         <input type="number" id="risk-severity-residual" min="0" max="5" step="1" class="form-input"
-                                            value="${Utils.escapeHTML(data?.residualSeverity ?? '')}" placeholder="0 - 5">
+                                            value="${Utils.escapeHTML(data?.residualSeverity ?? '')}" placeholder="${t('severityPlaceholder')}">
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">معدل الخطورة بعد التحكم</label>
                                         <input type="text" id="risk-rate-residual" readonly class="form-input bg-gray-100"
-                                            value="${Utils.escapeHTML(data?.residualRiskRate ?? '')}" placeholder="سيتم الحساب تلقائيًا">
+                                            value="${Utils.escapeHTML(data?.residualRiskRate ?? '')}" placeholder="${t('riskRatePlaceholder')}">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">الإجراء المطلوب</label>
                                         <textarea id="risk-action-required" class="form-input" rows="3"
-                                            placeholder="حدد الإجراءات المطلوبة">${Utils.escapeHTML(data?.actionRequired || '')}</textarea>
+                                            placeholder="${t('actionRequiredPlaceholder')}">${Utils.escapeHTML(data?.actionRequired || '')}</textarea>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">المتابعة</label>
                                         <textarea id="risk-follow-up" class="form-input" rows="3"
-                                            placeholder="متطلبات المتابعة">${Utils.escapeHTML(data?.followUp || '')}</textarea>
+                                            placeholder="${t('followUpPlaceholder')}">${Utils.escapeHTML(data?.followUp || '')}</textarea>
                                     </div>
                                 </div>
                             </section>
@@ -925,7 +1175,7 @@ const RiskAssessment = (() => {
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">المسؤول</label>
                                         <input type="text" id="risk-action-responsible" class="form-input"
-                                            value="${Utils.escapeHTML(data?.actionResponsible || '')}" placeholder="مسؤول المتابعة/التنفيذ">
+                                            value="${Utils.escapeHTML(data?.actionResponsible || '')}" placeholder="${t('actionResponsiblePlaceholder')}">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">تاريخ الانتهاء</label>
@@ -935,17 +1185,17 @@ const RiskAssessment = (() => {
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">الفاعلية</label>
                                         <select id="risk-effective" class="form-input">
-                                            <option value="">اختر</option>
-                                            <option value="فعّال" ${data?.effectiveness === 'فعّال' ? 'selected' : ''}>فعّال</option>
-                                            <option value="جزئي" ${data?.effectiveness === 'جزئي' ? 'selected' : ''}>جزئي</option>
-                                            <option value="غير فعّال" ${data?.effectiveness === 'غير فعّال' ? 'selected' : ''}>غير فعّال</option>
+                                            <option value="">${t('selectOption')}</option>
+                                            ${EFFECTIVENESS_OPTIONS.map((option) => `
+                                                <option value="${option.value}" ${(data?.effectiveness === option.value || data?.effectiveness === option.en || data?.effectiveness === option.ar) ? 'selected' : ''}>${getCurrentLanguage() === 'en' ? option.en : option.ar}</option>
+                                            `).join('')}
                                         </select>
                                     </div>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">استدامة</label>
                                     <textarea id="risk-sustain" class="form-input" rows="3"
-                                        placeholder="كيف سيتم ضمان استدامة التحكم؟">${Utils.escapeHTML(data?.sustainability || '')}</textarea>
+                                        placeholder="${t('sustainabilityPlaceholder')}">${Utils.escapeHTML(data?.sustainability || '')}</textarea>
                                 </div>
                             </section>
 
@@ -959,8 +1209,8 @@ const RiskAssessment = (() => {
                         </form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">إلغاء</button>
-                        <button type="submit" form="risk-assessment-form" class="btn-primary">${isEdit ? 'تحديث' : 'حفظ'}</button>
+                        <button type="button" class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">${t('cancel')}</button>
+                        <button type="submit" form="risk-assessment-form" class="btn-primary">${isEdit ? t('update') : t('save')}</button>
                     </div>
                 </div>
             `;
@@ -1069,12 +1319,12 @@ const RiskAssessment = (() => {
             };
 
             if (!formData.activity || !formData.location || !formData.date || !formData.status) {
-                Notification.error('يرجى استكمال الحقول الإجبارية');
+                Notification.error(getTranslations().t('requiredFields'));
                 return;
             }
 
             if (!formData.riskLevel) {
-                const confirmWithoutRiskLevel = confirm('لم يتم احتساب معدل الخطورة، هل ترغب في المتابعة؟');
+                const confirmWithoutRiskLevel = confirm(getTranslations().t('riskNotCalculatedConfirm'));
                 if (!confirmWithoutRiskLevel) return;
             }
 
@@ -1084,11 +1334,11 @@ const RiskAssessment = (() => {
                     const index = AppState.appData.riskAssessments.findIndex((item) => item.id === editId);
                     if (index !== -1) {
                         AppState.appData.riskAssessments[index] = { ...AppState.appData.riskAssessments[index], ...formData };
-                        Notification.success('تم تحديث التقييم بنجاح');
+                        Notification.success(getTranslations().t('updateSuccess'));
                     }
                 } else {
                     AppState.appData.riskAssessments.push(formData);
-                    Notification.success('تم إضافة التقييم بنجاح');
+                    Notification.success(getTranslations().t('addSuccess'));
                 }
 
                 // حفظ البيانات باستخدام window.DataManager
@@ -1103,7 +1353,7 @@ const RiskAssessment = (() => {
                 await this.loadRiskAssessmentsList();
             } catch (error) {
                 Utils.safeError('فشل حفظ تقييم المخاطر:', error);
-                Notification.error('حدث خطأ أثناء حفظ التقييم: ' + error.message);
+                Notification.error(`${getTranslations().t('saveFailed')} ${error.message}`);
             } finally {
                 Loading.hide();
             }
@@ -1112,7 +1362,7 @@ const RiskAssessment = (() => {
         async editAssessment(id) {
             const assessment = AppState.appData.riskAssessments.find((item) => item.id === id);
             if (!assessment) {
-                Notification.error('تعذر العثور على التقييم المطلوب');
+                Notification.error(getTranslations().t('assessmentNotFound'));
                 return;
             }
             await this.showForm(assessment);
@@ -1121,16 +1371,18 @@ const RiskAssessment = (() => {
         async viewAssessment(id) {
             const assessment = AppState.appData.riskAssessments.find((item) => item.id === id);
             if (!assessment) {
-                Notification.error('تعذر العثور على التقييم المطلوب');
+                Notification.error(getTranslations().t('assessmentNotFound'));
                 return;
             }
+
+            const { t } = getTranslations();
 
             const modal = document.createElement('div');
             modal.className = 'modal-overlay';
             modal.innerHTML = `
                 <div class="modal-content" style="max-width: 920px;">
                     <div class="modal-header">
-                        <h2 class="modal-title">تفاصيل تقييم المخاطر</h2>
+                        <h2 class="modal-title">${t('detailsTitle')}</h2>
                         <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
                             <i class="fas fa-times"></i>
                         </button>
@@ -1147,13 +1399,13 @@ const RiskAssessment = (() => {
                             </div>
                             <div>
                                 <span class="text-sm text-gray-500">تاريخ التقييم</span>
-                                <div class="font-semibold text-gray-800 mt-1">${toArabicDate(assessment.date)}</div>
+                                <div class="font-semibold text-gray-800 mt-1">${formatDateLocalized(assessment.date)}</div>
                             </div>
                             <div>
                                 <span class="text-sm text-gray-500">الحالة</span>
                                 <div class="mt-1">
-                                    <span class="badge badge-${getBadgeClassForStatus(assessment.status)}">
-                                        ${assessment.status || '-'}
+                                    <span class="badge badge-${getBadgeClassForStatus(normalizeStatusValue(assessment.status))}">
+                                        ${getStatusLabel(assessment.status)}
                                     </span>
                                 </div>
                             </div>
@@ -1248,7 +1500,7 @@ const RiskAssessment = (() => {
                                 </div>
                                 <div>
                                     <span class="text-sm text-gray-500">التاريخ المخطط</span>
-                                    <div class="font-semibold text-gray-800 mt-1">${toArabicDate(assessment.planningDate)}</div>
+                                    <div class="font-semibold text-gray-800 mt-1">${formatDateLocalized(assessment.planningDate)}</div>
                                 </div>
                                 <div>
                                     <span class="text-sm text-gray-500">الإجراء المطلوب</span>
@@ -1266,7 +1518,7 @@ const RiskAssessment = (() => {
                             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div>
                                     <span class="text-sm text-gray-500">التاريخ المخطط للتنفيذ</span>
-                                    <div class="font-semibold text-gray-800 mt-1">${toArabicDate(assessment.actionPlannedDate)}</div>
+                                    <div class="font-semibold text-gray-800 mt-1">${formatDateLocalized(assessment.actionPlannedDate)}</div>
                                 </div>
                                 <div>
                                     <span class="text-sm text-gray-500">المسؤول</span>
@@ -1274,11 +1526,11 @@ const RiskAssessment = (() => {
                                 </div>
                                 <div>
                                     <span class="text-sm text-gray-500">تاريخ الانتهاء</span>
-                                    <div class="font-semibold text-gray-800 mt-1">${toArabicDate(assessment.endDate)}</div>
+                                    <div class="font-semibold text-gray-800 mt-1">${formatDateLocalized(assessment.endDate)}</div>
                                 </div>
                                 <div>
                                     <span class="text-sm text-gray-500">الفاعلية</span>
-                                    <div class="font-semibold text-gray-800 mt-1">${Utils.escapeHTML(assessment.effectiveness || '—')}</div>
+                                    <div class="font-semibold text-gray-800 mt-1">${Utils.escapeHTML(getEffectivenessLabel(assessment.effectiveness || '—'))}</div>
                                 </div>
                             </div>
                             <div>
@@ -1291,15 +1543,15 @@ const RiskAssessment = (() => {
 
                         <div class="text-xs text-gray-400 border-t pt-3">
                             <i class="fas fa-clock ml-1"></i>
-                            تم الإنشاء في ${toArabicDate(assessment.createdAt)} — آخر تحديث ${toArabicDate(assessment.updatedAt)}
+                            ${t('createdAt')} ${formatDateLocalized(assessment.createdAt)} — ${t('lastUpdated')} ${formatDateLocalized(assessment.updatedAt)}
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">إغلاق</button>
+                        <button type="button" class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">${t('close')}</button>
                         <div class="flex-1"></div>
                         <button type="button" class="btn-primary" data-action="view-edit" data-id="${assessment.id}">
                             <i class="fas fa-edit ml-1"></i>
-                            تعديل
+                            ${t('edit')}
                         </button>
                     </div>
                 </div>
@@ -1322,11 +1574,12 @@ const RiskAssessment = (() => {
         async deleteAssessment(id) {
             const assessment = AppState.appData.riskAssessments.find((item) => item.id === id);
             if (!assessment) {
-                Notification.error('التقييم غير موجود أو تم حذفه بالفعل');
+                Notification.error(getTranslations().t('deleteNotFound'));
                 return;
             }
 
-            const confirmation = confirm(`هل أنت متأكد من حذف تقييم المخاطر للنشاط "${assessment.activity}"؟`);
+            const deleteMessageTemplate = getTranslations().t('deleteConfirm');
+            const confirmation = confirm(deleteMessageTemplate.replace('{activity}', assessment.activity || '-'));
             if (!confirmation) return;
 
             Loading.show();
@@ -1339,11 +1592,11 @@ const RiskAssessment = (() => {
             Utils.safeWarn('⚠️ DataManager غير متاح - لم يتم حفظ البيانات');
         }
                 await GoogleIntegration.autoSave?.('RiskAssessments', AppState.appData.riskAssessments);
-                Notification.success('تم حذف التقييم بنجاح');
+                Notification.success(getTranslations().t('deleteSuccess'));
                 await this.loadRiskAssessmentsList();
             } catch (error) {
                 Utils.safeError('فشل حذف تقييم المخاطر:', error);
-                Notification.error('حدث خطأ أثناء حذف التقييم: ' + error.message);
+                Notification.error(`${getTranslations().t('deleteFailed')} ${error.message}`);
             } finally {
                 Loading.hide();
             }
