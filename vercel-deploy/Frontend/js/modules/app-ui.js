@@ -2675,6 +2675,8 @@ window.UI = {
 
     /** متابعة تهيئة التطبيق الرئيسي (بعد شاشة السياسات أو مباشرة بعد الدخول) */
     _continueMainAppSetup() {
+        // ✅ إصلاح: عرض شاشة تحميل فورية لمنع الشاشة البيضاء أثناء التهيئة
+        this._showPostLoginLoadingOverlay();
         // تفعيل نظام عدم النشاط (فقط إذا لم تكن إعادة تحميل)
         if (typeof InactivityManager !== 'undefined' && !AppState.isPageRefresh) {
             InactivityManager.init();
@@ -2814,6 +2816,10 @@ window.UI = {
         AppState.isNavigatingBack = true; // تعيين علامة لتجنب عرض رسالة الخطأ
         // عرض القسم المطلوب أولاً
         this.showSection(sectionToShow);
+        // ✅ إصلاح: إزالة شاشة التحميل بعد عرض القسم بالكامل
+        setTimeout(() => {
+            this._removePostLoginLoadingOverlay();
+        }, 500);
         // إعادة تعيين العلامة بعد التنقل
         setTimeout(() => {
             AppState.isNavigatingBack = false;
@@ -4519,6 +4525,11 @@ window.UI = {
         }
 
         if (section) {
+            // ✅ إصلاح: عرض شاشة تحميل مؤقتة أثناء تحميل القسم لمنع الشاشة البيضاء
+            if (sectionName !== 'dashboard') {
+                this._showPostLoginLoadingOverlay();
+            }
+            
             section.classList.add('active');
             section.style.display = 'block'; // عرض صريح
             if (AppState.debugMode) {
@@ -4542,6 +4553,10 @@ window.UI = {
                 requestAnimationFrame(() => {
                     setTimeout(() => {
                         this.addNavigationIcons(section, sectionName);
+                        // ✅ إصلاح: إزالة شاشة التحميل بعد إضافة الأيقونات والتحميل الكامل
+                        setTimeout(() => {
+                            this._removePostLoginLoadingOverlay();
+                        }, 200);
                     }, 50);
                 });
             } else {
