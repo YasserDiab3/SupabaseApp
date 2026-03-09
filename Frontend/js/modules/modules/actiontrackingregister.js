@@ -6,8 +6,84 @@
 const ActionTrackingRegister = {
     settings: null,
     currentView: 'register', // register, settings, details
+    _languageChangeBound: false,
+
+    getCurrentLanguage() {
+        try {
+            return localStorage.getItem('language') || (typeof AppState !== 'undefined' && AppState.currentLanguage) || 'ar';
+        } catch (e) {
+            return 'ar';
+        }
+    },
+
+    getTranslations() {
+        const lang = this.getCurrentLanguage();
+        const translations = {
+            ar: {
+                title: 'سجل متابعة الإجراءات',
+                subtitle: 'نظام متقدم لإدارة جميع الإجراءات التصحيحية والوقائية',
+                loading: 'جاري التحميل...',
+                preparingUI: 'جاري تجهيز الواجهة...',
+                loadingRegister: 'جاري تحميل السجل...',
+                settings: 'الإعدادات',
+                addAction: 'إضافة إجراء جديد',
+                tabRegister: 'السجل',
+                tabSettings: 'الإعدادات',
+                searchPlaceholder: '🔍 البحث...',
+                allTypes: 'جميع الأنواع',
+                allClassifications: 'جميع التصنيفات',
+                allStatuses: 'جميع الحالات',
+                allLevels: 'جميع المستويات',
+                allDepartments: 'جميع الأقسام',
+                allResponsibles: 'جميع المسؤولين',
+                reset: 'إعادة تعيين',
+                actionsRegister: 'سجل الإجراءات',
+                noActions: 'لا توجد إجراءات مسجلة',
+                noResults: 'لا توجد نتائج للبحث',
+                listLoadError: 'حدث خطأ في تحميل البيانات',
+                retry: 'إعادة المحاولة'
+            },
+            en: {
+                title: 'Action Tracking Register',
+                subtitle: 'Advanced system for managing corrective and preventive actions',
+                loading: 'Loading...',
+                preparingUI: 'Preparing interface...',
+                loadingRegister: 'Loading register...',
+                settings: 'Settings',
+                addAction: 'Add New Action',
+                tabRegister: 'Register',
+                tabSettings: 'Settings',
+                searchPlaceholder: '🔍 Search...',
+                allTypes: 'All Types',
+                allClassifications: 'All Classifications',
+                allStatuses: 'All Statuses',
+                allLevels: 'All Levels',
+                allDepartments: 'All Departments',
+                allResponsibles: 'All Responsibles',
+                reset: 'Reset',
+                actionsRegister: 'Actions Register',
+                noActions: 'No actions recorded',
+                noResults: 'No search results',
+                listLoadError: 'An error occurred while loading data',
+                retry: 'Retry'
+            }
+        };
+        return {
+            lang,
+            t: (key) => (translations[lang] && translations[lang][key]) ? translations[lang][key] : key
+        };
+    },
 
     async load() {
+        const { t } = this.getTranslations();
+        if (!this._languageChangeBound) {
+            this._languageChangeBound = true;
+            document.addEventListener('language-changed', () => {
+                if (document.getElementById('action-tracking-section')?.classList.contains('active')) {
+                    this.load();
+                }
+            });
+        }
         // التحقق من وجود التبعيات المطلوبة
         if (typeof Utils === 'undefined') {
             console.error('Utils غير متوفر!');
@@ -24,17 +100,15 @@ const ActionTrackingRegister = {
         }
 
         if (typeof AppState === 'undefined') {
-            // لا تترك الواجهة فارغة
             section.innerHTML = `
                 <div class="content-card">
                     <div class="card-body">
                         <div class="empty-state">
                             <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                            <p class="text-gray-500 mb-2">تعذر تحميل سجل متابعة الإجراءات</p>
-                            <p class="text-sm text-gray-400">AppState غير متوفر حالياً. جرّب تحديث الصفحة.</p>
+                            <p class="text-gray-500 mb-2">${t('listLoadError')}</p>
                             <button onclick="location.reload()" class="btn-primary mt-4">
                                 <i class="fas fa-redo ml-2"></i>
-                                تحديث الصفحة
+                                ${t('retry')}
                             </button>
                         </div>
                     </div>
@@ -44,55 +118,54 @@ const ActionTrackingRegister = {
             return;
         }
 
-        try {
-            // Skeleton فوري قبل أي عمليات render قد تكون بطيئة
-            section.innerHTML = `
-                <div class="section-header">
-                    <div class="flex items-center justify-between flex-wrap gap-4">
-                        <div>
-                            <h1 class="section-title">
-                                <i class="fas fa-clipboard-list-check ml-3"></i>
-                                سجل متابعة الإجراءات
-                            </h1>
-                            <p class="section-subtitle">جاري التحميل...</p>
-                        </div>
+        // Skeleton فوري قبل أي عمليات render قد تكون بطيئة
+        section.innerHTML = `
+            <div class="section-header">
+                <div class="flex items-center justify-between flex-wrap gap-4">
+                    <div>
+                        <h1 class="section-title">
+                            <i class="fas fa-clipboard-list-check ml-3"></i>
+                            ${t('title')}
+                        </h1>
+                        <p class="section-subtitle">${t('loading')}</p>
                     </div>
                 </div>
-                <div class="mt-6">
-                    <div class="content-card">
-                        <div class="card-body">
-                            <div class="empty-state">
-                                <div style="width: 300px; margin: 0 auto 16px;">
-                                    <div style="width: 100%; height: 6px; background: rgba(59, 130, 246, 0.2); border-radius: 3px; overflow: hidden;">
-                                        <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div>
-                                    </div>
+            </div>
+            <div class="mt-6">
+                <div class="content-card">
+                    <div class="card-body">
+                        <div class="empty-state">
+                            <div style="width: 300px; margin: 0 auto 16px;">
+                                <div style="width: 100%; height: 6px; background: rgba(59, 130, 246, 0.2); border-radius: 3px; overflow: hidden;">
+                                    <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div>
                                 </div>
-                                <p class="text-gray-500">جاري تجهيز الواجهة...</p>
                             </div>
+                            <p class="text-gray-500">${t('preparingUI')}</p>
                         </div>
                     </div>
                 </div>
-            `;
+            </div>
+        `;
 
-            // التأكد من وجود البيانات
-            if (!AppState.appData) {
-                AppState.appData = {};
-            }
-            if (!AppState.appData.actionTracking) {
-                AppState.appData.actionTracking = [];
-            }
-            // تحميل الإعدادات بشكل غير متزامن (لا ننتظرها)
-            // استخدام الإعدادات الافتراضية أولاً ثم تحديثها عند الحاجة
+        // التأكد من وجود البيانات
+        if (!AppState.appData) {
+            AppState.appData = {};
+        }
+        if (!AppState.appData.actionTracking) {
+            AppState.appData.actionTracking = [];
+        }
+        // تحميل الإعدادات بشكل غير متزامن (لا ننتظرها)
+        // استخدام الإعدادات الافتراضية أولاً ثم تحديثها عند الحاجة
+        this.settings = this.getDefaultSettings();
+        this.loadSettings().catch(() => {
+            // في حالة الفشل، نستخدم الإعدادات الافتراضية
             this.settings = this.getDefaultSettings();
-            this.loadSettings().catch(() => {
-                // في حالة الفشل، نستخدم الإعدادات الافتراضية
-                this.settings = this.getDefaultSettings();
-            });
+        });
 
-            const actionTitle = (typeof i18n !== 'undefined' && i18n.translate) ? i18n.translate('action.title') : 'سجل متابعة الإجراءات';
-            const actionSubtitle = (typeof i18n !== 'undefined' && i18n.translate) ? i18n.translate('action.subtitle') : 'نظام متقدم لإدارة جميع الإجراءات التصحيحية والوقائية';
+        const actionTitle = (typeof i18n !== 'undefined' && i18n.translate) ? i18n.translate('action.title') : t('title');
+        const actionSubtitle = (typeof i18n !== 'undefined' && i18n.translate) ? i18n.translate('action.subtitle') : t('subtitle');
 
-            section.innerHTML = `
+        section.innerHTML = `
             <div class="section-header">
                 <div class="flex items-center justify-between flex-wrap gap-4">
                     <div>
@@ -106,12 +179,12 @@ const ActionTrackingRegister = {
                         ${this.hasSettingsPermission() ? `
                             <button id="action-settings-btn" class="btn-secondary">
                                 <i class="fas fa-cog ml-2"></i>
-                                الإعدادات
+                                ${t('settings')}
                             </button>
                         ` : ''}
                         <button id="add-action-btn" class="btn-primary">
                             <i class="fas fa-plus ml-2"></i>
-                            إضافة إجراء جديد
+                            ${t('addAction')}
                         </button>
                     </div>
                 </div>
@@ -121,11 +194,11 @@ const ActionTrackingRegister = {
             <div class="mt-6">
                 <div class="action-tabs-container">
                     <button class="action-tab-btn active" data-tab="register" onclick="ActionTrackingRegister.switchView('register')">
-                        <i class="fas fa-list ml-2"></i>السجل
+                        <i class="fas fa-list ml-2"></i>${t('tabRegister')}
                     </button>
                     ${this.hasSettingsPermission() ? `
                         <button class="action-tab-btn" data-tab="settings" onclick="ActionTrackingRegister.switchView('settings')">
-                            <i class="fas fa-cog ml-2"></i>الإعدادات
+                            <i class="fas fa-cog ml-2"></i>${t('tabSettings')}
                         </button>
                     ` : ''}
                 </div>
@@ -140,404 +213,56 @@ const ActionTrackingRegister = {
                                     <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div>
                                 </div>
                             </div>
-                            <p class="text-gray-500">جاري تحميل السجل...</p>
+                            <p class="text-gray-500">${t('loadingRegister')}</p>
                         </div>
                     </div>
                 </div>
             </div>
-            `;
+        `;
 
-            this.setupEventListeners();
-            
-            // ✅ تحميل محتوى السجل الكامل فوراً بعد عرض الواجهة
-            setTimeout(async () => {
-                try {
-                    const contentArea = document.getElementById('action-content-area');
-                    if (!contentArea) return;
-                    
-                    // تحميل محتوى السجل الكامل
-                    const registerContent = await this.renderRegister().catch(error => {
-                        Utils.safeWarn('⚠️ خطأ في تحميل محتوى السجل:', error);
-                        return `
-                            <div class="content-card">
-                                <div class="card-body">
-                                    <div class="empty-state">
-                                        <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                        <p class="text-gray-500 mb-4">حدث خطأ في تحميل البيانات</p>
-                                        <button onclick="ActionTrackingRegister.load()" class="btn-primary">
-                                            <i class="fas fa-redo ml-2"></i>
-                                            إعادة المحاولة
-                                        </button>
-                                    </div>
+        this.setupEventListeners();
+        
+        // ✅ تحميل محتوى السجل الكامل فوراً بعد عرض الواجهة
+        setTimeout(async () => {
+            try {
+                const contentArea = document.getElementById('action-content-area');
+                if (!contentArea) return;
+                
+                // تحميل محتوى السجل الكامل
+                const registerContent = await this.renderRegister().catch(error => {
+                    Utils.safeWarn('⚠️ خطأ في تحميل محتوى السجل:', error);
+                    return `
+                        <div class="content-card">
+                            <div class="card-body">
+                                <div class="empty-state">
+                                    <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
+                                    <p class="text-gray-500 mb-4">${t('listLoadError')}</p>
+                                    <button onclick="ActionTrackingRegister.load()" class="btn-primary">
+                                        <i class="fas fa-redo ml-2"></i>
+                                        ${t('retry')}
+                                    </button>
                                 </div>
                             </div>
-                        `;
-                    });
-                    
-                    contentArea.innerHTML = registerContent;
-                    this.setupEventListeners();
-                    
-                    // تحميل البيانات بعد عرض الواجهة
-                    this.loadKPIs().catch(() => {});
-                    this.loadActionList().catch(() => {});
-                } catch (error) {
-                    Utils.safeWarn('⚠️ خطأ في تحميل السجل:', error);
-                }
-            }, 0);
-        } catch (error) {
-            Utils.safeError('❌ خطأ في تحميل مديول سجل متابعة الإجراءات:', error);
-            section.innerHTML = `
-                <div class="section-header">
-                    <div>
-                        <h1 class="section-title">
-                            <i class="fas fa-clipboard-list-check ml-3"></i>
-                            سجل متابعة الإجراءات
-                        </h1>
-                    </div>
-                </div>
-                <div class="mt-6">
-                    <div class="content-card">
-                        <div class="card-body">
-                            <div class="empty-state">
-                                <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                <p class="text-gray-500 mb-2">حدث خطأ أثناء تحميل البيانات</p>
-                                <p class="text-sm text-gray-400 mb-4">${error && error.message ? Utils.escapeHTML(error.message) : 'خطأ غير معروف'}</p>
-                                <button onclick="ActionTrackingRegister.load()" class="btn-primary">
-                                    <i class="fas fa-redo ml-2"></i>
-                                    إعادة المحاولة
-                                </button>
-                            </div>
                         </div>
-                    </div>
-                </div>
-            `;
-            if (typeof Notification !== 'undefined' && Notification.error) {
-                Notification.error('حدث خطأ أثناء تحميل سجل متابعة الإجراءات. يُرجى المحاولة مرة أخرى.', { duration: 5000 });
-            }
-        }
-    },
-
-    isAdmin() {
-        const user = AppState.currentUser;
-        return user && (user.role === 'admin' || user.role === 'safety_officer');
-    },
-
-    hasSettingsPermission() {
-        const user = AppState.currentUser;
-        if (!user) {
-            return false;
-        }
-
-        // التحقق من الدور
-        const userRole = (user.role || '').toLowerCase();
-        const allowedRoles = ['admin', 'safety_officer', 'manager'];
-        if (allowedRoles.includes(userRole)) {
-            return true;
-        }
-
-        // التحقق من الصلاحيات المخصصة
-        const permissions = user.permissions || {};
-        if (typeof permissions === 'string') {
-            try {
-                permissions = JSON.parse(permissions);
-            } catch (e) {
-                permissions = {};
-            }
-        }
-
-        // التحقق من صلاحية 'action-tracking-settings' أو 'admin' أو 'manage-settings'
-        return permissions['action-tracking-settings'] === true ||
-            permissions['admin'] === true ||
-            permissions['manage-settings'] === true;
-    },
-
-    async loadSettings() {
-        // التحقق من تفعيل Google Integration قبل إجراء الطلبات
-        if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
-            this.settings = this.getDefaultSettings();
-            return;
-        }
-
-        // التحقق من توفر GoogleIntegration
-        if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.sendRequest !== 'function') {
-            this.settings = this.getDefaultSettings();
-            return;
-        }
-
-        try {
-            const timeout = 60000; // 60 ثانية timeout
-            const response = await Utils.promiseWithTimeout(
-                GoogleIntegration.sendRequest({ action: 'getActionTrackingSettings', data: {} }),
-                timeout,
-                'انتهت مهلة الاتصال بالخادم'
-            );
-
-            if (response && response.success && response.data) {
-                this.settings = response.data;
-            } else {
-                this.settings = this.getDefaultSettings();
-            }
-        } catch (error) {
-            // Don't log errors for backend not enabled - just use default settings
-            const errorMessage = error?.message || '';
-            if (!errorMessage.includes('الاتصال بالخادم') && !errorMessage.includes('غير مفعّل') && !errorMessage.includes('انتهت مهلة الاتصال')) {
-                Utils.safeWarn('خطأ في تحميل إعدادات Action Tracking:', error);
-            }
-            this.settings = this.getDefaultSettings();
-        }
-    },
-
-    getDefaultSettings() {
-        return {
-            typeOfIssueList: ['Observations', 'Incidents', 'NearMiss', 'Inspections', 'ManagementReviews', 'Audits', 'Other'],
-            classificationList: ['Safety Violation', 'Environmental Issue', 'Health Concern', 'Process Deviation', 'Equipment Failure', 'Training Gap', 'Documentation Issue', 'Other'],
-            rootCauseList: ['Lack of Training', 'Inadequate Procedures', 'Equipment Failure', 'Human Error', 'Management System Failure', 'Environmental Factors', 'Communication Gap', 'Other'],
-            typeClassificationMapping: {
-                'Observations': ['Safety Violation', 'Environmental Issue', 'Health Concern', 'Process Deviation', 'Other'],
-                'Incidents': ['Safety Violation', 'Equipment Failure', 'Health Concern', 'Other'],
-                'NearMiss': ['Safety Violation', 'Process Deviation', 'Equipment Failure', 'Other'],
-                'Inspections': ['Safety Violation', 'Equipment Failure', 'Process Deviation', 'Documentation Issue', 'Other'],
-                'ManagementReviews': ['Process Deviation', 'Documentation Issue', 'Training Gap', 'Other']
-            },
-            classificationRootCauseMapping: {
-                'Safety Violation': ['Lack of Training', 'Inadequate Procedures', 'Human Error', 'Management System Failure', 'Other'],
-                'Environmental Issue': ['Inadequate Procedures', 'Equipment Failure', 'Environmental Factors', 'Other'],
-                'Health Concern': ['Lack of Training', 'Inadequate Procedures', 'Environmental Factors', 'Other'],
-                'Process Deviation': ['Inadequate Procedures', 'Management System Failure', 'Communication Gap', 'Other'],
-                'Equipment Failure': ['Equipment Failure', 'Inadequate Procedures', 'Other'],
-                'Training Gap': ['Lack of Training', 'Management System Failure', 'Other'],
-                'Documentation Issue': ['Inadequate Procedures', 'Management System Failure', 'Communication Gap', 'Other']
-            },
-            statusList: ['Open', 'In Progress', 'Closed', 'Overdue'],
-            riskRatingList: ['Low', 'Medium', 'High', 'Critical'],
-            departmentList: ['Production', 'Maintenance', 'Quality', 'Safety', 'HR', 'Admin', 'Other'],
-            locationList: ['Factory A', 'Factory B', 'Warehouse', 'Office', 'Other'],
-            responsibleList: [],
-            shiftList: ['Morning', 'Afternoon', 'Night']
-        };
-    },
-
-    switchView(view, options = {}) {
-        this.currentView = view;
-
-        // التحقق من الصلاحيات قبل الوصول إلى الإعدادات
-        if (view === 'settings' && !this.hasSettingsPermission()) {
-            Notification.error('ليس لديك صلاحية للوصول إلى إعدادات Action Tracking. يجب أن تكون مدير النظام أو لديك صلاحية خاصة.');
-            return;
-        }
-
-        // Update tab buttons
-        document.querySelectorAll('.action-tab-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.dataset.tab === view) {
-                btn.classList.add('active');
-            }
-        });
-
-        const contentArea = document.getElementById('action-content-area');
-        if (!contentArea) return;
-
-        if (view === 'register') {
-            this.renderRegister().then(html => {
-                contentArea.innerHTML = html;
+                    `;
+                });
+                
+                contentArea.innerHTML = registerContent;
                 this.setupEventListeners();
-                this.loadKPIs();
-                this.loadActionList();
-            });
-        } else if (view === 'settings') {
-            if (!this.hasSettingsPermission()) {
-                Notification.error('ليس لديك صلاحية للوصول إلى الإعدادات');
-                return;
-            }
-            this.renderSettings().then(html => {
-                contentArea.innerHTML = html;
-                setTimeout(() => {
-                    this.setupSettingsEvents();
-                }, 100);
-            });
-        }
-    },
-
-    async renderRegister() {
-        // عرض الكروت الإحصائية فوراً بقيم افتراضية (0) حتى يتم تحميل البيانات
-        const defaultKPIs = { total: 0, open: 0, inProgress: 0, closed: 0, overdue: 0 };
-        
-        // ✅ تحميل القائمة بشكل آمن
-        let listContent = '';
-        try {
-            listContent = await this.renderList();
-        } catch (error) {
-            Utils.safeWarn('⚠️ خطأ في تحميل قائمة الإجراءات:', error);
-            listContent = `
-                <div class="content-card">
-                    <div class="card-body">
-                        <div class="empty-state">
-                            <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                            <p class="text-gray-500 mb-4">حدث خطأ في تحميل البيانات</p>
-                            <button onclick="ActionTrackingRegister.load()" class="btn-primary">
-                                <i class="fas fa-redo ml-2"></i>
-                                إعادة المحاولة
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        return `
-            <!-- KPIs Cards - ثابتة من البداية -->
-            <div id="action-kpis-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                ${this.renderKPIsHTML(defaultKPIs)}
-            </div>
-            
-            <!-- Filters and Register -->
-            ${listContent}
-        `;
-    },
-
-    async loadKPIs() {
-        const container = document.getElementById('action-kpis-container');
-        if (!container) return;
-
-        // حساب KPIs من البيانات المحلية أولاً (عرض فوري)
-        const calculateKPIsFromLocal = () => {
-            const actions = AppState.appData?.actionTracking || [];
-            return {
-                total: actions.length,
-                open: actions.filter(a => a.status === 'Open' || a.status === 'مفتوح').length,
-                inProgress: actions.filter(a => a.status === 'In Progress' || a.status === 'قيد التنفيذ').length,
-                closed: actions.filter(a => a.status === 'Closed' || a.status === 'مكتمل').length,
-                overdue: actions.filter(a => {
-                    if (a.status === 'Closed' || a.status === 'مكتمل') return false;
-                    if (a.dueDate) {
-                        const dueDate = new Date(a.dueDate);
-                        return dueDate < new Date();
-                    }
-                    return false;
-                }).length
-            };
-        };
-
-        // عرض البيانات المحلية فوراً
-        const localKPIs = calculateKPIsFromLocal();
-        this.renderKPIs(localKPIs);
-
-        // التحقق من تفعيل Google Integration قبل إجراء الطلبات
-        if (!AppState.googleConfig?.appsScript?.enabled || !AppState.googleConfig?.appsScript?.scriptUrl) {
-            return; // البيانات المحلية معروضة بالفعل
-        }
-
-        // التحقق من توفر GoogleIntegration
-        if (typeof GoogleIntegration === 'undefined' || typeof GoogleIntegration.sendRequest !== 'function') {
-            return; // البيانات المحلية معروضة بالفعل
-        }
-
-        // تحديث KPIs من Backend في الخلفية (بدون تأخير العرض)
-        Promise.resolve().then(async () => {
-            try {
-                const timeout = 30000; // تقليل timeout إلى 30 ثانية لتسريع الاستجابة
-                const response = await Utils.promiseWithTimeout(
-                    GoogleIntegration.sendRequest({ action: 'getActionTrackingKPIs', data: {} }),
-                    timeout,
-                    'انتهت مهلة الاتصال بالخادم'
-                );
-
-                if (response && response.success && response.data) {
-                    const kpis = response.data;
-                    const currentContainer = document.getElementById('action-kpis-container');
-                    if (currentContainer) {
-                        this.renderKPIs(kpis);
-                    }
-                }
+                
+                // تحميل البيانات بعد عرض الواجهة
+                this.loadKPIs().catch(() => {});
+                this.loadActionList().catch(() => {});
             } catch (error) {
-                // Don't log errors for backend not enabled - just use local data
-                const errorMessage = error?.message || '';
-                if (!errorMessage.includes('الاتصال بالخادم') && !errorMessage.includes('غير مفعّل') && !errorMessage.includes('انتهت مهلة الاتصال')) {
-                    Utils.safeWarn('خطأ في تحميل KPIs:', error);
-                }
-                // في حالة الخطأ، البيانات المحلية معروضة بالفعل
+                Utils.safeWarn('⚠️ خطأ في تحميل السجل:', error);
             }
-        }).catch(() => {
-            // تجاهل الأخطاء - البيانات المحلية معروضة بالفعل
-        });
-    },
-
-    renderKPIsHTML(kpis) {
-        if (!kpis) kpis = { total: 0, open: 0, inProgress: 0, closed: 0, overdue: 0 };
-        return `
-            <div class="content-card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: #ffffff; border: 2px solid #1e40af; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p style="font-size: 14px; opacity: 0.95; color: #ffffff; margin-bottom: 8px;">إجمالي الإجراءات</p>
-                        <h3 id="kpi-total" style="font-size: 32px; font-weight: bold; color: #ffffff; margin: 0;">${kpis.total || 0}</h3>
-                    </div>
-                    <i class="fas fa-clipboard-list" style="font-size: 48px; opacity: 0.7; color: #ffffff;"></i>
-                </div>
-            </div>
-            <div class="content-card" style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color: #ffffff; border: 2px solid #a16207; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p style="font-size: 14px; opacity: 0.95; color: #ffffff; margin-bottom: 8px;">الإجراءات المفتوحة</p>
-                        <h3 id="kpi-open" style="font-size: 32px; font-weight: bold; color: #ffffff; margin: 0;">${kpis.open || 0}</h3>
-                    </div>
-                    <i class="fas fa-folder-open" style="font-size: 48px; opacity: 0.7; color: #ffffff;"></i>
-                </div>
-            </div>
-            <div class="content-card" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #ffffff; border: 2px solid #c2410c; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p style="font-size: 14px; opacity: 0.95; color: #ffffff; margin-bottom: 8px;">قيد التنفيذ</p>
-                        <h3 id="kpi-inprogress" style="font-size: 32px; font-weight: bold; color: #ffffff; margin: 0;">${kpis.inProgress || 0}</h3>
-                    </div>
-                    <i class="fas fa-spinner" style="font-size: 48px; opacity: 0.7; color: #ffffff;"></i>
-                </div>
-            </div>
-            <div class="content-card" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: #ffffff; border: 2px solid #b91c1c; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p style="font-size: 14px; opacity: 0.95; color: #ffffff; margin-bottom: 8px;">الإجراءات المتأخرة</p>
-                        <h3 id="kpi-overdue" style="font-size: 32px; font-weight: bold; color: #ffffff; margin: 0;">${kpis.overdue || 0}</h3>
-                    </div>
-                    <i class="fas fa-exclamation-triangle" style="font-size: 48px; opacity: 0.7; color: #ffffff;"></i>
-                </div>
-            </div>
-            <div class="content-card" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #ffffff; border: 2px solid #15803d; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p style="font-size: 14px; opacity: 0.95; color: #ffffff; margin-bottom: 8px;">الإجراءات المكتملة</p>
-                        <h3 id="kpi-closed" style="font-size: 32px; font-weight: bold; color: #ffffff; margin: 0;">${kpis.closed || 0}</h3>
-                    </div>
-                    <i class="fas fa-check-circle" style="font-size: 48px; opacity: 0.7; color: #ffffff;"></i>
-                </div>
-            </div>
-        `;
-    },
-
-    renderKPIs(kpis) {
-        // تحديث القيم فقط بدلاً من استبدال الكروت بالكامل
-        if (!kpis) kpis = { total: 0, open: 0, inProgress: 0, closed: 0, overdue: 0 };
-        
-        const totalEl = document.getElementById('kpi-total');
-        const openEl = document.getElementById('kpi-open');
-        const inProgressEl = document.getElementById('kpi-inprogress');
-        const overdueEl = document.getElementById('kpi-overdue');
-        const closedEl = document.getElementById('kpi-closed');
-        
-        if (totalEl) totalEl.textContent = kpis.total || 0;
-        if (openEl) openEl.textContent = kpis.open || 0;
-        if (inProgressEl) inProgressEl.textContent = kpis.inProgress || 0;
-        if (overdueEl) overdueEl.textContent = kpis.overdue || 0;
-        if (closedEl) closedEl.textContent = kpis.closed || 0;
-        
-        // إذا لم تكن الكروت موجودة بعد، قم بإنشائها
-        const container = document.getElementById('action-kpis-container');
-        if (container && (!totalEl || !openEl || !inProgressEl || !overdueEl || !closedEl)) {
-            container.innerHTML = this.renderKPIsHTML(kpis);
-        }
+        }, 0);
     },
 
     async renderList() {
+        const { t } = this.getTranslations();
         const settings = this.settings || this.getDefaultSettings();
+
         const statusList = settings.statusList || ['Open', 'In Progress', 'Closed', 'Overdue'];
         const typeList = settings.typeOfIssueList || [];
         const riskList = settings.riskRatingList || [];
@@ -548,36 +273,36 @@ const ActionTrackingRegister = {
             <div class="content-card">
                 <div class="card-header">
                     <div class="flex items-center justify-between flex-wrap gap-4">
-                        <h2 class="card-title"><i class="fas fa-list ml-2"></i>سجل الإجراءات</h2>
+                        <h2 class="card-title"><i class="fas fa-list ml-2"></i>${t('actionsRegister')}</h2>
                         <div class="flex items-center gap-2 flex-wrap">
-                            <input type="text" id="action-search" class="form-input" style="max-width: 250px;" placeholder="🔍 البحث...">
+                            <input type="text" id="action-search" class="form-input" style="max-width: 250px;" placeholder="${t('searchPlaceholder')}">
                             <select id="action-filter-type" class="form-input" style="max-width: 180px;">
-                                <option value="">جميع الأنواع</option>
+                                <option value="">${t('allTypes')}</option>
                                 ${typeList.map(t => `<option value="${Utils.escapeHTML(t)}">${Utils.escapeHTML(t)}</option>`).join('')}
                             </select>
                             <select id="action-filter-classification" class="form-input" style="max-width: 180px;">
-                                <option value="">جميع التصنيفات</option>
+                                <option value="">${t('allClassifications')}</option>
                             </select>
                             <select id="action-filter-status" class="form-input" style="max-width: 150px;">
-                                <option value="">جميع الحالات</option>
+                                <option value="">${t('allStatuses')}</option>
                                 ${statusList.map(s => `<option value="${Utils.escapeHTML(s)}">${Utils.escapeHTML(s)}</option>`).join('')}
                             </select>
                             <select id="action-filter-risk" class="form-input" style="max-width: 150px;">
-                                <option value="">جميع المستويات</option>
+                                <option value="">${t('allLevels')}</option>
                                 ${riskList.map(r => `<option value="${Utils.escapeHTML(r)}">${Utils.escapeHTML(r)}</option>`).join('')}
                             </select>
                             <select id="action-filter-department" class="form-input" style="max-width: 150px;">
-                                <option value="">جميع الأقسام</option>
+                                <option value="">${t('allDepartments')}</option>
                                 ${deptList.map(d => `<option value="${Utils.escapeHTML(d)}">${Utils.escapeHTML(d)}</option>`).join('')}
                             </select>
                             <select id="action-filter-responsible" class="form-input" style="max-width: 150px;">
-                                <option value="">جميع المسؤولين</option>
+                                <option value="">${t('allResponsibles')}</option>
                                 ${responsibleList.map(r => `<option value="${Utils.escapeHTML(r)}">${Utils.escapeHTML(r)}</option>`).join('')}
                             </select>
                             <input type="date" id="action-filter-date-from" class="form-input" style="max-width: 150px;" placeholder="من تاريخ">
                             <input type="date" id="action-filter-date-to" class="form-input" style="max-width: 150px;" placeholder="إلى تاريخ">
                             <button id="action-reset-filters" class="btn-secondary btn-sm">
-                                <i class="fas fa-redo ml-1"></i>إعادة تعيين
+                                <i class="fas fa-redo ml-1"></i>${t('reset')}
                             </button>
                         </div>
                     </div>
@@ -628,7 +353,7 @@ const ActionTrackingRegister = {
                                                     <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div>
                                                 </div>
                                             </div>
-                                            <p class="text-gray-500">جاري تحميل البيانات...</p>
+                                            <p class="text-gray-500">${t('loading')}</p>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -640,68 +365,10 @@ const ActionTrackingRegister = {
         `;
     },
 
-    async loadActionList() {
-        // تحديث محتوى الجدول فقط (tbody) بدلاً من استبدال الحاوية بالكامل
-        const tableBody = document.getElementById('action-table-body');
-        const container = document.getElementById('action-table-container');
-        
-        if (!tableBody && !container) return;
-
-        // عرض البيانات المحلية فوراً إذا كانت موجودة (بدون انتظار Backend)
-        const localItems = AppState.appData.actionTracking || AppState.appData.actionTrackingRegister || [];
-        if (localItems.length > 0) {
-            // عرض البيانات المحلية فوراً
-            this.renderActionListItems(localItems, tableBody);
-        }
-
-        // تحميل البيانات من Backend في الخلفية (بدون تأخير العرض)
-        const isGoogleEnabled = AppState.googleConfig?.appsScript?.enabled && AppState.googleConfig?.appsScript?.scriptUrl;
-        const isGoogleIntegrationAvailable = typeof GoogleIntegration !== 'undefined' && typeof GoogleIntegration.sendRequest === 'function';
-
-        if (isGoogleEnabled && isGoogleIntegrationAvailable) {
-            // تحميل البيانات من Backend بشكل غير متزامن (لا ننتظر)
-            Promise.resolve().then(async () => {
-                try {
-                    const timeout = 30000; // تقليل timeout إلى 30 ثانية لتسريع الاستجابة
-                    const response = await Utils.promiseWithTimeout(
-                        GoogleIntegration.sendRequest({ action: 'getAllActionTracking', data: {} }),
-                        timeout,
-                        'انتهت مهلة الاتصال بالخادم'
-                    );
-
-                    if (response && response.success && Array.isArray(response.data)) {
-                        // تحديث البيانات في AppState
-                        AppState.appData.actionTracking = response.data;
-                        AppState.appData.actionTrackingRegister = response.data;
-                        
-                        // تحديث العرض فقط إذا تغيرت البيانات
-                        const currentTableBody = document.getElementById('action-table-body');
-                        if (currentTableBody) {
-                            this.renderActionListItems(response.data, currentTableBody);
-                        }
-                    }
-                } catch (error) {
-                    // Don't log errors for backend not enabled - just use local data
-                    const errorMessage = error?.message || '';
-                    if (!errorMessage.includes('الاتصال بالخادم') && !errorMessage.includes('غير مفعّل') && !errorMessage.includes('انتهت مهلة الاتصال')) {
-                        Utils.safeWarn('خطأ في تحميل الإجراءات من Backend:', error);
-                    }
-                    // في حالة الخطأ، نستخدم البيانات المحلية (تم عرضها بالفعل)
-                }
-            }).catch(() => {
-                // تجاهل الأخطاء - البيانات المحلية معروضة بالفعل
-            });
-        }
-
-        // إذا لم تكن هناك بيانات محلية، نعرض رسالة فارغة
-        if (localItems.length === 0 && (!isGoogleEnabled || !isGoogleIntegrationAvailable)) {
-            this.renderActionListItems([], tableBody);
-        }
-    },
-
     renderActionListItems(items, tableBody) {
+        const { t } = this.getTranslations();
         if (!tableBody) return;
-        
+
         const itemsToRender = items || [];
 
         // تحديد لون الحالة
@@ -713,17 +380,16 @@ const ActionTrackingRegister = {
             return 'info'; // Open/New
         };
 
-        // إذا كان tbody موجوداً، قم بتحديثه فقط
         if (tableBody) {
             if (itemsToRender.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
                         <td colspan="10" style="text-align: center; padding: 40px;">
                             <i class="fas fa-clipboard-list text-4xl text-gray-300 mb-4"></i>
-                            <p class="text-gray-500 mb-4">لا توجد إجراءات مسجلة</p>
+                            <p class="text-gray-500 mb-4">${t('noActions')}</p>
                             <button id="add-action-empty-btn" class="btn-primary">
                                 <i class="fas fa-plus ml-2"></i>
-                                إضافة إجراء جديد
+                                ${t('addAction')}
                             </button>
                         </td>
                     </tr>
@@ -741,7 +407,7 @@ const ActionTrackingRegister = {
                     <tr>
                         <td colspan="10" style="text-align: center; padding: 40px;">
                             <i class="fas fa-search text-4xl text-gray-300 mb-4"></i>
-                            <p class="text-gray-500">لا توجد نتائج للبحث</p>
+                            <p class="text-gray-500">${t('noResults')}</p>
                         </td>
                     </tr>
                 `;
