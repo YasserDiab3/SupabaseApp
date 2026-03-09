@@ -55,7 +55,14 @@ const Dashboard = {
                 trainingReportDesc: 'تصدير تقرير عن برامج التدريب',
                 fullReport: 'تقرير شامل',
                 fullReportDesc: 'تصدير تقرير شامل لجميع البيانات',
-                notLoggedIn: 'لم يتم تسجيل الدخول'
+                notLoggedIn: 'لم يتم تسجيل الدخول',
+                medicationsAlerts: 'تنبيهات صلاحية الأدوية',
+                noExpiringMedications: 'لا توجد أدوية منتهية الصلاحية',
+                allMedicationsValid: 'جميع الأدوية صالحة للاستخدام',
+                alerts: 'تنبيه',
+                expired: 'منتهية الصلاحية',
+                daysRemaining: 'يتبقى {days} يوم',
+                dateNotSpecified: 'تاريخ غير محدد'
             },
             en: {
                 title: 'Dashboard',
@@ -94,7 +101,14 @@ const Dashboard = {
                 trainingReportDesc: 'Export training programs report',
                 fullReport: 'Full Report',
                 fullReportDesc: 'Export comprehensive report for all data',
-                notLoggedIn: 'Not logged in'
+                notLoggedIn: 'Not logged in',
+                medicationsAlerts: 'Medication Expiry Alerts',
+                noExpiringMedications: 'No expiring medications',
+                allMedicationsValid: 'All medications are valid for use',
+                alerts: 'Alert',
+                expired: 'Expired',
+                daysRemaining: '{days} days remaining',
+                dateNotSpecified: 'Date not specified'
             }
         };
         return {
@@ -423,6 +437,7 @@ const Dashboard = {
      * عرض كارت إحصائية واحد - تصميم محسّن ومتطور
      */
     renderStatCard(id, value, label, icon, color, delay) {
+        const { t } = this.getTranslations();
         // استخدام formatNumber لضمان عرض الأرقام بالإنجليزية
         const formattedValue = typeof value === 'number' ? this.formatNumber(value) : value;
 
@@ -452,6 +467,7 @@ const Dashboard = {
      * عرض تنبيهات الأدوية
      */
     renderMedicationsAlerts(expiringMedications, today) {
+        const { t } = this.getTranslations();
         if (expiringMedications.length === 0) {
             return `
                 <div class="medications-alerts-section" style="border-top: 1px solid var(--border-color); padding-top: 2rem; margin-top: 2rem;">
@@ -460,16 +476,21 @@ const Dashboard = {
                             <i class="fas fa-pills" style="color: #7c3aed; font-size: 1.125rem;"></i>
                         </div>
                         <h3 style="margin: 0; font-size: 1.25rem; font-weight: 600; color: var(--text-primary);">
-                            تنبيهات صلاحية الأدوية
+                            ${t('medicationsAlerts')}
                         </h3>
                     </div>
                     <div style="background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 12px; padding: 1.25rem; display: flex; align-items: center; gap: 1rem;">
                         <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(34, 197, 94, 0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                             <i class="fas fa-check-circle" style="color: #16a34a; font-size: 1.5rem;"></i>
                         </div>
-                        <p style="margin: 0; font-size: 0.9375rem; font-weight: 500; color: var(--text-primary); line-height: 1.5;">
-                            لا توجد أدوية منتهية أو قريبة الانتهاء خلال 30 يوماً.
-                        </p>
+                        <div style="flex: 1;">
+                            <p style="margin: 0; font-size: 1rem; font-weight: 500; color: #16a34a; line-height: 1.5;">
+                                ${t('allMedicationsValid')}
+                            </p>
+                            <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem; color: var(--text-secondary); line-height: 1.4;">
+                                ${t('noExpiringMedications')}
+                            </p>
+                        </div>
                     </div>
                 </div>
             `;
@@ -483,11 +504,11 @@ const Dashboard = {
                             <i class="fas fa-pills" style="color: #7c3aed; font-size: 1.125rem;"></i>
                         </div>
                         <h3 style="margin: 0; font-size: 1.25rem; font-weight: 600; color: var(--text-primary);">
-                            تنبيهات صلاحية الأدوية
+                            ${t('medicationsAlerts')}
                         </h3>
                     </div>
                     <span class="badge badge-warning" style="padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.875rem; background: rgba(234, 179, 8, 0.15); color: #ca8a04; border: 1px solid rgba(234, 179, 8, 0.3);">
-                        ${expiringMedications.length} تنبيه
+                        ${expiringMedications.length} ${t('alerts')}
                     </span>
                 </div>
                 <div class="medications-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
@@ -495,8 +516,8 @@ const Dashboard = {
             const expiry = med.expiryDate ? new Date(med.expiryDate) : null;
             const diff = expiry ? Math.ceil((expiry - today) / (1000 * 60 * 60 * 24)) : null;
             const statusText = diff !== null
-                ? (diff < 0 ? 'منتهية الصلاحية' : `يتبقى ${diff} يوم`)
-                : 'تاريخ غير محدد';
+                ? (diff < 0 ? t('expired') : t('daysRemaining').replace('{days}', diff))
+                : t('dateNotSpecified');
             const badgeClass = diff !== null
                 ? (diff < 0 ? 'badge-danger' : diff <= 7 ? 'badge-danger' : diff <= 30 ? 'badge-warning' : 'badge-success')
                 : 'badge-secondary';
