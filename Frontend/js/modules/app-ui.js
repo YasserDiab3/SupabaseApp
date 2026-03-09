@@ -4525,20 +4525,16 @@ window.UI = {
                 Utils.safeLog('✅ تم تعيل القسم:', sectionId);
             }
 
-            // إغلاق القائمة الجانبية تلقائياً عند فتح أي وحدة (عدا Dashboard) على جميع أحجام الشاشات
-            if (sectionName !== 'dashboard') {
-                // إغلاق القائمة الجانبية فوراً - على جميع أحجام الشاشات
-                const sidebar = document.querySelector('.sidebar');
-                if (sidebar) {
-                    // إزالة class "open" مباشرة لضمان الإغلاق
-                    sidebar.classList.remove('open');
-                    // استدعاء toggleSidebar للتأكد من تطبيق جميع التغييرات
-                    this.toggleSidebar(false);
-                    if (AppState.debugMode) {
-                        Utils.safeLog('✅ تم إغلاق القائمة الجانبية تلقائياً عند فتح الوحدة:', sectionName);
-                    }
+            // إغلاق القائمة الجانبية تلقائياً عند فتح أي موديول على جميع أحجام الشاشات
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar && sidebar.classList.contains('open')) {
+                this.toggleSidebar(false);
+                if (AppState.debugMode) {
+                    Utils.safeLog('✅ تم إغلاق القائمة الجانبية تلقائياً عند فتح الموديول:', sectionName);
                 }
+            }
 
+            if (sectionName !== 'dashboard') {
                 // إعداد مراقبة innerHTML لإضافة الأيقونات تلقائياً بعد استبدال المحتوى
                 this.setupInnerHTMLWatcher(section, sectionName);
 
@@ -4741,7 +4737,9 @@ window.UI = {
                     if (typeof NearMiss !== 'undefined' && NearMiss.load) {
                         NearMiss.load();
                     } else {
-                        Utils.safeError(' وحدة NearMiss غير موجودة - جاري انتظار التحميل...');
+                        if (!silent && AppState.debugMode) {
+                            Utils.safeLog('⏳ وحدة NearMiss غير موجودة بعد - جاري انتظار التحميل...');
+                        }
                         this.waitForModuleAndLoad('NearMiss', 'nearmiss', silent);
                     }
                     break;
@@ -8230,6 +8228,10 @@ window.UI = {
         if (langText) {
             langText.textContent = lang === 'ar' ? 'العربية' : 'English';
         }
+
+        // مزامنة موضع الهيدر مع حالة السايدبار الحالية بعد تبديل اللغة (RTL/LTR)
+        const sidebarCurrent = document.querySelector('.sidebar');
+        this.updateCompanyLogoHeaderPosition(!!(sidebarCurrent && sidebarCurrent.classList.contains('open')));
 
         // تحديث شاشة تسجيل الدخول عند تغيير اللغة قبل/بعد تسجيل الدخول
         this.updateLoginScreenLanguage();

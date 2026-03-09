@@ -287,9 +287,33 @@ async function loadAllModules() {
     }
 }
 
-// تحميل الموديولات عند جاهزية DOM
+function scheduleModulesLoad() {
+    if (window.__hseModulesLoadScheduled) return;
+    window.__hseModulesLoadScheduled = true;
+
+    const runLoad = () => {
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(() => {
+                loadAllModules();
+            }, { timeout: 2500 });
+        } else {
+            setTimeout(() => {
+                loadAllModules();
+            }, 600);
+        }
+    };
+
+    if (document.readyState === 'complete') {
+        runLoad();
+        return;
+    }
+
+    window.addEventListener('load', runLoad, { once: true });
+}
+
+// تأجيل التحميل الكامل للموديولات حتى بعد استقرار شاشة الدخول/الجلسة
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadAllModules);
+    document.addEventListener('DOMContentLoaded', scheduleModulesLoad, { once: true });
 } else {
-    loadAllModules();
+    scheduleModulesLoad();
 }

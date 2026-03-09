@@ -15,7 +15,7 @@
 })();
 
 // Bump cache version to force clients to pick up latest JS/CSS updates
-const CACHE_VERSION = 'hse-app-v1.0.5';
+const CACHE_VERSION = 'hse-app-v1.0.7';
 const CACHE_NAME = `hse-cache-${CACHE_VERSION}`;
 
 // تحديد المسار الأساسي بناءً على موقع Service Worker
@@ -28,6 +28,7 @@ const CORE_CACHE_FILES = [
     `${BASE_PATH}/index.html`,
     `${BASE_PATH}/styles.css`,
     `${BASE_PATH}/manifest.json`,
+    `${BASE_PATH}/js/config.public.js`,
     
     // PWA Icons - Required for proper installation
     `${BASE_PATH}/icons/icon-16x16.png`,
@@ -156,6 +157,13 @@ self.addEventListener('fetch', (event) => {
         
         // تجاهل طلبات POST, PUT, DELETE وغيرها - تمريرها مباشرة للشبكة
         if (request.method !== 'GET' && request.method !== 'HEAD') {
+            return;
+        }
+
+        // تمرير أي طلبات طرف ثالث غير أساسية مباشرة للشبكة
+        // لتجنب إرجاع 503 مصطنع من Service Worker (مثل vercel.live feedback)
+        const isCrossOrigin = url.origin !== self.location.origin;
+        if (isCrossOrigin && !isCDNResource(url) && !isAPIRequest(url)) {
             return;
         }
         
