@@ -50,7 +50,19 @@ const SafetyPerformanceKPIs = {
                 allDepartments: 'جميع الإدارات',
                 allLocations: 'جميع المواقع',
                 applyFilters: 'تطبيق التصفية',
-                resetFilters: 'إعادة تعيين'
+                resetFilters: 'إعادة تعيين',
+                trendDecline: 'تراجع',
+                trendImprove: 'تحسن',
+                trendNoChange: 'لا يوجد تغيير',
+                laggingIndicators: 'المؤشرات التراجعية (Lagging Indicators)',
+                leadingIndicators: 'المؤشرات الاستباقية (Leading Indicators)',
+                laggingDesc: 'مؤشرات تقيس النتائج الفعلية لما حدث',
+                leadingDesc: 'مؤشرات تقيس الإجراءات الوقائية والاستباقية',
+                kpiPeriod: 'الفترة',
+                kpiTarget: 'الهدف',
+                kpiActual: 'الفعلي',
+                kpiProgress: 'معدل الإنجاز',
+                overdue: 'متأخر'
             },
             en: {
                 title: 'Safety Performance KPIs',
@@ -77,7 +89,19 @@ const SafetyPerformanceKPIs = {
                 allDepartments: 'All Departments',
                 allLocations: 'All Locations',
                 applyFilters: 'Apply Filters',
-                resetFilters: 'Reset'
+                resetFilters: 'Reset',
+                trendDecline: 'Decline',
+                trendImprove: 'Improve',
+                trendNoChange: 'No Change',
+                laggingIndicators: 'Lagging Indicators',
+                leadingIndicators: 'Leading Indicators',
+                laggingDesc: 'Indicators that measure actual results of what happened',
+                leadingDesc: 'Indicators that measure preventive and proactive actions',
+                kpiPeriod: 'Period',
+                kpiTarget: 'Target',
+                kpiActual: 'Actual',
+                kpiProgress: 'Progress Rate',
+                overdue: 'Overdue'
             }
         };
         return {
@@ -381,9 +405,9 @@ const SafetyPerformanceKPIs = {
                     <div class="card-header bg-gradient-to-r from-red-50 to-rose-50 border-b-4 border-red-500">
                         <h2 class="card-title text-red-800">
                             <i class="fas fa-arrow-trend-down ml-2"></i>
-                            المؤشرات التراجعية (Lagging Indicators)
+                            ${t('laggingIndicators')}
                         </h2>
-                        <p class="text-sm text-red-700 mt-2">مؤشرات تقيس النتائج الفعلية لما حدث</p>
+                        <p class="text-sm text-red-700 mt-2">${t('laggingDesc')}</p>
                     </div>
                     <div class="card-body">
                         <div id="lagging-indicators-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1191,18 +1215,18 @@ const SafetyPerformanceKPIs = {
         if (trendEl) {
             if (trend > 0) {
                 const trendText = type.includes('injuries') || type.includes('lti') || type.includes('fire') || type.includes('cost') || type.includes('lost-days')
-                    ? 'تراجع' : 'تحسن';
+                    ? t('trendDecline') : t('trendImprove');
                 const trendColor = type.includes('injuries') || type.includes('lti') || type.includes('fire') || type.includes('cost') || type.includes('lost-days')
                     ? 'text-red-500' : 'text-green-500';
                 trendEl.innerHTML = `<i class="fas fa-arrow-${type.includes('injuries') || type.includes('lti') || type.includes('fire') || type.includes('cost') || type.includes('lost-days') ? 'down' : 'up'} ${trendColor}"></i><span class="${trendColor}">${trendText} ${Math.abs(trend).toFixed(1)}%</span>`;
             } else if (trend < 0) {
                 const trendText = type.includes('injuries') || type.includes('lti') || type.includes('fire') || type.includes('cost') || type.includes('lost-days')
-                    ? 'تحسن' : 'تراجع';
+                    ? t('trendImprove') : t('trendDecline');
                 const trendColor = type.includes('injuries') || type.includes('lti') || type.includes('fire') || type.includes('cost') || type.includes('lost-days')
                     ? 'text-green-500' : 'text-red-500';
                 trendEl.innerHTML = `<i class="fas fa-arrow-${type.includes('injuries') || type.includes('lti') || type.includes('fire') || type.includes('cost') || type.includes('lost-days') ? 'up' : 'down'} ${trendColor}"></i><span class="${trendColor}">${trendText} ${Math.abs(trend).toFixed(1)}%</span>`;
             } else {
-                trendEl.innerHTML = `<i class="fas fa-minus text-gray-400"></i><span class="text-gray-500">لا يوجد تغيير</span>`;
+                trendEl.innerHTML = `<i class="fas fa-minus text-gray-400"></i><span class="text-gray-500">${t('trendNoChange')}</span>`;
             }
         }
     },
@@ -1608,7 +1632,7 @@ const SafetyPerformanceKPIs = {
                 <div>
                     <h3 class="text-lg font-bold text-red-700 mb-4 pb-2 border-b-2 border-red-300 text-right">
                         <i class="fas fa-arrow-trend-down ml-2"></i>
-                        المؤشرات التراجعية (Lagging Indicators)
+                        ${t('laggingIndicators')}
                     </h3>
                     <div class="space-y-4">
                         ${laggingTargets.map(t => `
@@ -1692,7 +1716,7 @@ const SafetyPerformanceKPIs = {
                 ['الفحوصات الدورية المنجزة في الموعد', inspectionsOnTime.onTime, inspectionsOnTime.total, inspectionsOnTime.percentage + '%', 'استباقي'],
                 ['عدد الاجتماعات والتوعيات الخاصة بالسلامة', safetyMeetings, this.getKPITarget('safety-meetings'), '', 'استباقي'],
                 // Lagging Indicators
-                ['=== المؤشرات التراجعية (Lagging Indicators) ===', '', '', '', ''],
+                ['=== ' + t('laggingIndicators') + ' ===', '', '', '', ''],
                 ['عدد الإصابات المسجلة', totalInjuries, this.getKPITarget('injuries'), '', 'تراجعي'],
                 ['عدد الإصابات المؤدية لتوقف عن العمل (LTI)', ltiCount, this.getKPITarget('lti'), '', 'تراجعي'],
                 ['معدل تكرار الإصابات (LTIFR)', ltifr, this.getKPITarget('ltifr'), '', 'تراجعي'],
@@ -1772,7 +1796,7 @@ const SafetyPerformanceKPIs = {
                         ['الفحوصات الدورية المنجزة في الموعد', inspectionsOnTime.onTime, inspectionsOnTime.total],
                         ['عدد الاجتماعات والتوعيات الخاصة بالسلامة', safetyMeetings, this.getKPITarget('safety-meetings')],
                         // Lagging Indicators
-                        ['=== المؤشرات التراجعية ===', '', ''],
+                        ['=== ' + t('laggingIndicators') + ' ===', '', ''],
                         ['عدد الإصابات المسجلة', totalInjuries, this.getKPITarget('injuries')],
                         ['عدد الإصابات المؤدية لتوقف عن العمل (LTI)', ltiCount, this.getKPITarget('lti')],
                         ['معدل تكرار الإصابات (LTIFR)', ltifr, this.getKPITarget('ltifr')],
@@ -1840,7 +1864,7 @@ const SafetyPerformanceKPIs = {
                 ['الفحوصات الدورية المنجزة في الموعد', inspectionsOnTime.onTime, inspectionsOnTime.total],
                 ['عدد الاجتماعات والتوعيات الخاصة بالسلامة', safetyMeetings, this.getKPITarget('safety-meetings')],
                 // Lagging Indicators
-                ['=== المؤشرات التراجعية ===', '', ''],
+                ['=== ' + t('laggingIndicators') + ' ===', '', ''],
                 ['عدد الإصابات المسجلة', totalInjuries, this.getKPITarget('injuries')],
                 ['عدد الإصابات المؤدية لتوقف عن العمل (LTI)', ltiCount, this.getKPITarget('lti')],
                 ['معدل تكرار الإصابات (LTIFR)', ltifr, this.getKPITarget('ltifr')],
@@ -1892,7 +1916,7 @@ const SafetyPerformanceKPIs = {
                     'الفترة': `${start.toLocaleDateString('ar-SA')} - ${end.toLocaleDateString('ar-SA')}`,
                     'عدد المؤشرات': '17',
                     'المؤشرات الاستباقية': '9',
-                    'المؤشرات التراجعية': '8'
+                    'المؤشرات التراجعية': t('laggingIndicators')
                 }
             });
 
