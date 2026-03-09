@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Sustainability Module - Environmental Resource Management
  * مديول الاستدامة البيئية - إدارة استهلاك الموارد
  * 
@@ -13,6 +13,7 @@
 const Sustainability = {
     currentTab: 'dashboard',
     currentWasteSubTab: 'regular',
+    _languageChangeBound: false,
     settings: {
         consumptionLimits: {
             water: 10000,      // م³ شهرياً
@@ -20,6 +21,201 @@ const Sustainability = {
             gas: 30000         // م³ شهرياً
         },
         alertThreshold: 1.2   // 120% من المتوسط
+    },
+
+    getCurrentLanguage() {
+        try {
+            return localStorage.getItem('language') || (typeof AppState !== 'undefined' && AppState.currentLanguage) || 'ar';
+        } catch (e) {
+            return 'ar';
+        }
+    },
+
+    getTranslations() {
+        const lang = this.getCurrentLanguage();
+        const translations = {
+            ar: {
+                title: 'الاستدامة البيئية',
+                subtitle: 'إدارة ومتابعة استهلاك الموارد البيئية (مياه، كهرباء، غاز طبيعي)',
+                tabDashboard: 'لوحة التحليل',
+                tabWater: 'استهلاك المياه',
+                tabElectricity: 'استهلاك الكهرباء',
+                tabGas: 'استهلاك الغاز الطبيعي',
+                tabWaste: 'إدارة المخلفات',
+                tabSettings: 'الإعدادات',
+                refresh: 'تحديث',
+                refreshTitle: 'تحديث البيانات من المصدر',
+                loadingContent: 'جاري تحميل المحتوى...',
+                loadError: 'حدث خطأ في تحميل البيانات',
+                retry: 'إعادة المحاولة',
+                waterUnit: 'مياه (م³)',
+                electricityUnit: 'كهرباء (ك.و)',
+                gasUnit: 'غاز (م³)',
+                alerts: 'تنبيهات',
+                trendUp: 'زيادة',
+                trendDown: 'انخفاض',
+                trendStable: 'مستقر',
+                resourceWater: 'مياه',
+                resourceElectricity: 'كهرباء',
+                resourceGas: 'غاز طبيعي',
+                alertsConsumption: 'تنبيهات الاستهلاك',
+                totalWaterConsumption: 'إجمالي استهلاك المياه',
+                totalElectricityConsumption: 'إجمالي استهلاك الكهرباء',
+                totalGasConsumption: 'إجمالي استهلاك الغاز',
+                topLocations: 'أكثر المواقع استهلاكاً',
+                monthlyWaterComparison: 'مقارنة شهرية - المياه',
+                monthlyElectricityComparison: 'مقارنة شهرية - الكهرباء',
+                monthlyGasComparison: 'مقارنة شهرية - الغاز',
+                sourceDistribution: 'توزيع الاستهلاك حسب المصدر',
+                resourceRegisterTitle: 'سجل استهلاك {name}',
+                addNewRecord: 'إضافة سجل جديد',
+                noResourceRecords: 'لا توجد سجلات لاستهلاك {name}. ابدأ بإضافة سجلات جديدة.',
+                tableDate: 'التاريخ',
+                tableMonthYear: 'الشهر / السنة',
+                tableLocation: 'الموقع / المصنع',
+                tableStartReading: 'قراءة البداية',
+                tableEndReading: 'قراءة النهاية',
+                tableTotalConsumption: 'إجمالي الاستهلاك',
+                tableUnit: 'وحدة القياس',
+                tableDepartment: 'الجهة / القسم',
+                tableStatus: 'الحالة',
+                tableActions: 'الإجراءات',
+                statusAlert: 'تنبيه',
+                statusNormal: 'طبيعي',
+                actionView: 'عرض',
+                actionEdit: 'تعديل',
+                actionDelete: 'حذف',
+                modalEdit: 'تعديل',
+                modalAdd: 'إضافة',
+                modalConsumptionRecord: 'سجل استهلاك',
+                btnCancel: 'إلغاء',
+                btnSave: 'حفظ',
+                endReadingValidation: 'قراءة النهاية يجب أن تكون أكبر من قراءة البداية',
+                recordUpdated: 'تم تحديث السجل بنجاح',
+                recordAdded: 'تم إضافة السجل بنجاح',
+                alertExceeded: 'تنبيه: استهلاك {type} تجاوز الحد المسموح',
+                genericError: 'حدث خطأ:',
+                recordNotFound: 'السجل غير موجود',
+                detailsTitle: 'تفاصيل سجل استهلاك {name}',
+                labelSerial: 'الرقم التسلسلي:',
+                labelDate: 'التاريخ:',
+                labelMonthYear: 'الشهر / السنة:',
+                labelLocation: 'الموقع / المصنع:',
+                labelSource: 'المصدر:',
+                labelStartReading: 'قراءة البداية:',
+                labelEndReading: 'قراءة النهاية:',
+                labelTotalConsumption: 'إجمالي الاستهلاك:',
+                labelUnit: 'وحدة القياس:',
+                labelDepartment: 'الجهة / القسم:',
+                labelStatus: 'الحالة:',
+                labelNotes: 'ملاحظات:',
+                btnClose: 'إغلاق',
+                noEditPermission: 'ليس لديك صلاحية لتعديل السجلات',
+                noDeletePermission: 'ليس لديك صلاحية لحذف السجلات',
+                confirmDeleteRecord: 'هل أنت متأكد من حذف هذا السجل؟',
+                recordDeleted: 'تم حذف السجل بنجاح',
+                noSettingsAccess: 'ليس لديك صلاحية للوصول إلى الإعدادات',
+                settingsTitle: 'إعدادات الاستدامة البيئية',
+                monthlyConsumptionLimits: 'حدود الاستهلاك الشهرية',
+                saveSettings: 'حفظ الإعدادات',
+                noSettingsSavePermission: 'ليس لديك صلاحية لحفظ الإعدادات',
+                settingsSaved: 'تم حفظ الإعدادات بنجاح',
+                settingsSaveError: 'حدث خطأ أثناء حفظ الإعدادات:'
+            },
+            en: {
+                title: 'Environmental Sustainability',
+                subtitle: 'Manage and monitor environmental resource consumption (water, electricity, natural gas)',
+                tabDashboard: 'Analytics Dashboard',
+                tabWater: 'Water Consumption',
+                tabElectricity: 'Electricity Consumption',
+                tabGas: 'Natural Gas Consumption',
+                tabWaste: 'Waste Management',
+                tabSettings: 'Settings',
+                refresh: 'Refresh',
+                refreshTitle: 'Refresh data from source',
+                loadingContent: 'Loading content...',
+                loadError: 'Error loading data',
+                retry: 'Retry',
+                waterUnit: 'Water (m³)',
+                electricityUnit: 'Electricity (kWh)',
+                gasUnit: 'Gas (m³)',
+                alerts: 'Alerts',
+                trendUp: 'Increase',
+                trendDown: 'Decrease',
+                trendStable: 'Stable',
+                resourceWater: 'Water',
+                resourceElectricity: 'Electricity',
+                resourceGas: 'Natural Gas',
+                alertsConsumption: 'Consumption Alerts',
+                totalWaterConsumption: 'Total Water Consumption',
+                totalElectricityConsumption: 'Total Electricity Consumption',
+                totalGasConsumption: 'Total Gas Consumption',
+                topLocations: 'Top Consuming Locations',
+                monthlyWaterComparison: 'Monthly Comparison - Water',
+                monthlyElectricityComparison: 'Monthly Comparison - Electricity',
+                monthlyGasComparison: 'Monthly Comparison - Gas',
+                sourceDistribution: 'Consumption Distribution by Source',
+                resourceRegisterTitle: '{name} Consumption Register',
+                addNewRecord: 'Add New Record',
+                noResourceRecords: 'No {name} consumption records found. Start by adding new records.',
+                tableDate: 'Date',
+                tableMonthYear: 'Month / Year',
+                tableLocation: 'Site / Plant',
+                tableStartReading: 'Start Reading',
+                tableEndReading: 'End Reading',
+                tableTotalConsumption: 'Total Consumption',
+                tableUnit: 'Unit',
+                tableDepartment: 'Department / Entity',
+                tableStatus: 'Status',
+                tableActions: 'Actions',
+                statusAlert: 'Alert',
+                statusNormal: 'Normal',
+                actionView: 'View',
+                actionEdit: 'Edit',
+                actionDelete: 'Delete',
+                modalEdit: 'Edit',
+                modalAdd: 'Add',
+                modalConsumptionRecord: 'Consumption Record',
+                btnCancel: 'Cancel',
+                btnSave: 'Save',
+                endReadingValidation: 'End reading must be greater than start reading',
+                recordUpdated: 'Record updated successfully',
+                recordAdded: 'Record added successfully',
+                alertExceeded: 'Alert: {type} consumption exceeded allowed threshold',
+                genericError: 'Error:',
+                recordNotFound: 'Record not found',
+                detailsTitle: '{name} Consumption Record Details',
+                labelSerial: 'Serial Number:',
+                labelDate: 'Date:',
+                labelMonthYear: 'Month / Year:',
+                labelLocation: 'Site / Plant:',
+                labelSource: 'Source:',
+                labelStartReading: 'Start Reading:',
+                labelEndReading: 'End Reading:',
+                labelTotalConsumption: 'Total Consumption:',
+                labelUnit: 'Unit:',
+                labelDepartment: 'Department / Entity:',
+                labelStatus: 'Status:',
+                labelNotes: 'Notes:',
+                btnClose: 'Close',
+                noEditPermission: 'You do not have permission to edit records',
+                noDeletePermission: 'You do not have permission to delete records',
+                confirmDeleteRecord: 'Are you sure you want to delete this record?',
+                recordDeleted: 'Record deleted successfully',
+                noSettingsAccess: 'You do not have permission to access settings',
+                settingsTitle: 'Environmental Sustainability Settings',
+                monthlyConsumptionLimits: 'Monthly Consumption Limits',
+                saveSettings: 'Save Settings',
+                noSettingsSavePermission: 'You do not have permission to save settings',
+                settingsSaved: 'Settings saved successfully',
+                settingsSaveError: 'Error while saving settings:'
+            }
+        };
+
+        return {
+            lang,
+            t: (key) => (translations[lang] && translations[lang][key]) ? translations[lang][key] : key
+        };
     },
 
     /**
@@ -90,6 +286,16 @@ const Sustainability = {
     async load() {
         const section = document.getElementById('sustainability-section');
         if (!section) return;
+        const { t } = this.getTranslations();
+
+        if (!this._languageChangeBound) {
+            this._languageChangeBound = true;
+            document.addEventListener('language-changed', () => {
+                if (document.getElementById('sustainability-section')?.classList.contains('active')) {
+                    this.load();
+                }
+            });
+        }
 
         if (typeof AppState === 'undefined') {
             if (typeof Utils !== 'undefined' && Utils.safeError) {
@@ -137,9 +343,9 @@ const Sustainability = {
                 <div class="section-header">
                     <h1 class="section-title">
                         <i class="fas fa-leaf ml-3"></i>
-                        الاستدامة البيئية
+                        ${t('title')}
                     </h1>
-                    <p class="section-subtitle">إدارة ومتابعة استهلاك الموارد البيئية (مياه، كهرباء، غاز طبيعي)</p>
+                    <p class="section-subtitle">${t('subtitle')}</p>
                 </div>
                 
                 <!-- لوحة المؤشرات السريعة -->
@@ -151,27 +357,27 @@ const Sustainability = {
                 <div class="mt-6">
                     <div class="flex gap-2 mb-6 border-b overflow-x-auto">
                         <button class="tab-btn ${this.currentTab === 'dashboard' ? 'active' : ''}" data-tab="dashboard">
-                            <i class="fas fa-chart-line ml-2"></i>لوحة التحليل
+                            <i class="fas fa-chart-line ml-2"></i>${t('tabDashboard')}
                         </button>
                         <button class="tab-btn ${this.currentTab === 'water' ? 'active' : ''}" data-tab="water">
-                            <i class="fas fa-tint ml-2"></i>استهلاك المياه
+                            <i class="fas fa-tint ml-2"></i>${t('tabWater')}
                         </button>
                         <button class="tab-btn ${this.currentTab === 'electricity' ? 'active' : ''}" data-tab="electricity">
-                            <i class="fas fa-bolt ml-2"></i>استهلاك الكهرباء
+                            <i class="fas fa-bolt ml-2"></i>${t('tabElectricity')}
                         </button>
                         <button class="tab-btn ${this.currentTab === 'gas' ? 'active' : ''}" data-tab="gas">
-                            <i class="fas fa-fire ml-2"></i>استهلاك الغاز الطبيعي
+                            <i class="fas fa-fire ml-2"></i>${t('tabGas')}
                         </button>
                         <button class="tab-btn ${this.currentTab === 'waste-management' ? 'active' : ''}" data-tab="waste-management">
-                            <i class="fas fa-recycle ml-2"></i>إدارة المخلفات
+                            <i class="fas fa-recycle ml-2"></i>${t('tabWaste')}
                         </button>
                         ${this.isAdmin() ? `
                         <button class="tab-btn ${this.currentTab === 'settings' ? 'active' : ''}" data-tab="settings">
-                            <i class="fas fa-cog ml-2"></i>الإعدادات
+                            <i class="fas fa-cog ml-2"></i>${t('tabSettings')}
                         </button>
                         ` : ''}
-                        <button type="button" class="btn btn-secondary sustainability-refresh-btn ml-4" id="sustainability-refresh-btn" data-action="refresh" title="تحديث البيانات من المصدر">
-                            <i class="fas fa-sync-alt ml-2"></i>تحديث
+                        <button type="button" class="btn btn-secondary sustainability-refresh-btn ml-4" id="sustainability-refresh-btn" data-action="refresh" title="${t('refreshTitle')}">
+                            <i class="fas fa-sync-alt ml-2"></i>${t('refresh')}
                         </button>
                     </div>
                     <div id="sustainability-content">
@@ -183,7 +389,7 @@ const Sustainability = {
                                             <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div>
                                         </div>
                                     </div>
-                                    <p class="text-gray-500">جاري تحميل المحتوى...</p>
+                                    <p class="text-gray-500">${t('loadingContent')}</p>
                                 </div>
                             </div>
                         </div>
@@ -205,10 +411,10 @@ const Sustainability = {
                                 <div class="card-body">
                                     <div class="empty-state">
                                         <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                        <p class="text-gray-500 mb-4">حدث خطأ في تحميل البيانات</p>
+                                        <p class="text-gray-500 mb-4">${t('loadError')}</p>
                                         <button onclick="Sustainability.load()" class="btn-primary">
                                             <i class="fas fa-redo ml-2"></i>
-                                            إعادة المحاولة
+                                            ${t('retry')}
                                         </button>
                                     </div>
                                 </div>
@@ -238,10 +444,10 @@ const Sustainability = {
                         <div class="card-body">
                             <div class="empty-state">
                                 <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                <p class="text-gray-500 mb-4">حدث خطأ أثناء تحميل البيانات</p>
+                                <p class="text-gray-500 mb-4">${t('loadError')}</p>
                                 <button onclick="Sustainability.load()" class="btn-primary">
                                     <i class="fas fa-redo ml-2"></i>
-                                    إعادة المحاولة
+                                    ${t('retry')}
                                 </button>
                             </div>
                         </div>
@@ -255,6 +461,7 @@ const Sustainability = {
      * عرض المؤشرات السريعة
      */
     renderQuickStats() {
+        const { t } = this.getTranslations();
         const waterData = AppState.appData.resourceConsumption?.water || [];
         const electricityData = AppState.appData.resourceConsumption?.electricity || [];
         const gasData = AppState.appData.resourceConsumption?.gas || [];
@@ -274,7 +481,7 @@ const Sustainability = {
             <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 text-center hover:shadow-md transition-shadow">
                 <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">${waterThisMonth.toFixed(2)}</div>
                 <div class="text-sm text-gray-700 dark:text-gray-300 font-semibold">
-                    <i class="fas fa-tint ml-1"></i>مياه (م³)
+                    <i class="fas fa-tint ml-1"></i>${t('waterUnit')}
                 </div>
                 <div class="text-xs mt-1 ${waterTrend === 'up' ? 'text-red-600' : waterTrend === 'down' ? 'text-green-600' : 'text-gray-500'}">
                     ${waterTrend === 'up' ? '↑' : waterTrend === 'down' ? '↓' : '→'} ${this.getTrendText(waterTrend)}
@@ -283,7 +490,7 @@ const Sustainability = {
             <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 text-center hover:shadow-md transition-shadow">
                 <div class="text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-2">${electricityThisMonth.toFixed(2)}</div>
                 <div class="text-sm text-gray-700 dark:text-gray-300 font-semibold">
-                    <i class="fas fa-bolt ml-1"></i>كهرباء (ك.و)
+                    <i class="fas fa-bolt ml-1"></i>${t('electricityUnit')}
                 </div>
                 <div class="text-xs mt-1 ${electricityTrend === 'up' ? 'text-red-600' : electricityTrend === 'down' ? 'text-green-600' : 'text-gray-500'}">
                     ${electricityTrend === 'up' ? '↑' : electricityTrend === 'down' ? '↓' : '→'} ${this.getTrendText(electricityTrend)}
@@ -292,7 +499,7 @@ const Sustainability = {
             <div class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 text-center hover:shadow-md transition-shadow">
                 <div class="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2">${gasThisMonth.toFixed(2)}</div>
                 <div class="text-sm text-gray-700 dark:text-gray-300 font-semibold">
-                    <i class="fas fa-fire ml-1"></i>غاز (م³)
+                    <i class="fas fa-fire ml-1"></i>${t('gasUnit')}
                 </div>
                 <div class="text-xs mt-1 ${gasTrend === 'up' ? 'text-red-600' : gasTrend === 'down' ? 'text-green-600' : 'text-gray-500'}">
                     ${gasTrend === 'up' ? '↑' : gasTrend === 'down' ? '↓' : '→'} ${this.getTrendText(gasTrend)}
@@ -303,7 +510,7 @@ const Sustainability = {
                     ${this.getTotalAlerts()}
                 </div>
                 <div class="text-sm text-gray-700 dark:text-gray-300 font-semibold">
-                    <i class="fas fa-exclamation-triangle ml-1"></i>تنبيهات
+                    <i class="fas fa-exclamation-triangle ml-1"></i>${t('alerts')}
                 </div>
             </div>
         `;
@@ -369,11 +576,11 @@ const Sustainability = {
                 }, 300);
                 return content;
             case 'water':
-                return await this.renderResourceRegister('water', 'مياه', 'tint', 'blue');
+                return await this.renderResourceRegister('water', this.getTranslations().t('resourceWater'), 'tint', 'blue');
             case 'electricity':
-                return await this.renderResourceRegister('electricity', 'كهرباء', 'bolt', 'yellow');
+                return await this.renderResourceRegister('electricity', this.getTranslations().t('resourceElectricity'), 'bolt', 'yellow');
             case 'gas':
-                return await this.renderResourceRegister('gas', 'غاز طبيعي', 'fire', 'orange');
+                return await this.renderResourceRegister('gas', this.getTranslations().t('resourceGas'), 'fire', 'orange');
             case 'waste-management':
                 return await this.renderWasteManagement();
             case 'settings':
@@ -391,6 +598,7 @@ const Sustainability = {
      * عرض لوحة التحليل
      */
     async renderDashboard() {
+        const { t } = this.getTranslations();
         const waterData = AppState.appData.resourceConsumption?.water || [];
         const electricityData = AppState.appData.resourceConsumption?.electricity || [];
         const gasData = AppState.appData.resourceConsumption?.gas || [];
@@ -406,7 +614,7 @@ const Sustainability = {
                     <div class="card-header bg-red-50 dark:bg-red-900/20">
                         <h2 class="card-title text-red-700 dark:text-red-400">
                             <i class="fas fa-exclamation-triangle ml-2"></i>
-                            تنبيهات الاستهلاك
+                            ${t('alertsConsumption')}
                         </h2>
                     </div>
                     <div class="card-body">
@@ -434,7 +642,7 @@ const Sustainability = {
                         <div class="card-header">
                             <h3 class="card-title text-sm">
                                 <i class="fas fa-tint text-blue-500 ml-2"></i>
-                                إجمالي استهلاك المياه
+                                ${t('totalWaterConsumption')}
                             </h3>
                         </div>
                         <div class="card-body">
@@ -452,7 +660,7 @@ const Sustainability = {
                         <div class="card-header">
                             <h3 class="card-title text-sm">
                                 <i class="fas fa-bolt text-yellow-500 ml-2"></i>
-                                إجمالي استهلاك الكهرباء
+                                ${t('totalElectricityConsumption')}
                             </h3>
                         </div>
                         <div class="card-body">
@@ -470,7 +678,7 @@ const Sustainability = {
                         <div class="card-header">
                             <h3 class="card-title text-sm">
                                 <i class="fas fa-fire text-orange-500 ml-2"></i>
-                                إجمالي استهلاك الغاز
+                                ${t('totalGasConsumption')}
                             </h3>
                         </div>
                         <div class="card-body">
@@ -491,7 +699,7 @@ const Sustainability = {
                     <div class="card-header">
                         <h2 class="card-title">
                             <i class="fas fa-map-marker-alt ml-2"></i>
-                            أكثر المواقع استهلاكاً
+                            ${t('topLocations')}
                         </h2>
                     </div>
                     <div class="card-body">
@@ -505,7 +713,7 @@ const Sustainability = {
                         <div class="card-header">
                             <h2 class="card-title">
                                 <i class="fas fa-chart-bar ml-2"></i>
-                                مقارنة شهرية - المياه
+                                ${t('monthlyWaterComparison')}
                             </h2>
                         </div>
                         <div class="card-body">
@@ -518,7 +726,7 @@ const Sustainability = {
                         <div class="card-header">
                             <h2 class="card-title">
                                 <i class="fas fa-chart-bar ml-2"></i>
-                                مقارنة شهرية - الكهرباء
+                                ${t('monthlyElectricityComparison')}
                             </h2>
                         </div>
                         <div class="card-body">
@@ -531,7 +739,7 @@ const Sustainability = {
                         <div class="card-header">
                             <h2 class="card-title">
                                 <i class="fas fa-chart-bar ml-2"></i>
-                                مقارنة شهرية - الغاز
+                                ${t('monthlyGasComparison')}
                             </h2>
                         </div>
                         <div class="card-body">
@@ -544,7 +752,7 @@ const Sustainability = {
                         <div class="card-header">
                             <h2 class="card-title">
                                 <i class="fas fa-chart-pie ml-2"></i>
-                                توزيع الاستهلاك حسب المصدر
+                                ${t('sourceDistribution')}
                             </h2>
                         </div>
                         <div class="card-body">
@@ -562,6 +770,7 @@ const Sustainability = {
      * عرض سجل استهلاك الموارد
      */
     async renderResourceRegister(type, name, icon, color) {
+        const { t } = this.getTranslations();
         const data = AppState.appData.resourceConsumption?.[type] || [];
         const hasAlerts = data.some(record => record.hasAlert);
 
@@ -572,11 +781,11 @@ const Sustainability = {
                         <div class="flex items-center justify-between">
                             <h2 class="card-title">
                                 <i class="fas fa-${icon} text-${color}-500 ml-2"></i>
-                                سجل استهلاك ${name}
+                                ${t('resourceRegisterTitle').replace('{name}', name)}
                             </h2>
                             <button class="btn-primary" onclick="Sustainability.showResourceForm('${type}')">
                                 <i class="fas fa-plus ml-2"></i>
-                                إضافة سجل جديد
+                                ${t('addNewRecord')}
                             </button>
                         </div>
                     </div>
@@ -584,7 +793,7 @@ const Sustainability = {
                         ${data.length === 0 ? `
                             <div class="empty-state">
                                 <i class="fas fa-${icon} text-4xl text-${color}-400 mb-4"></i>
-                                <p class="text-gray-500">لا توجد سجلات لاستهلاك ${name}. ابدأ بإضافة سجلات جديدة.</p>
+                                <p class="text-gray-500">${t('noResourceRecords').replace('{name}', name)}</p>
                             </div>
                         ` : `
                             <div class="overflow-x-auto">
@@ -592,16 +801,16 @@ const Sustainability = {
                                     <thead>
                                         <tr>
                                             <th>#</th>
-                                            <th>التاريخ</th>
-                                            <th>الشهر / السنة</th>
-                                            <th>الموقع / المصنع</th>
-                                            <th>قراءة البداية</th>
-                                            <th>قراءة النهاية</th>
-                                            <th>إجمالي الاستهلاك</th>
-                                            <th>وحدة القياس</th>
-                                            <th>الجهة / القسم</th>
-                                            <th>الحالة</th>
-                                            <th>الإجراءات</th>
+                                            <th>${t('tableDate')}</th>
+                                            <th>${t('tableMonthYear')}</th>
+                                            <th>${t('tableLocation')}</th>
+                                            <th>${t('tableStartReading')}</th>
+                                            <th>${t('tableEndReading')}</th>
+                                            <th>${t('tableTotalConsumption')}</th>
+                                            <th>${t('tableUnit')}</th>
+                                            <th>${t('tableDepartment')}</th>
+                                            <th>${t('tableStatus')}</th>
+                                            <th>${t('tableActions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -622,27 +831,27 @@ const Sustainability = {
                                                         ${record.hasAlert ? `
                                                             <span class="badge badge-danger">
                                                                 <i class="fas fa-exclamation-triangle ml-1"></i>
-                                                                تنبيه
+                                                                ${t('statusAlert')}
                                                             </span>
                                                         ` : `
-                                                            <span class="badge badge-success">طبيعي</span>
+                                                            <span class="badge badge-success">${t('statusNormal')}</span>
                                                         `}
                                                     </td>
                                                     <td>
                                                         <div class="flex items-center gap-2">
                                                             <button onclick="Sustainability.viewResourceRecord('${type}', '${record.id}')" 
-                                                                    class="btn-icon btn-icon-info" title="عرض">
+                                                                    class="btn-icon btn-icon-info" title="${t('actionView')}">
                                                                 <i class="fas fa-eye"></i>
                                                             </button>
                                                             ${this.canEdit() ? `
                                                             <button onclick="Sustainability.editResourceRecord('${type}', '${record.id}')" 
-                                                                    class="btn-icon btn-icon-primary" title="تعديل">
+                                                                    class="btn-icon btn-icon-primary" title="${t('actionEdit')}">
                                                                 <i class="fas fa-edit"></i>
                                                             </button>
                                                             ` : ''}
                                                             ${this.canDelete() ? `
                                                             <button onclick="Sustainability.deleteResourceRecord('${type}', '${record.id}')" 
-                                                                    class="btn-icon btn-icon-danger" title="حذف">
+                                                                    class="btn-icon btn-icon-danger" title="${t('actionDelete')}">
                                                                 <i class="fas fa-trash"></i>
                                                             </button>
                                                             ` : ''}
@@ -665,6 +874,7 @@ const Sustainability = {
      * عرض نموذج إضافة/تعديل سجل
      */
     async showResourceForm(type, recordId = null) {
+        const { t } = this.getTranslations();
         try {
             if (typeof Permissions !== 'undefined' && typeof Permissions.ensureFormSettingsState === 'function') {
                 await Permissions.ensureFormSettingsState();
@@ -693,7 +903,7 @@ const Sustainability = {
                 <div class="modal-header">
                     <h2 class="modal-title">
                         <i class="fas fa-${typeInfo.icon} text-${typeInfo.color}-500 ml-2"></i>
-                        ${record ? 'تعديل' : 'إضافة'} سجل استهلاك ${typeInfo.name}
+                        ${record ? t('modalEdit') : t('modalAdd')} ${t('modalConsumptionRecord')} ${typeInfo.name}
                     </h2>
                     <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
                         <i class="fas fa-times"></i>
@@ -804,11 +1014,11 @@ const Sustainability = {
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">
-                        إلغاء
+                        ${t('btnCancel')}
                     </button>
                     <button type="button" id="save-resource-btn-${type}" class="btn-primary">
                         <i class="fas fa-save ml-2"></i>
-                        حفظ
+                        ${t('btnSave')}
                     </button>
                 </div>
             </div>
@@ -858,6 +1068,7 @@ const Sustainability = {
      * معالجة حفظ السجل
      */
     async handleResourceSubmit(type, recordId, modal) {
+        const { t } = this.getTranslations();
         const form = document.getElementById(`resource-form-${type}`);
         if (!form.checkValidity()) {
             form.reportValidity();
@@ -877,7 +1088,7 @@ const Sustainability = {
 
         // التحقق من صحة البيانات
         if (endReading < startReading) {
-            Notification.error('قراءة النهاية يجب أن تكون أكبر من قراءة البداية');
+            Notification.error(t('endReadingValidation'));
             return;
         }
 
@@ -917,11 +1128,11 @@ const Sustainability = {
                 const index = AppState.appData.resourceConsumption[type].findIndex(r => r.id === recordId);
                 if (index !== -1) {
                     AppState.appData.resourceConsumption[type][index] = formData;
-                    Notification.success('تم تحديث السجل بنجاح');
+                    Notification.success(t('recordUpdated'));
                 }
             } else {
                 AppState.appData.resourceConsumption[type].push(formData);
-                Notification.success('تم إضافة السجل بنجاح');
+                Notification.success(t('recordAdded'));
             }
 
             // حفظ البيانات
@@ -940,11 +1151,11 @@ const Sustainability = {
 
             // إظهار تنبيه إذا كان هناك تحذير
             if (hasAlert) {
-                Notification.warning(`تنبيه: استهلاك ${this.getTypeName(type)} تجاوز الحد المسموح`);
+                Notification.warning(t('alertExceeded').replace('{type}', this.getTypeName(type)));
             }
         } catch (error) {
             Loading.hide();
-            Notification.error('حدث خطأ: ' + error.message);
+            Notification.error(`${t('genericError')} ${error.message}`);
         }
     },
 
@@ -952,10 +1163,11 @@ const Sustainability = {
      * عرض تفاصيل السجل
      */
     viewResourceRecord(type, recordId) {
+        const { t } = this.getTranslations();
         const data = AppState.appData.resourceConsumption?.[type] || [];
         const record = data.find(r => r.id === recordId);
         if (!record) {
-            Notification.error('السجل غير موجود');
+            Notification.error(t('recordNotFound'));
             return;
         }
 
@@ -973,7 +1185,7 @@ const Sustainability = {
                 <div class="modal-header">
                     <h2 class="modal-title">
                         <i class="fas fa-${typeInfo.icon} text-${typeInfo.color}-500 ml-2"></i>
-                        تفاصيل سجل استهلاك ${typeInfo.name}
+                        ${t('detailsTitle').replace('{name}', typeInfo.name)}
                     </h2>
                     <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
                         <i class="fas fa-times"></i>
@@ -982,30 +1194,30 @@ const Sustainability = {
                 <div class="modal-body">
                     <div class="space-y-3">
                         <div class="grid grid-cols-2 gap-4">
-                            <div><strong>الرقم التسلسلي:</strong> ${Utils.escapeHTML(record.serialNumber || '')}</div>
-                            <div><strong>التاريخ:</strong> ${Utils.formatDate(record.date)}</div>
-                            <div><strong>الشهر / السنة:</strong> ${Utils.escapeHTML(record.monthYear || '')}</div>
-                            <div><strong>الموقع / المصنع:</strong> ${Utils.escapeHTML(record.location || '')}</div>
-                            <div><strong>المصدر:</strong> ${Utils.escapeHTML(record.source || '')}</div>
-                            <div><strong>قراءة البداية:</strong> ${parseFloat(record.startReading || 0).toFixed(2)}</div>
-                            <div><strong>قراءة النهاية:</strong> ${parseFloat(record.endReading || 0).toFixed(2)}</div>
-                            <div><strong>إجمالي الاستهلاك:</strong> <span class="font-semibold">${parseFloat(record.totalConsumption || 0).toFixed(2)} ${Utils.escapeHTML(record.unit || '')}</span></div>
-                            <div><strong>وحدة القياس:</strong> ${Utils.escapeHTML(record.unit || '')}</div>
-                            <div><strong>الجهة / القسم:</strong> ${Utils.escapeHTML(record.department || '-')}</div>
-                            <div><strong>الحالة:</strong> 
+                            <div><strong>${t('labelSerial')}</strong> ${Utils.escapeHTML(record.serialNumber || '')}</div>
+                            <div><strong>${t('labelDate')}</strong> ${Utils.formatDate(record.date)}</div>
+                            <div><strong>${t('labelMonthYear')}</strong> ${Utils.escapeHTML(record.monthYear || '')}</div>
+                            <div><strong>${t('labelLocation')}</strong> ${Utils.escapeHTML(record.location || '')}</div>
+                            <div><strong>${t('labelSource')}</strong> ${Utils.escapeHTML(record.source || '')}</div>
+                            <div><strong>${t('labelStartReading')}</strong> ${parseFloat(record.startReading || 0).toFixed(2)}</div>
+                            <div><strong>${t('labelEndReading')}</strong> ${parseFloat(record.endReading || 0).toFixed(2)}</div>
+                            <div><strong>${t('labelTotalConsumption')}</strong> <span class="font-semibold">${parseFloat(record.totalConsumption || 0).toFixed(2)} ${Utils.escapeHTML(record.unit || '')}</span></div>
+                            <div><strong>${t('labelUnit')}</strong> ${Utils.escapeHTML(record.unit || '')}</div>
+                            <div><strong>${t('labelDepartment')}</strong> ${Utils.escapeHTML(record.department || '-')}</div>
+                            <div><strong>${t('labelStatus')}</strong> 
                                 ${record.hasAlert ? `
                                     <span class="badge badge-danger">
                                         <i class="fas fa-exclamation-triangle ml-1"></i>
-                                        تنبيه
+                                        ${t('statusAlert')}
                                     </span>
                                 ` : `
-                                    <span class="badge badge-success">طبيعي</span>
+                                    <span class="badge badge-success">${t('statusNormal')}</span>
                                 `}
                             </div>
                         </div>
                         ${record.notes ? `
                             <div class="mt-4 pt-4 border-t">
-                                <strong>ملاحظات:</strong>
+                                <strong>${t('labelNotes')}</strong>
                                 <p class="text-gray-700 dark:text-gray-300 mt-2">${Utils.escapeHTML(record.notes)}</p>
                             </div>
                         ` : ''}
@@ -1013,12 +1225,12 @@ const Sustainability = {
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">
-                        إغلاق
+                        ${t('btnClose')}
                     </button>
                     ${this.canEdit() ? `
                     <button type="button" class="btn-primary" onclick="Sustainability.editResourceRecord('${type}', '${recordId}'); this.closest('.modal-overlay').remove();">
                         <i class="fas fa-edit ml-2"></i>
-                        تعديل
+                        ${t('actionEdit')}
                     </button>
                     ` : ''}
                 </div>
@@ -1035,7 +1247,7 @@ const Sustainability = {
      */
     editResourceRecord(type, recordId) {
         if (!this.canEdit()) {
-            Notification.error('ليس لديك صلاحية لتعديل السجلات');
+            Notification.error(this.getTranslations().t('noEditPermission'));
             return;
         }
         this.showResourceForm(type, recordId);
@@ -1046,11 +1258,11 @@ const Sustainability = {
      */
     async deleteResourceRecord(type, recordId) {
         if (!this.canDelete()) {
-            Notification.error('ليس لديك صلاحية لحذف السجلات');
+            Notification.error(this.getTranslations().t('noDeletePermission'));
             return;
         }
 
-        if (!confirm('هل أنت متأكد من حذف هذا السجل؟')) return;
+        if (!confirm(this.getTranslations().t('confirmDeleteRecord'))) return;
 
         Loading.show();
         try {
@@ -1062,10 +1274,10 @@ const Sustainability = {
 
             // حفظ في الجداول المنفصلة
             await this.saveResourceConsumptionToSheets();
-            Notification.success('تم حذف السجل بنجاح');
+            Notification.success(this.getTranslations().t('recordDeleted'));
             this.load();
         } catch (error) {
-            Notification.error('حدث خطأ: ' + error.message);
+            Notification.error(`${this.getTranslations().t('genericError')} ${error.message}`);
         } finally {
             Loading.hide();
         }
@@ -1076,21 +1288,23 @@ const Sustainability = {
      */
     renderSettings() {
         if (!this.canManageSettings()) {
-            return '<div class="empty-state"><p class="text-gray-500">ليس لديك صلاحية للوصول إلى الإعدادات</p></div>';
+            return `<div class="empty-state"><p class="text-gray-500">${this.getTranslations().t('noSettingsAccess')}</p></div>`;
         }
+
+        const { t } = this.getTranslations();
 
         return `
             <div class="content-card">
                 <div class="card-header">
                     <h2 class="card-title">
                         <i class="fas fa-cog ml-2"></i>
-                        إعدادات الاستدامة البيئية
+                        ${t('settingsTitle')}
                     </h2>
                 </div>
                 <div class="card-body">
                     <form id="sustainability-settings-form" class="space-y-6">
                         <div>
-                            <h3 class="text-lg font-semibold mb-4">حدود الاستهلاك الشهرية</h3>
+                            <h3 class="text-lg font-semibold mb-4">${t('monthlyConsumptionLimits')}</h3>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                     <label for="limit-water" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -1134,11 +1348,11 @@ const Sustainability = {
                         </div>
                         <div class="flex justify-end gap-2 pt-4 border-t">
                             <button type="button" class="btn-secondary" onclick="Sustainability.loadSettings(); Sustainability.currentTab='settings'; Sustainability.load();">
-                                إلغاء
+                                ${t('btnCancel')}
                             </button>
                             <button type="button" class="btn-primary" onclick="Sustainability.saveSettings()">
                                 <i class="fas fa-save ml-2"></i>
-                                حفظ الإعدادات
+                                ${t('saveSettings')}
                             </button>
                         </div>
                     </form>
@@ -1152,7 +1366,7 @@ const Sustainability = {
      */
     async saveSettings() {
         if (!this.canManageSettings()) {
-            Notification.error('ليس لديك صلاحية لحفظ الإعدادات');
+            Notification.error(this.getTranslations().t('noSettingsSavePermission'));
             return;
         }
 
@@ -1164,10 +1378,10 @@ const Sustainability = {
         // حفظ في localStorage
         try {
             localStorage.setItem('sustainability_settings', JSON.stringify(this.settings));
-            Notification.success('تم حفظ الإعدادات بنجاح');
+            Notification.success(this.getTranslations().t('settingsSaved'));
             this.load();
         } catch (error) {
-            Notification.error('حدث خطأ أثناء حفظ الإعدادات: ' + error.message);
+            Notification.error(`${this.getTranslations().t('settingsSaveError')} ${error.message}`);
         }
     },
 
@@ -1192,8 +1406,9 @@ const Sustainability = {
      */
     getMonthYear(date) {
         const d = new Date(date);
-        const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
-                       'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+        const months = this.getCurrentLanguage() === 'en'
+            ? ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+            : ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
         return `${months[d.getMonth()]} ${d.getFullYear()}`;
     },
 
@@ -1213,11 +1428,9 @@ const Sustainability = {
      * الحصول على اسم النوع
      */
     getTypeName(type) {
-        const names = {
-            water: 'المياه',
-            electricity: 'الكهرباء',
-            gas: 'الغاز الطبيعي'
-        };
+        const names = this.getCurrentLanguage() === 'en'
+            ? { water: 'water', electricity: 'electricity', gas: 'natural gas' }
+            : { water: 'المياه', electricity: 'الكهرباء', gas: 'الغاز الطبيعي' };
         return names[type] || type;
     },
 
@@ -1275,12 +1488,13 @@ const Sustainability = {
      * الحصول على نص الاتجاه
      */
     getTrendText(trend) {
+        const { t } = this.getTranslations();
         const texts = {
-            up: 'زيادة',
-            down: 'انخفاض',
-            stable: 'ثابت'
+            up: t('trendUp'),
+            down: t('trendDown'),
+            stable: t('trendStable')
         };
-        return texts[trend] || 'ثابت';
+        return texts[trend] || texts.stable;
     },
 
     /**
@@ -3751,4 +3965,3 @@ const Sustainability = {
         }
     }
 })();
-

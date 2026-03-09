@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SafetyBudget Module
  * ØªÙ… Ø§Ø³ØªØ®Ø±Ø§Ø¬Ù‡ Ù…Ù† app-modules.js
  */
@@ -7,6 +7,7 @@ const SafetyBudget = {
     currentView: 'dashboard', // dashboard, list, form, edit
     currentEditId: null,
     currentBudgetId: null,
+    _languageChangeBound: false,
     currencies: {
         'EGP': { symbol: 'ج.م', name: 'جنيه مصري', locale: 'ar-EG' },
         'USD': { symbol: '$', name: 'دولار أمريكي', locale: 'en-US' }
@@ -14,9 +15,188 @@ const SafetyBudget = {
     defaultCurrency: 'EGP',
     expenseCategories: ['معدات', 'تدريب', 'صيانة', 'أدوات حماية', 'طوارئ', 'OPEX', 'CAPEX', 'أخرى'],
 
+    getCurrentLanguage() {
+        try {
+            return localStorage.getItem('language') || (typeof AppState !== 'undefined' && AppState.currentLanguage) || 'ar';
+        } catch (e) {
+            return 'ar';
+        }
+    },
+
+    getTranslations() {
+        const lang = this.getCurrentLanguage();
+        const translations = {
+            ar: {
+                title: 'ميزانية السلامة وتتبع الإنفاق',
+                subtitle: 'إدارة ومتابعة مصروفات وأنشطة السلامة',
+                loading: 'جاري التحميل...',
+                preparingUI: 'جاري تجهيز الواجهة...',
+                importExcel: 'استيراد من Excel',
+                exportPDF: 'تصدير PDF',
+                exportExcel: 'تصدير Excel',
+                addBudget: 'إضافة ميزانية',
+                addExpense: 'تسجيل مصروف جديد',
+                tabDashboard: 'لوحة التحكم',
+                tabAllExpenses: 'جميع المصروفات',
+                tabOpex: 'OPEX (مصروفات تشغيلية)',
+                tabCapex: 'CAPEX (مصروفات رأسمالية)',
+                appStateUnavailableTitle: 'تعذر تحميل ميزانية السلامة',
+                appStateUnavailableDesc: 'AppState غير متوفر حالياً. جرّب تحديث الصفحة.',
+                refreshPage: 'تحديث الصفحة',
+                loadError: 'حدث خطأ في تحميل البيانات',
+                retry: 'إعادة المحاولة',
+                currencyEgp: 'جنيه مصري',
+                currencyUsd: 'دولار أمريكي',
+                catEquipment: 'معدات',
+                catTraining: 'تدريب',
+                catMaintenance: 'صيانة',
+                catPPE: 'أدوات حماية',
+                catEmergency: 'طوارئ',
+                catOther: 'أخرى',
+                emptyExpenses: 'لا توجد مصروفات مسجلة',
+                tableDate: 'التاريخ',
+                tableCategory: 'الفئة',
+                tableDescription: 'الوصف',
+                tableVendor: 'الجهة',
+                tableAmount: 'المبلغ',
+                tableCurrency: 'العملة',
+                tableInvoice: 'رقم الفاتورة',
+                tableAttachments: 'المرفقات',
+                tableActions: 'الإجراءات',
+                oneAttachment: 'مرفق',
+                actionView: 'عرض',
+                actionEdit: 'تعديل',
+                actionDelete: 'حذف',
+                actionDownload: 'تحميل',
+                detailsExpense: 'تفاصيل المصروف',
+                labelDate: 'التاريخ',
+                labelCategory: 'الفئة',
+                labelDescription: 'الوصف',
+                labelVendor: 'الجهة / المورد',
+                labelAmount: 'المبلغ',
+                labelCurrency: 'العملة',
+                labelInvoice: 'رقم الفاتورة',
+                close: 'إغلاق',
+                dataUnavailableRefresh: 'البيانات غير متوفرة. يرجى تحديث الصفحة',
+                invalidBudgetsData: 'بيانات الميزانيات غير صحيحة',
+                invalidTransactionsData: 'بيانات المعاملات غير صحيحة',
+                excelLibraryMissing: 'مكتبة Excel غير متوفرة',
+                exportDone: 'تم تصدير التقرير بنجاح',
+                popupBlocked: 'يرجى السماح للنوافذ المنبثقة لعرض التقرير',
+                excelSheetName: 'مصروفات السلامة',
+                excelFileName: 'تقرير_ميزانية_السلامة_{year}.xlsx',
+                pdfReportTitle: 'تقرير ميزانية السلامة وتتبع الإنفاق',
+                pdfYear: 'السنة:',
+                pdfCurrency: 'العملة:',
+                pdfBudget: 'الميزانية المعتمدة:',
+                pdfTotalExpenses: 'إجمالي المصروفات:',
+                pdfRemaining: 'المتبقي:',
+                pdfConsumption: 'نسبة الاستهلاك:',
+                pdfDetails: 'تفاصيل المصروفات',
+                pdfCreatedAt: 'تاريخ الإنشاء:'
+            },
+            en: {
+                title: 'Safety Budget and Spend Tracking',
+                subtitle: 'Manage and track safety expenses and activities',
+                loading: 'Loading...',
+                preparingUI: 'Preparing interface...',
+                importExcel: 'Import from Excel',
+                exportPDF: 'Export PDF',
+                exportExcel: 'Export Excel',
+                addBudget: 'Add Budget',
+                addExpense: 'Add New Expense',
+                tabDashboard: 'Dashboard',
+                tabAllExpenses: 'All Expenses',
+                tabOpex: 'OPEX (Operational Expenses)',
+                tabCapex: 'CAPEX (Capital Expenses)',
+                appStateUnavailableTitle: 'Unable to load Safety Budget',
+                appStateUnavailableDesc: 'AppState is currently unavailable. Try refreshing the page.',
+                refreshPage: 'Refresh Page',
+                loadError: 'Error loading data',
+                retry: 'Retry',
+                currencyEgp: 'Egyptian Pound',
+                currencyUsd: 'US Dollar',
+                catEquipment: 'Equipment',
+                catTraining: 'Training',
+                catMaintenance: 'Maintenance',
+                catPPE: 'PPE',
+                catEmergency: 'Emergency',
+                catOther: 'Other',
+                emptyExpenses: 'No expenses recorded',
+                tableDate: 'Date',
+                tableCategory: 'Category',
+                tableDescription: 'Description',
+                tableVendor: 'Vendor',
+                tableAmount: 'Amount',
+                tableCurrency: 'Currency',
+                tableInvoice: 'Invoice No.',
+                tableAttachments: 'Attachments',
+                tableActions: 'Actions',
+                oneAttachment: 'attachment',
+                actionView: 'View',
+                actionEdit: 'Edit',
+                actionDelete: 'Delete',
+                actionDownload: 'Download',
+                detailsExpense: 'Expense Details',
+                labelDate: 'Date',
+                labelCategory: 'Category',
+                labelDescription: 'Description',
+                labelVendor: 'Vendor / Entity',
+                labelAmount: 'Amount',
+                labelCurrency: 'Currency',
+                labelInvoice: 'Invoice Number',
+                close: 'Close',
+                dataUnavailableRefresh: 'Data is unavailable. Please refresh the page',
+                invalidBudgetsData: 'Invalid budgets data',
+                invalidTransactionsData: 'Invalid transactions data',
+                excelLibraryMissing: 'Excel library is not available',
+                exportDone: 'Report exported successfully',
+                popupBlocked: 'Please allow popups to view the report',
+                excelSheetName: 'Safety Expenses',
+                excelFileName: 'safety_budget_report_{year}.xlsx',
+                pdfReportTitle: 'Safety Budget and Spend Tracking Report',
+                pdfYear: 'Year:',
+                pdfCurrency: 'Currency:',
+                pdfBudget: 'Approved Budget:',
+                pdfTotalExpenses: 'Total Expenses:',
+                pdfRemaining: 'Remaining:',
+                pdfConsumption: 'Consumption Rate:',
+                pdfDetails: 'Expense Details',
+                pdfCreatedAt: 'Created At:'
+            }
+        };
+
+        return {
+            lang,
+            t: (key) => (translations[lang] && translations[lang][key]) ? translations[lang][key] : key
+        };
+    },
+
     getCurrencySymbol(currency = null) {
         const curr = currency || this.defaultCurrency;
         return this.currencies[curr]?.symbol || curr;
+    },
+
+    getCurrencyName(currency = null) {
+        const curr = currency || this.defaultCurrency;
+        const { t } = this.getTranslations();
+        if (curr === 'USD') return t('currencyUsd');
+        return t('currencyEgp');
+    },
+
+    getCategoryLabel(category) {
+        const { t } = this.getTranslations();
+        const labels = {
+            'معدات': t('catEquipment'),
+            'تدريب': t('catTraining'),
+            'صيانة': t('catMaintenance'),
+            'أدوات حماية': t('catPPE'),
+            'طوارئ': t('catEmergency'),
+            OPEX: t('tabOpex'),
+            CAPEX: t('tabCapex'),
+            'أخرى': t('catOther')
+        };
+        return labels[category] || category;
     },
 
     formatCurrency(amount, currency = null) {
@@ -33,6 +213,17 @@ const SafetyBudget = {
     },
 
     async load() {
+        const { t } = this.getTranslations();
+
+        if (!this._languageChangeBound) {
+            this._languageChangeBound = true;
+            document.addEventListener('language-changed', () => {
+                if (document.getElementById('safety-budget-section')?.classList.contains('active')) {
+                    this.load();
+                }
+            });
+        }
+
         // التحقق من وجود التبعيات المطلوبة
         if (typeof Utils === 'undefined') {
             console.error('Utils غير متوفر!');
@@ -55,11 +246,11 @@ const SafetyBudget = {
                     <div class="card-body">
                         <div class="empty-state">
                             <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                            <p class="text-gray-500 mb-2">تعذر تحميل ميزانية السلامة</p>
-                            <p class="text-sm text-gray-400">AppState غير متوفر حالياً. جرّب تحديث الصفحة.</p>
+                            <p class="text-gray-500 mb-2">${t('appStateUnavailableTitle')}</p>
+                            <p class="text-sm text-gray-400">${t('appStateUnavailableDesc')}</p>
                             <button onclick="location.reload()" class="btn-primary mt-4">
                                 <i class="fas fa-redo ml-2"></i>
-                                تحديث الصفحة
+                                ${t('refreshPage')}
                             </button>
                         </div>
                     </div>
@@ -77,9 +268,9 @@ const SafetyBudget = {
                         <div>
                             <h1 class="section-title">
                                 <i class="fas fa-wallet ml-3" aria-hidden="true"></i>
-                                ميزانية السلامة وتتبع الإنفاق
+                                ${t('title')}
                             </h1>
-                            <p class="section-subtitle">جاري التحميل...</p>
+                            <p class="section-subtitle">${t('loading')}</p>
                         </div>
                     </div>
                 </div>
@@ -92,7 +283,7 @@ const SafetyBudget = {
                                         <div style="height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 100%; border-radius: 3px; animation: loadingProgress 1.5s ease-in-out infinite;"></div>
                                     </div>
                                 </div>
-                                <p class="text-gray-500">جاري تجهيز الواجهة...</p>
+                                <p class="text-gray-500">${t('preparingUI')}</p>
                             </div>
                         </div>
                     </div>
@@ -107,8 +298,8 @@ const SafetyBudget = {
                 AppState.appData.safetyBudget = { expenses: [], budgets: [] };
             }
 
-            const budgetTitle = (typeof i18n !== 'undefined' && i18n.translate) ? i18n.translate('budget.title') : 'ميزانية السلامة وتتبع الإنفاق';
-            const budgetSubtitle = (typeof i18n !== 'undefined' && i18n.translate) ? i18n.translate('budget.subtitle') : 'إدارة ومتابعة مصروفات وأنشطة السلامة';
+            const budgetTitle = (typeof i18n !== 'undefined' && i18n.translate) ? i18n.translate('budget.title') : t('title');
+            const budgetSubtitle = (typeof i18n !== 'undefined' && i18n.translate) ? i18n.translate('budget.subtitle') : t('subtitle');
 
             // محاولة تحميل لوحة التحكم مع معالجة الأخطاء
             let dashboardContent = '';
@@ -130,10 +321,10 @@ const SafetyBudget = {
                         <div class="card-body">
                             <div class="empty-state">
                                 <i class="fas fa-exclamation-triangle text-yellow-500 text-4xl mb-4"></i>
-                                <p class="text-gray-500 mb-4">حدث خطأ في تحميل البيانات</p>
+                                <p class="text-gray-500 mb-4">${t('loadError')}</p>
                                 <button onclick="SafetyBudget.load()" class="btn-primary">
                                     <i class="fas fa-redo ml-2"></i>
-                                    إعادة المحاولة
+                                    ${t('retry')}
                                 </button>
                             </div>
                         </div>
@@ -141,76 +332,76 @@ const SafetyBudget = {
                 `;
             }
 
-        section.innerHTML = `
-            <div class="section-header">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="section-title">
-                            <i class="fas fa-wallet ml-3" aria-hidden="true"></i>
-                            ${budgetTitle}
-                        </h1>
-                        <p class="section-subtitle">${budgetSubtitle}</p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <button id="import-budget-btn" class="btn-secondary" onclick="SafetyBudget.showImportModal()">
-                            <i class="fas fa-file-import ml-2"></i>
-                            استيراد من Excel
-                        </button>
-                        <button id="export-report-pdf-btn" class="btn-secondary" onclick="SafetyBudget.exportReport('pdf')">
-                            <i class="fas fa-file-pdf ml-2"></i>
-                            تصدير PDF
-                        </button>
-                        <button id="export-report-excel-btn" class="btn-secondary" onclick="SafetyBudget.exportReport('excel')">
-                            <i class="fas fa-file-excel ml-2"></i>
-                            تصدير Excel
-                        </button>
-                        <button id="add-budget-btn" class="btn-secondary">
-                            <i class="fas fa-plus ml-2"></i>
-                            إضافة ميزانية
-                        </button>
-                        <button id="add-expense-btn" class="btn-primary">
-                            <i class="fas fa-plus ml-2"></i>
-                            تسجيل مصروف جديد
-                        </button>
+            section.innerHTML = `
+                <div class="section-header">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h1 class="section-title">
+                                <i class="fas fa-wallet ml-3" aria-hidden="true"></i>
+                                ${budgetTitle}
+                            </h1>
+                            <p class="section-subtitle">${budgetSubtitle}</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button id="import-budget-btn" class="btn-secondary" onclick="SafetyBudget.showImportModal()">
+                                <i class="fas fa-file-import ml-2"></i>
+                                ${t('importExcel')}
+                            </button>
+                            <button id="export-report-pdf-btn" class="btn-secondary" onclick="SafetyBudget.exportReport('pdf')">
+                                <i class="fas fa-file-pdf ml-2"></i>
+                                ${t('exportPDF')}
+                            </button>
+                            <button id="export-report-excel-btn" class="btn-secondary" onclick="SafetyBudget.exportReport('excel')">
+                                <i class="fas fa-file-excel ml-2"></i>
+                                ${t('exportExcel')}
+                            </button>
+                            <button id="add-budget-btn" class="btn-secondary">
+                                <i class="fas fa-plus ml-2"></i>
+                                ${t('addBudget')}
+                            </button>
+                            <button id="add-expense-btn" class="btn-primary">
+                                <i class="fas fa-plus ml-2"></i>
+                                ${t('addExpense')}
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="mt-6">
-                <!-- Tabs Navigation -->
-                <div class="mb-6">
-                    <div class="flex items-center gap-2 border-b border-gray-200" style="border-bottom: 2px solid #e5e7eb;">
-                        <button class="tab-btn active" data-tab="dashboard" onclick="SafetyBudget.switchTab('dashboard')" style="padding: 12px 20px; border: none; background: transparent; color: #6b7280; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s;">
-                            <i class="fas fa-chart-pie ml-2"></i>
-                            لوحة التحكم
-                        </button>
-                        <button class="tab-btn" data-tab="all" onclick="SafetyBudget.switchTab('all')" style="padding: 12px 20px; border: none; background: transparent; color: #6b7280; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s;">
-                            <i class="fas fa-list ml-2"></i>
-                            جميع المصروفات
-                        </button>
-                        <button class="tab-btn" data-tab="opex" onclick="SafetyBudget.switchTab('opex')" style="padding: 12px 20px; border: none; background: transparent; color: #6b7280; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s;">
-                            <i class="fas fa-chart-line ml-2"></i>
-                            OPEX (مصروفات تشغيلية)
-                        </button>
-                        <button class="tab-btn" data-tab="capex" onclick="SafetyBudget.switchTab('capex')" style="padding: 12px 20px; border: none; background: transparent; color: #6b7280; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s;">
-                            <i class="fas fa-building ml-2"></i>
-                            CAPEX (مصروفات رأسمالية)
-                        </button>
+                <div class="mt-6">
+                    <!-- Tabs Navigation -->
+                    <div class="mb-6">
+                        <div class="flex items-center gap-2 border-b border-gray-200" style="border-bottom: 2px solid #e5e7eb;">
+                            <button class="tab-btn active" data-tab="dashboard" onclick="SafetyBudget.switchTab('dashboard')" style="padding: 12px 20px; border: none; background: transparent; color: #6b7280; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s;">
+                                <i class="fas fa-chart-pie ml-2"></i>
+                                ${t('tabDashboard')}
+                            </button>
+                            <button class="tab-btn" data-tab="all" onclick="SafetyBudget.switchTab('all')" style="padding: 12px 20px; border: none; background: transparent; color: #6b7280; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s;">
+                                <i class="fas fa-list ml-2"></i>
+                                ${t('tabAllExpenses')}
+                            </button>
+                            <button class="tab-btn" data-tab="opex" onclick="SafetyBudget.switchTab('opex')" style="padding: 12px 20px; border: none; background: transparent; color: #6b7280; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s;">
+                                <i class="fas fa-chart-line ml-2"></i>
+                                ${t('tabOpex')}
+                            </button>
+                            <button class="tab-btn" data-tab="capex" onclick="SafetyBudget.switchTab('capex')" style="padding: 12px 20px; border: none; background: transparent; color: #6b7280; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s;">
+                                <i class="fas fa-building ml-2"></i>
+                                ${t('tabCapex')}
+                            </button>
+                        </div>
+                        <style>
+                            .tab-btn:hover {
+                                color: #3b82f6 !important;
+                            }
+                            .tab-btn.active {
+                                color: #3b82f6 !important;
+                                border-bottom-color: #3b82f6 !important;
+                                font-weight: 600 !important;
+                            }
+                        </style>
                     </div>
-                    <style>
-                        .tab-btn:hover {
-                            color: #3b82f6 !important;
-                        }
-                        .tab-btn.active {
-                            color: #3b82f6 !important;
-                            border-bottom-color: #3b82f6 !important;
-                            font-weight: 600 !important;
-                        }
-                    </style>
-                </div>
-                
-                <!-- Tab Content -->
-                <div id="safety-budget-tab-content">
-                    ${dashboardContent}
+                    <!-- Tab Content -->
+                    <div id="safety-budget-tab-content">
+                        ${dashboardContent}
+                    </div>
                 </div>
             </div>
         `;
@@ -538,7 +729,6 @@ const SafetyBudget = {
         const budgetCurrency = currentBudget?.currency || this.defaultCurrency;
         const totalBudget = currentBudget ? (parseFloat(currentBudget.amount) || 0) : 0;
 
-        // حساب المصروفات بنفس عملة الميزانية
         const totalExpenses = transactions
             .filter(t => (t.currency || this.defaultCurrency) === budgetCurrency)
             .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
@@ -557,9 +747,9 @@ const SafetyBudget = {
 
         if (totalBudgetEl) totalBudgetEl.textContent = this.formatCurrency(totalBudget, budgetCurrency);
         if (totalExpensesEl) totalExpensesEl.textContent = this.formatCurrency(totalExpenses, budgetCurrency);
-        if (budgetCurrencyEl) budgetCurrencyEl.textContent = this.currencies[budgetCurrency]?.name || 'جنيه مصري';
-        if (expensesCurrencyEl) expensesCurrencyEl.textContent = this.currencies[budgetCurrency]?.name || 'جنيه مصري';
-        if (remainingCurrencyEl) remainingCurrencyEl.textContent = this.currencies[budgetCurrency]?.name || 'جنيه مصري';
+        if (budgetCurrencyEl) budgetCurrencyEl.textContent = this.getCurrencyName(budgetCurrency);
+        if (expensesCurrencyEl) expensesCurrencyEl.textContent = this.getCurrencyName(budgetCurrency);
+        if (remainingCurrencyEl) remainingCurrencyEl.textContent = this.getCurrencyName(budgetCurrency);
 
         if (remainingEl) {
             remainingEl.textContent = this.formatCurrency(remaining, budgetCurrency);
@@ -581,6 +771,7 @@ const SafetyBudget = {
     },
 
     loadExpensesList() {
+        const { t: tr } = this.getTranslations();
         const container = document.getElementById('all-table-container') || document.getElementById('expenses-table-container');
         if (!container) return;
 
@@ -612,7 +803,7 @@ const SafetyBudget = {
             container.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-receipt text-4xl text-gray-300 mb-4"></i>
-                    <p class="text-gray-500">لا توجد مصروفات مسجلة</p>
+                    <p class="text-gray-500">${tr('emptyExpenses')}</p>
                 </div>
             `;
             return;
@@ -623,22 +814,22 @@ const SafetyBudget = {
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>التاريخ</th>
-                            <th>الفئة</th>
-                            <th>الوصف</th>
-                            <th>الجهة</th>
-                            <th>المبلغ</th>
-                            <th>العملة</th>
-                            <th>رقم الفاتورة</th>
-                            <th>المرفقات</th>
-                            <th>الإجراءات</th>
+                            <th>${tr('tableDate')}</th>
+                            <th>${tr('tableCategory')}</th>
+                            <th>${tr('tableDescription')}</th>
+                            <th>${tr('tableVendor')}</th>
+                            <th>${tr('tableAmount')}</th>
+                            <th>${tr('tableCurrency')}</th>
+                            <th>${tr('tableInvoice')}</th>
+                            <th>${tr('tableAttachments')}</th>
+                            <th>${tr('tableActions')}</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${filtered.map(t => `
                             <tr>
                                 <td>${Utils.formatDate(t.date || t.createdAt)}</td>
-                                <td><span class="badge badge-info">${Utils.escapeHTML(t.category || '')}</span></td>
+                                <td><span class="badge badge-info">${Utils.escapeHTML(this.getCategoryLabel(t.category || ''))}</span></td>
                                 <td>${Utils.escapeHTML(t.description || '')}</td>
                                 <td>${Utils.escapeHTML(t.vendor || '')}</td>
                                 <td class="font-semibold">${this.formatCurrency(parseFloat(t.amount) || 0, t.currency || this.defaultCurrency)}</td>
@@ -646,19 +837,19 @@ const SafetyBudget = {
                                 <td>${Utils.escapeHTML(t.invoiceNumber || '-')}</td>
                                 <td>
                                     ${(t.attachments || []).length > 0 ?
-                `<span class="badge badge-success">${(t.attachments || []).length} مرفق</span>` :
+                `<span class="badge badge-success">${(t.attachments || []).length} ${tr('oneAttachment')}</span>` :
                 '<span class="text-gray-400">-</span>'}
                                 </td>
                                 <td>
                                     <div class="flex items-center gap-2">
-                                        <button class="btn-icon btn-icon-primary" onclick="SafetyBudget.viewExpense('${t.id}')" title="عرض">
+                                        <button class="btn-icon btn-icon-primary" onclick="SafetyBudget.viewExpense('${t.id}')" title="${tr('actionView')}">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                         ${Permissions.hasAccess('safety-budget') ? `
-                                            <button class="btn-icon btn-icon-warning" onclick="SafetyBudget.editExpense('${t.id}')" title="تعديل">
+                                            <button class="btn-icon btn-icon-warning" onclick="SafetyBudget.editExpense('${t.id}')" title="${tr('actionEdit')}">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <button class="btn-icon btn-icon-danger" onclick="SafetyBudget.deleteExpense('${t.id}')" title="حذف">
+                                            <button class="btn-icon btn-icon-danger" onclick="SafetyBudget.deleteExpense('${t.id}')" title="${tr('actionDelete')}">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         ` : ''}
@@ -1397,6 +1588,7 @@ const SafetyBudget = {
     },
 
     viewExpense(id) {
+        const { t } = this.getTranslations();
         const expense = AppState.appData.safetyBudgetTransactions.find(e => e.id === id);
         if (!expense) return;
 
@@ -1407,8 +1599,9 @@ const SafetyBudget = {
                 <div class="modal-header">
                     <h2 class="modal-title">
                         <i class="fas fa-receipt ml-2"></i>
-                        تفاصيل المصروف
+                        ${t('detailsExpense')}
                     </h2>
+
                     <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
                         <i class="fas fa-times"></i>
                     </button>
@@ -1417,37 +1610,38 @@ const SafetyBudget = {
                     <div class="space-y-4">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <p class="text-sm text-gray-600">التاريخ</p>
+                                <p class="text-sm text-gray-600">${t('labelDate')}</p>
                                 <p class="text-base font-semibold">${Utils.formatDate(expense.date || expense.createdAt)}</p>
                             </div>
                             <div>
-                                <p class="text-sm text-gray-600">الفئة</p>
-                                <p class="text-base font-semibold"><span class="badge badge-info">${Utils.escapeHTML(expense.category || '')}</span></p>
+                                <p class="text-sm text-gray-600">${t('labelCategory')}</p>
+                                <p class="text-base font-semibold"><span class="badge badge-info">${Utils.escapeHTML(this.getCategoryLabel(expense.category || ''))}</span></p>
                             </div>
                             <div class="col-span-2">
-                                <p class="text-sm text-gray-600">الوصف</p>
+                                <p class="text-sm text-gray-600">${t('labelDescription')}</p>
                                 <p class="text-base font-semibold">${Utils.escapeHTML(expense.description || '')}</p>
                             </div>
                             <div>
-                                <p class="text-sm text-gray-600">الجهة / المورد</p>
+                                <p class="text-sm text-gray-600">${t('labelVendor')}</p>
                                 <p class="text-base font-semibold">${Utils.escapeHTML(expense.vendor || '')}</p>
                             </div>
                             <div>
-                                <p class="text-sm text-gray-600">المبلغ</p>
+                                <p class="text-sm text-gray-600">${t('labelAmount')}</p>
                                 <p class="text-2xl font-bold text-red-600">${this.formatCurrency(parseFloat(expense.amount) || 0, expense.currency || this.defaultCurrency)}</p>
                             </div>
                             <div>
-                                <p class="text-sm text-gray-600">العملة</p>
-                                <p class="text-base font-semibold"><span class="badge badge-info">${this.currencies[expense.currency || this.defaultCurrency]?.name || 'جنيه مصري'}</span></p>
+                                <p class="text-sm text-gray-600">${t('labelCurrency')}</p>
+                                <p class="text-base font-semibold"><span class="badge badge-info">${this.getCurrencyName(expense.currency || this.defaultCurrency)}</span></p>
                             </div>
                             <div>
-                                <p class="text-sm text-gray-600">رقم الفاتورة</p>
+                                <p class="text-sm text-gray-600">${t('labelInvoice')}</p>
                                 <p class="text-base font-semibold">${Utils.escapeHTML(expense.invoiceNumber || '-')}</p>
                             </div>
+
                         </div>
                         ${expense.attachments && expense.attachments.length > 0 ? `
                             <div class="border-t pt-4">
-                                <p class="text-sm font-semibold mb-3">المرفقات (${expense.attachments.length})</p>
+                                <p class="text-sm font-semibold mb-3">${t('tableAttachments')} (${expense.attachments.length})</p>
                                 <div class="space-y-2">
                                     ${expense.attachments.map(att => `
                                         <div class="flex items-center justify-between bg-gray-50 border border-gray-200 rounded px-3 py-2">
@@ -1456,10 +1650,11 @@ const SafetyBudget = {
                                                 <span class="text-sm">${Utils.escapeHTML(att.name || 'مرفق')}</span>
                                                 <span class="text-xs text-gray-500">(${att.size || 0} KB)</span>
                                             </div>
-                                            <button class="btn-icon btn-icon-primary" onclick="SafetyBudget.downloadAttachment('${att.id}', '${expense.id}')" title="تحميل">
+                                            <button class="btn-icon btn-icon-primary" onclick="SafetyBudget.downloadAttachment('${att.id}', '${expense.id}')" title="${t('actionDownload')}">
                                                 <i class="fas fa-download"></i>
                                             </button>
                                         </div>
+
                                     `).join('')}
                                 </div>
                             </div>
@@ -1467,13 +1662,14 @@ const SafetyBudget = {
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">إغلاق</button>
+                    <button class="btn-secondary" onclick="this.closest('.modal-overlay').remove()">${t('close')}</button>
                     ${Permissions.hasAccess('safety-budget') ? `
                         <button class="btn-primary" onclick="SafetyBudget.editExpense('${expense.id}'); this.closest('.modal-overlay').remove();">
-                            <i class="fas fa-edit ml-2"></i>تعديل
+                            <i class="fas fa-edit ml-2"></i>${t('actionEdit')}
                         </button>
                     ` : ''}
                 </div>
+
             </div>
         `;
         document.body.appendChild(modal);
@@ -1496,29 +1692,28 @@ const SafetyBudget = {
     },
 
     async exportReport(format = 'pdf', categoryFilter = null) {
-        // التحقق من وجود AppState و appData
+        const { t, lang } = this.getTranslations();
         if (typeof AppState === 'undefined' || !AppState.appData) {
-            Notification.error('البيانات غير متوفرة. يرجى تحديث الصفحة');
+            Notification.error(t('dataUnavailableRefresh'));
             return;
         }
 
         const budgets = AppState.appData.safetyBudgets || [];
         let transactions = AppState.appData.safetyBudgetTransactions || [];
 
-        // التحقق من أن البيانات هي arrays
         if (!Array.isArray(budgets)) {
-            Notification.error('بيانات الميزانيات غير صحيحة');
+            Notification.error(t('invalidBudgetsData'));
             return;
         }
         if (!Array.isArray(transactions)) {
-            Notification.error('بيانات المعاملات غير صحيحة');
+            Notification.error(t('invalidTransactionsData'));
             return;
         }
 
-        // فلترة حسب الفئة إذا تم تحديدها
         if (categoryFilter && (categoryFilter === 'OPEX' || categoryFilter === 'CAPEX')) {
-            transactions = transactions.filter(t => t.category === categoryFilter);
+            transactions = transactions.filter(tx => tx.category === categoryFilter);
         }
+
         const currentYear = new Date().getFullYear();
         const currentBudget = budgets.find(b => {
             const budgetYear = b.year ? parseInt(b.year) : new Date(b.createdAt || b.startDate).getFullYear();
@@ -1528,86 +1723,93 @@ const SafetyBudget = {
         const budgetCurrency = currentBudget?.currency || this.defaultCurrency;
         const totalBudget = currentBudget ? (parseFloat(currentBudget.amount) || 0) : 0;
         const totalExpenses = transactions
-            .filter(t => (t.currency || this.defaultCurrency) === budgetCurrency)
-            .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
+            .filter(tx => (tx.currency || this.defaultCurrency) === budgetCurrency)
+            .reduce((sum, tx) => sum + (parseFloat(tx.amount) || 0), 0);
         const remaining = totalBudget - totalExpenses;
 
         if (format === 'excel') {
             if (typeof XLSX === 'undefined') {
-                Notification.error('مكتبة Excel غير متوفرة');
+                Notification.error(t('excelLibraryMissing'));
                 return;
             }
 
             const wb = XLSX.utils.book_new();
-            const wsData = [
-                ['تاريخ', 'الفئة', 'الوصف', 'الجهة', 'المبلغ', 'العملة', 'رقم الفاتورة']
-            ];
+            const wsData = [[
+                t('tableDate'),
+                t('tableCategory'),
+                t('tableDescription'),
+                t('tableVendor'),
+                t('tableAmount'),
+                t('tableCurrency'),
+                t('tableInvoice')
+            ]];
 
-            transactions.forEach(t => {
+            transactions.forEach(tx => {
                 wsData.push([
-                    Utils.formatDate(t.date || t.createdAt),
-                    t.category || '',
-                    t.description || '',
-                    t.vendor || '',
-                    parseFloat(t.amount) || 0,
-                    t.currency || this.defaultCurrency,
-                    t.invoiceNumber || ''
+                    Utils.formatDate(tx.date || tx.createdAt),
+                    this.getCategoryLabel(tx.category || ''),
+                    tx.description || '',
+                    tx.vendor || '',
+                    parseFloat(tx.amount) || 0,
+                    tx.currency || this.defaultCurrency,
+                    tx.invoiceNumber || ''
                 ]);
             });
 
             const ws = XLSX.utils.aoa_to_sheet(wsData);
-            XLSX.utils.book_append_sheet(wb, ws, 'مصروفات السلامة');
-            XLSX.writeFile(wb, `تقرير_ميزانية_السلامة_${currentYear}.xlsx`);
-            Notification.success('تم تصدير التقرير بنجاح');
+            XLSX.utils.book_append_sheet(wb, ws, t('excelSheetName'));
+            XLSX.writeFile(wb, t('excelFileName').replace('{year}', currentYear));
+            Notification.success(t('exportDone'));
             return;
         }
 
-        // PDF Report
+        const align = lang === 'en' ? 'left' : 'right';
+        const direction = lang === 'en' ? 'ltr' : 'rtl';
         const content = `
-            <div style="direction: rtl; text-align: right; font-family: 'Cairo', Arial, sans-serif; padding: 20px;">
-                <h1 style="color: #1e40af; margin-bottom: 20px;">تقرير ميزانية السلامة وتتبع الإنفاق</h1>
+            <div style="direction: ${direction}; text-align: ${align}; font-family: 'Cairo', Arial, sans-serif; padding: 20px;">
+                <h1 style="color: #1e40af; margin-bottom: 20px;">${t('pdfReportTitle')}</h1>
                 <div style="margin-bottom: 30px;">
-                    <p><strong>السنة:</strong> ${currentYear}</p>
-                    <p><strong>العملة:</strong> ${this.currencies[budgetCurrency]?.name || 'جنيه مصري'}</p>
-                    <p><strong>الميزانية المعتمدة:</strong> ${this.formatCurrency(totalBudget, budgetCurrency)}</p>
-                    <p><strong>إجمالي المصروفات:</strong> ${this.formatCurrency(totalExpenses, budgetCurrency)}</p>
-                    <p><strong>المتبقي:</strong> ${this.formatCurrency(remaining, budgetCurrency)}</p>
-                    <p><strong>نسبة الاستهلاك:</strong> ${totalBudget > 0 ? ((totalExpenses / totalBudget) * 100).toFixed(1) : 0}%</p>
+                    <p><strong>${t('pdfYear')}</strong> ${currentYear}</p>
+                    <p><strong>${t('pdfCurrency')}</strong> ${this.getCurrencyName(budgetCurrency)}</p>
+                    <p><strong>${t('pdfBudget')}</strong> ${this.formatCurrency(totalBudget, budgetCurrency)}</p>
+                    <p><strong>${t('pdfTotalExpenses')}</strong> ${this.formatCurrency(totalExpenses, budgetCurrency)}</p>
+                    <p><strong>${t('pdfRemaining')}</strong> ${this.formatCurrency(remaining, budgetCurrency)}</p>
+                    <p><strong>${t('pdfConsumption')}</strong> ${totalBudget > 0 ? ((totalExpenses / totalBudget) * 100).toFixed(1) : 0}%</p>
                 </div>
-                <h2 style="color: #1e40af; margin-top: 30px; margin-bottom: 15px;">تفاصيل المصروفات</h2>
+                <h2 style="color: #1e40af; margin-top: 30px; margin-bottom: 15px;">${t('pdfDetails')}</h2>
                 <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
                     <thead>
                         <tr style="background: #f3f4f6;">
-                            <th style="border: 1px solid #e5e7eb; padding: 8px; text-align: right;">التاريخ</th>
-                            <th style="border: 1px solid #e5e7eb; padding: 8px; text-align: right;">الفئة</th>
-                            <th style="border: 1px solid #e5e7eb; padding: 8px; text-align: right;">الوصف</th>
-                            <th style="border: 1px solid #e5e7eb; padding: 8px; text-align: right;">الجهة</th>
-                            <th style="border: 1px solid #e5e7eb; padding: 8px; text-align: right;">المبلغ</th>
-                            <th style="border: 1px solid #e5e7eb; padding: 8px; text-align: right;">العملة</th>
-                            <th style="border: 1px solid #e5e7eb; padding: 8px; text-align: right;">رقم الفاتورة</th>
+                            <th style="border: 1px solid #e5e7eb; padding: 8px; text-align: ${align};">${t('tableDate')}</th>
+                            <th style="border: 1px solid #e5e7eb; padding: 8px; text-align: ${align};">${t('tableCategory')}</th>
+                            <th style="border: 1px solid #e5e7eb; padding: 8px; text-align: ${align};">${t('tableDescription')}</th>
+                            <th style="border: 1px solid #e5e7eb; padding: 8px; text-align: ${align};">${t('tableVendor')}</th>
+                            <th style="border: 1px solid #e5e7eb; padding: 8px; text-align: ${align};">${t('tableAmount')}</th>
+                            <th style="border: 1px solid #e5e7eb; padding: 8px; text-align: ${align};">${t('tableCurrency')}</th>
+                            <th style="border: 1px solid #e5e7eb; padding: 8px; text-align: ${align};">${t('tableInvoice')}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${transactions.map(t => `
+                        ${transactions.map(tx => `
                             <tr>
-                                <td style="border: 1px solid #e5e7eb; padding: 8px;">${Utils.formatDate(t.date || t.createdAt)}</td>
-                                <td style="border: 1px solid #e5e7eb; padding: 8px;">${Utils.escapeHTML(t.category || '')}</td>
-                                <td style="border: 1px solid #e5e7eb; padding: 8px;">${Utils.escapeHTML(t.description || '')}</td>
-                                <td style="border: 1px solid #e5e7eb; padding: 8px;">${Utils.escapeHTML(t.vendor || '')}</td>
-                                <td style="border: 1px solid #e5e7eb; padding: 8px;">${this.formatCurrency(parseFloat(t.amount) || 0, t.currency || this.defaultCurrency)}</td>
-                                <td style="border: 1px solid #e5e7eb; padding: 8px;">${this.currencies[t.currency || this.defaultCurrency]?.name || 'جنيه مصري'}</td>
-                                <td style="border: 1px solid #e5e7eb; padding: 8px;">${Utils.escapeHTML(t.invoiceNumber || '-')}</td>
+                                <td style="border: 1px solid #e5e7eb; padding: 8px;">${Utils.formatDate(tx.date || tx.createdAt)}</td>
+                                <td style="border: 1px solid #e5e7eb; padding: 8px;">${Utils.escapeHTML(this.getCategoryLabel(tx.category || ''))}</td>
+                                <td style="border: 1px solid #e5e7eb; padding: 8px;">${Utils.escapeHTML(tx.description || '')}</td>
+                                <td style="border: 1px solid #e5e7eb; padding: 8px;">${Utils.escapeHTML(tx.vendor || '')}</td>
+                                <td style="border: 1px solid #e5e7eb; padding: 8px;">${this.formatCurrency(parseFloat(tx.amount) || 0, tx.currency || this.defaultCurrency)}</td>
+                                <td style="border: 1px solid #e5e7eb; padding: 8px;">${this.getCurrencyName(tx.currency || this.defaultCurrency)}</td>
+                                <td style="border: 1px solid #e5e7eb; padding: 8px;">${Utils.escapeHTML(tx.invoiceNumber || '-')}</td>
                             </tr>
                         `).join('')}
                     </tbody>
                 </table>
-                <p style="margin-top: 30px; color: #6b7280; font-size: 12px;">تاريخ الإنشاء: ${new Date().toLocaleDateString('ar-SA')}</p>
+                <p style="margin-top: 30px; color: #6b7280; font-size: 12px;">${t('pdfCreatedAt')} ${new Date().toLocaleDateString(lang === 'en' ? 'en-US' : 'ar-SA')}</p>
             </div>
         `;
 
         const formCode = `BUDGET-REPORT-${currentYear}`;
         const htmlContent = typeof FormHeader !== 'undefined' && FormHeader.generatePDFHTML
-            ? FormHeader.generatePDFHTML(formCode, 'تقرير ميزانية السلامة وتتبع الإنفاق', content, false, true, { version: '1.0' }, new Date().toISOString(), new Date().toISOString())
+            ? FormHeader.generatePDFHTML(formCode, t('pdfReportTitle'), content, false, true, { version: '1.0' }, new Date().toISOString(), new Date().toISOString())
             : `<html><body>${content}</body></html>`;
 
         const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
@@ -1618,13 +1820,11 @@ const SafetyBudget = {
             printWindow.onload = () => {
                 setTimeout(() => {
                     printWindow.print();
-                    setTimeout(() => {
-                        URL.revokeObjectURL(url);
-                    }, 1000);
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
                 }, 500);
             };
         } else {
-            Notification.error('يرجى السماح للنوافذ المنبثقة لعرض التقرير');
+            Notification.error(t('popupBlocked'));
         }
     },
 

@@ -1,12 +1,92 @@
-﻿/**
+/**
  * Risk Matrix Component - Compact & Professional
  * مصفوفة تقييم المخاطر - مدمجة واحترافية
  */
 const RiskMatrix = {
+    getCurrentLanguage() {
+        try {
+            return localStorage.getItem('language') || (typeof AppState !== 'undefined' && AppState.currentLanguage) || 'ar';
+        } catch (e) {
+            return 'ar';
+        }
+    },
+
+    getTranslations() {
+        const lang = this.getCurrentLanguage();
+        const translations = {
+            ar: {
+                'header.likelihood': 'الاحتمالية',
+                'level.low': 'منخفض',
+                'level.medium': 'متوسط',
+                'level.high': 'عالي',
+                'level.critical': 'حرج',
+                'legend.low': 'منخفض (1-4)',
+                'legend.medium': 'متوسط (5-9)',
+                'legend.high': 'عالي (10-14)',
+                'legend.critical': 'حرج (15-25)',
+                'notify.selected': 'تم تحديد مستوى الخطر: {level} ({score})',
+                'ptw.title': '📊 تقييم المخاطر المحدد:',
+                'ptw.likelihood': 'الاحتمالية',
+                'ptw.consequence': 'العواقب',
+                'ptw.score': 'النتيجة',
+                'ptw.level': 'مستوى الخطر',
+                'ptw.extraNotes': 'ملاحظات إضافية:',
+                'inv.title': '📊 نتائج تقييم المخاطر للحادث:',
+                'inv.likelihood': 'الاحتمالية (Likelihood)',
+                'inv.consequence': 'الشدة/العواقب (Consequence)',
+                'inv.totalScore': 'الدرجة الكلية للمخاطر',
+                'inv.level': 'مستوى الخطر المحدد',
+                'inv.interpretation': 'التفسير والتوصيات:',
+                'inv.notes': 'ملاحظات إضافية من المحقق:',
+                'exp.low': 'هذا الحادث يُصنف ضمن المخاطر المنخفضة ({score} نقاط)، حيث أن احتمالية حدوثه {likelihood} والعواقب المحتملة {consequence}. يُنصح بمراقبة الوضع واتخاذ إجراءات وقائية بسيطة لتجنب تكرار الحادث.',
+                'exp.medium': 'هذا الحادث يُصنف ضمن المخاطر المتوسطة ({score} نقاط)، مما يعني أن احتمالية حدوثه {likelihood} والعواقب المحتملة {consequence}. يتطلب الأمر اتخاذ إجراءات تصحيحية واضحة ومتابعة دورية لضمان عدم تكرار الحادث أو تطوره إلى خطر أعلى.',
+                'exp.high': 'هذا الحادث يُصنف ضمن المخاطر العالية ({score} نقاط)، حيث أن احتمالية حدوثه {likelihood} والعواقب المحتملة {consequence}. يتطلب اتخاذ إجراءات عاجلة وشاملة، مع ضرورة تخصيص موارد كافية ومتابعة مكثفة من الإدارة العليا لمنع تكرار الحادث.',
+                'exp.critical': 'هذا الحادث يُصنف ضمن المخاطر الحرجة ({score} نقاط)، وهو أعلى مستوى خطورة! احتمالية حدوثه {likelihood} والعواقب {consequence}. يتطلب تدخلاً فورياً وإيقاف أي أنشطة مشابهة حتى يتم معالجة جميع الأسباب الجذرية. يجب رفع التقرير للإدارة العليا فوراً مع خطة عمل شاملة.',
+                'exp.default': 'يرجى مراجعة تقييم المخاطر واتخاذ الإجراءات المناسبة.'
+            },
+            en: {
+                'header.likelihood': 'Likelihood',
+                'level.low': 'Low',
+                'level.medium': 'Medium',
+                'level.high': 'High',
+                'level.critical': 'Critical',
+                'legend.low': 'Low (1-4)',
+                'legend.medium': 'Medium (5-9)',
+                'legend.high': 'High (10-14)',
+                'legend.critical': 'Critical (15-25)',
+                'notify.selected': 'Risk level selected: {level} ({score})',
+                'ptw.title': '📊 Selected Risk Assessment:',
+                'ptw.likelihood': 'Likelihood',
+                'ptw.consequence': 'Consequence',
+                'ptw.score': 'Score',
+                'ptw.level': 'Risk Level',
+                'ptw.extraNotes': 'Additional notes:',
+                'inv.title': '📊 Incident Risk Assessment Results:',
+                'inv.likelihood': 'Likelihood',
+                'inv.consequence': 'Consequence',
+                'inv.totalScore': 'Total Risk Score',
+                'inv.level': 'Selected Risk Level',
+                'inv.interpretation': 'Interpretation & recommendations:',
+                'inv.notes': 'Additional investigator notes:',
+                'exp.low': 'This incident is classified as low risk ({score} points). Likelihood is {likelihood} and expected consequence is {consequence}. Monitor the situation and apply simple preventive controls to avoid recurrence.',
+                'exp.medium': 'This incident is classified as medium risk ({score} points). Likelihood is {likelihood} and expected consequence is {consequence}. Clear corrective actions and periodic follow-up are required to prevent recurrence or escalation.',
+                'exp.high': 'This incident is classified as high risk ({score} points). Likelihood is {likelihood} and expected consequence is {consequence}. Immediate and comprehensive actions are required with strong management follow-up.',
+                'exp.critical': 'This incident is classified as critical risk ({score} points), the highest severity level. Likelihood is {likelihood} and consequence is {consequence}. Immediate intervention is required and similar activities should be stopped until root causes are addressed.',
+                'exp.default': 'Please review the risk assessment and apply appropriate actions.'
+            }
+        };
+
+        return {
+            lang,
+            t: (key) => (translations[lang] && translations[lang][key]) ? translations[lang][key] : key
+        };
+    },
+
     /**
      * توليد مصفوفة تقييم المخاطر
      */
     generate(containerId, options = {}) {
+        const { t, lang } = this.getTranslations();
         const {
             selectedLikelihood = null,
             selectedConsequence = null,
@@ -15,28 +95,28 @@ const RiskMatrix = {
 
         // مستويات مدمجة
         const likelihood = [
-            { value: 5, label: 'شبه مؤكد' },
-            { value: 4, label: 'محتمل جداً' },
-            { value: 3, label: 'محتمل' },
-            { value: 2, label: 'غير محتمل' },
-            { value: 1, label: 'نادر' }
+            { value: 5, ar: 'شبه مؤكد', en: 'Almost Certain' },
+            { value: 4, ar: 'محتمل جداً', en: 'Very Likely' },
+            { value: 3, ar: 'محتمل', en: 'Likely' },
+            { value: 2, ar: 'غير محتمل', en: 'Unlikely' },
+            { value: 1, ar: 'نادر', en: 'Rare' }
         ];
 
         const consequence = [
-            { value: 1, label: 'ضئيلة' },
-            { value: 2, label: 'بسيطة' },
-            { value: 3, label: 'متوسطة' },
-            { value: 4, label: 'كبيرة' },
-            { value: 5, label: 'كارثية' }
+            { value: 1, ar: 'ضئيلة', en: 'Negligible' },
+            { value: 2, ar: 'بسيطة', en: 'Minor' },
+            { value: 3, ar: 'متوسطة', en: 'Moderate' },
+            { value: 4, ar: 'كبيرة', en: 'Major' },
+            { value: 5, ar: 'كارثية', en: 'Catastrophic' }
         ];
 
         // حساب مستوى الخطر
         const getRiskLevel = (l, c) => {
             const score = l * c;
-            if (score >= 15) return { level: 'critical', label: 'حرج', color: '#fff', bg: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)', border: '#991b1b' };
-            if (score >= 10) return { level: 'high', label: 'عالي', color: '#fff', bg: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', border: '#ea580c' };
-            if (score >= 5) return { level: 'medium', label: 'متوسط', color: '#000', bg: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)', border: '#f59e0b' };
-            return { level: 'low', label: 'منخفض', color: '#fff', bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', border: '#059669' };
+            if (score >= 15) return { level: 'critical', label: t('level.critical'), color: '#fff', bg: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)', border: '#991b1b' };
+            if (score >= 10) return { level: 'high', label: t('level.high'), color: '#fff', bg: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', border: '#ea580c' };
+            if (score >= 5) return { level: 'medium', label: t('level.medium'), color: '#000', bg: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)', border: '#f59e0b' };
+            return { level: 'low', label: t('level.low'), color: '#fff', bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', border: '#059669' };
         };
 
         // HTML مدمج واحترافي
@@ -140,12 +220,12 @@ const RiskMatrix = {
                     <thead>
                         <tr>
                             <th class="corner">
-                                <div style="font-size: 0.65rem;">الاحتمالية</div>
+                                <div style="font-size: 0.65rem;">${t('header.likelihood')}</div>
                                 <div style="font-size: 0.55rem; opacity: 0.8;">↓</div>
                             </th>
                             ${consequence.map(c => `
                                 <th>
-                                    <div>${c.label}</div>
+                                    <div>${lang === 'en' ? c.en : c.ar}</div>
                                     <div style="font-size: 0.85rem; margin-top: 1px;">${c.value}</div>
                                 </th>
                             `).join('')}
@@ -155,7 +235,7 @@ const RiskMatrix = {
                         ${likelihood.map(l => `
                             <tr>
                                 <td class="label">
-                                    <div>${l.label}</div>
+                                    <div>${lang === 'en' ? l.en : l.ar}</div>
                                     <div style="font-size: 0.85rem; margin-top: 1px;">${l.value}</div>
                                 </td>
                                 ${consequence.map(c => {
@@ -166,9 +246,9 @@ const RiskMatrix = {
             return `
                                         <td class="risk-cell ${isSelected ? 'selected' : ''}"
                                             data-likelihood="${l.value}"
-                                            data-likelihood-label="${l.label}"
+                                            data-likelihood-label="${lang === 'en' ? l.en : l.ar}"
                                             data-consequence="${c.value}"
-                                            data-consequence-label="${c.label}"
+                                            data-consequence-label="${lang === 'en' ? c.en : c.ar}"
                                             data-score="${score}"
                                             data-level="${risk.level}"
                                             data-level-label="${risk.label}"
@@ -187,19 +267,19 @@ const RiskMatrix = {
                 <div class="risk-legend">
                     <div class="risk-legend-item">
                         <div class="risk-legend-color" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"></div>
-                        <span style="color: #059669; font-weight: 700;">منخفض (1-4)</span>
+                        <span style="color: #059669; font-weight: 700;">${t('legend.low')}</span>
                     </div>
                     <div class="risk-legend-item">
                         <div class="risk-legend-color" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);"></div>
-                        <span style="color: #d97706; font-weight: 700;">متوسط (5-9)</span>
+                        <span style="color: #d97706; font-weight: 700;">${t('legend.medium')}</span>
                     </div>
                     <div class="risk-legend-item">
                         <div class="risk-legend-color" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);"></div>
-                        <span style="color: #ea580c; font-weight: 700;">عالي (10-14)</span>
+                        <span style="color: #ea580c; font-weight: 700;">${t('legend.high')}</span>
                     </div>
                     <div class="risk-legend-item">
                         <div class="risk-legend-color" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);"></div>
-                        <span style="color: #dc2626; font-weight: 700;">حرج (15-25)</span>
+                        <span style="color: #dc2626; font-weight: 700;">${t('legend.critical')}</span>
                     </div>
                 </div>
             </div>
@@ -210,6 +290,7 @@ const RiskMatrix = {
      * معالجة اختيار خلية - مع تحديث تلقائي للملاحظات
      */
     selectCell(cell, containerId) {
+        const { t } = this.getTranslations();
         const container = document.getElementById(containerId);
         if (!container) return;
 
@@ -245,15 +326,15 @@ const RiskMatrix = {
             // تحديث حقل الملاحظات تلقائياً
             const notesTextarea = document.getElementById('ptw-risk-notes');
             if (notesTextarea) {
-                const riskInfo = `📊 تقييم المخاطر المحدد:
+                const riskInfo = `${t('ptw.title')}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-• الاحتمالية: ${likelihoodLabel} (${likelihood})
-• العواقب: ${consequenceLabel} (${consequence})
-• النتيجة: ${score}
-• مستوى الخطر: ${levelLabel}
+• ${t('ptw.likelihood')}: ${likelihoodLabel} (${likelihood})
+• ${t('ptw.consequence')}: ${consequenceLabel} (${consequence})
+• ${t('ptw.score')}: ${score}
+• ${t('ptw.level')}: ${levelLabel}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-ملاحظات إضافية:
+${t('ptw.extraNotes')}
 `;
 
                 // إذا كان الحقل فارغاً أو يحتوي على تقييم سابق، استبدله
@@ -308,18 +389,18 @@ const RiskMatrix = {
             // تحديث حقل "شرح الخطر" تلقائياً
             const explanationTextarea = document.getElementById('investigation-risk-explanation');
             if (explanationTextarea) {
-                const riskExplanation = `📊 نتائج تقييم المخاطر للحادث:
+                const riskExplanation = `${t('inv.title')}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-• الاحتمالية (Likelihood): ${likelihoodLabel} - المستوى ${likelihood}/5
-• الشدة/العواقب (Consequence): ${consequenceLabel} - المستوى ${consequence}/5
-• الدرجة الكلية للمخاطر: ${score} نقطة
-• مستوى الخطر المحدد: ${levelLabel}
+• ${t('inv.likelihood')}: ${likelihoodLabel} - ${likelihood}/5
+• ${t('inv.consequence')}: ${consequenceLabel} - ${consequence}/5
+• ${t('inv.totalScore')}: ${score}
+• ${t('inv.level')}: ${levelLabel}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-التفسير والتوصيات:
-${this.getRiskExplanationText(score, levelLabel, likelihoodLabel, consequenceLabel)}
+${t('inv.interpretation')}
+${this.getRiskExplanationText(score, level, likelihoodLabel, consequenceLabel)}
 
-ملاحظات إضافية من المحقق:
+${t('inv.notes')}
 `;
 
                 // إذا كان الحقل فارغاً أو يحتوي على تقييم سابق، استبدله
@@ -361,7 +442,7 @@ ${this.getRiskExplanationText(score, levelLabel, likelihoodLabel, consequenceLab
 
         // إشعار بصري
         if (typeof Notification !== 'undefined' && Notification.success) {
-            Notification.success(`تم تحديد مستوى الخطر: ${levelLabel} (${score})`);
+            Notification.success(t('notify.selected').replace('{level}', levelLabel).replace('{score}', score));
         }
 
         // Log للتطوير
@@ -392,18 +473,19 @@ ${this.getRiskExplanationText(score, levelLabel, likelihoodLabel, consequenceLab
     /**
      * الحصول على نص الشرح بناءً على مستوى الخطر
      */
-    getRiskExplanationText(score, levelLabel, likelihoodLabel, consequenceLabel) {
-        const explanations = {
-            'منخفض': `هذا الحادث يُصنف ضمن المخاطر المنخفضة (${score} نقاط)، حيث أن احتمالية حدوثه ${likelihoodLabel} والعواقب المحتملة ${consequenceLabel}. يُنصح بمراقبة الوضع واتخاذ إجراءات وقائية بسيطة لتجنب تكرار الحادث.`,
-            
-            'متوسط': `هذا الحادث يُصنف ضمن المخاطر المتوسطة (${score} نقاط)، مما يعني أن احتمالية حدوثه ${likelihoodLabel} والعواقب المحتملة ${consequenceLabel}. يتطلب الأمر اتخاذ إجراءات تصحيحية واضحة ومتابعة دورية لضمان عدم تكرار الحادث أو تطوره إلى خطر أعلى.`,
-            
-            'عالي': `هذا الحادث يُصنف ضمن المخاطر العالية (${score} نقاط)، حيث أن احتمالية حدوثه ${likelihoodLabel} والعواقب المحتملة ${consequenceLabel}. يتطلب اتخاذ إجراءات عاجلة وشاملة، مع ضرورة تخصيص موارد كافية ومتابعة مكثفة من الإدارة العليا لمنع تكرار الحادث.`,
-            
-            'حرج': `هذا الحادث يُصنف ضمن المخاطر الحرجة (${score} نقاط)، وهو أعلى مستوى خطورة! احتمالية حدوثه ${likelihoodLabel} والعواقب ${consequenceLabel}. يتطلب تدخلاً فورياً وإيقاف أي أنشطة مشابهة حتى يتم معالجة جميع الأسباب الجذرية. يجب رفع التقرير للإدارة العليا فوراً مع خطة عمل شاملة.`
+    getRiskExplanationText(score, level, likelihoodLabel, consequenceLabel) {
+        const { t } = this.getTranslations();
+        const explanationByLevel = {
+            low: t('exp.low'),
+            medium: t('exp.medium'),
+            high: t('exp.high'),
+            critical: t('exp.critical')
         };
-        
-        return explanations[levelLabel] || 'يرجى مراجعة تقييم المخاطر واتخاذ الإجراءات المناسبة.';
+
+        return (explanationByLevel[level] || t('exp.default'))
+            .replace('{score}', score)
+            .replace('{likelihood}', likelihoodLabel)
+            .replace('{consequence}', consequenceLabel);
     }
 };
 
@@ -432,4 +514,3 @@ ${this.getRiskExplanationText(score, levelLabel, likelihoodLabel, consequenceLab
         }
     }
 })();
-
