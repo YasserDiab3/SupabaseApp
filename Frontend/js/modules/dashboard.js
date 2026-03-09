@@ -5,10 +5,120 @@
 
 // ===== Dashboard Module =====
 const Dashboard = {
+    _languageChangeBound: false,
+
+    getCurrentLanguage() {
+        try {
+            return localStorage.getItem('language') || (typeof AppState !== 'undefined' && AppState.currentLanguage) || 'ar';
+        } catch (e) {
+            return 'ar';
+        }
+    },
+
+    getTranslations() {
+        const lang = this.getCurrentLanguage();
+        const translations = {
+            ar: {
+                title: 'لوحة التحكم',
+                loading: 'جاري التحميل...',
+                errorLoadingData: 'حدث خطأ أثناء تحميل البيانات',
+                retry: 'إعادة المحاولة',
+                reports: 'التقارير',
+                statistics: 'الإحصائيات',
+                recentActivities: 'الأنشطة الحديثة',
+                userTasks: 'مهام المستخدم',
+                totalIncidents: 'إجمالي الحوادث',
+                totalTraining: 'إجمالي التدريبات',
+                totalPTW: 'إجمالي تصاريح العمل',
+                totalViolations: 'إجمالي المخالفات',
+                sickLeave: 'إجازات المرضية',
+                ppeRecords: 'سجلات معدات الوقاية',
+                behaviorMonitoring: 'مراقبة السلوك',
+                clinicVisits: 'زيارات العيادة',
+                refresh: 'تحديث',
+                noData: 'لا توجد بيانات',
+                viewAll: 'عرض الكل',
+                quickActions: 'إجراءات سريعة',
+                systemOverview: 'نظرة عامة على النظام',
+                performanceMetrics: 'مؤشرات الأداء',
+                pendingTasks: 'مهام معلقة',
+                completedTasks: 'مهام مكتملة',
+                overdueTasks: 'مهام متأخرة',
+                highPriority: 'أولوية عالية',
+                mediumPriority: 'أولوية متوسطة',
+                lowPriority: 'أولوية منخفضة',
+                exportReports: 'تصدير التقارير',
+                exportInfo: 'يمكنك تصدير التقارير بصيغة PDF',
+                incidentsReport: 'تقرير الحوادث',
+                incidentsReportDesc: 'تصدير تقرير شامل عن الحوادث',
+                trainingReport: 'تقرير التدريب',
+                trainingReportDesc: 'تصدير تقرير عن برامج التدريب',
+                fullReport: 'تقرير شامل',
+                fullReportDesc: 'تصدير تقرير شامل لجميع البيانات',
+                notLoggedIn: 'لم يتم تسجيل الدخول'
+            },
+            en: {
+                title: 'Dashboard',
+                loading: 'Loading...',
+                errorLoadingData: 'Error loading data',
+                retry: 'Retry',
+                reports: 'Reports',
+                statistics: 'Statistics',
+                recentActivities: 'Recent Activities',
+                userTasks: 'User Tasks',
+                totalIncidents: 'Total Incidents',
+                totalTraining: 'Total Training',
+                totalPTW: 'Total PTW',
+                totalViolations: 'Total Violations',
+                sickLeave: 'Sick Leave',
+                ppeRecords: 'PPE Records',
+                behaviorMonitoring: 'Behavior Monitoring',
+                clinicVisits: 'Clinic Visits',
+                refresh: 'Refresh',
+                noData: 'No Data',
+                viewAll: 'View All',
+                quickActions: 'Quick Actions',
+                systemOverview: 'System Overview',
+                performanceMetrics: 'Performance Metrics',
+                pendingTasks: 'Pending Tasks',
+                completedTasks: 'Completed Tasks',
+                overdueTasks: 'Overdue Tasks',
+                highPriority: 'High Priority',
+                mediumPriority: 'Medium Priority',
+                lowPriority: 'Low Priority',
+                exportReports: 'Export Reports',
+                exportInfo: 'You can export reports in PDF format',
+                incidentsReport: 'Incidents Report',
+                incidentsReportDesc: 'Export comprehensive incidents report',
+                trainingReport: 'Training Report',
+                trainingReportDesc: 'Export training programs report',
+                fullReport: 'Full Report',
+                fullReportDesc: 'Export comprehensive report for all data',
+                notLoggedIn: 'Not logged in'
+            }
+        };
+        return {
+            lang,
+            t: (key) => (translations[lang] && translations[lang][key]) ? translations[lang][key] : key
+        };
+    },
+
     /**
      * تحميل لوحة التحكم
      */
     load() {
+        const { t } = this.getTranslations();
+
+        // Setup language change listener
+        if (!this._languageChangeBound) {
+            this._languageChangeBound = true;
+            document.addEventListener('language-changed', () => {
+                if (document.getElementById('dashboard-section')?.classList.contains('active')) {
+                    this.load();
+                }
+            });
+        }
+
         // تحديث KPIs بشكل متزامن (مطابق للنظام على Google) — تحديث القيم في نفس الـ tick بدون rAF لتفادي وميض الكروت
         this.updateKPIs();
         this.setupReportsStatisticsCardsClickHandlers();
@@ -26,6 +136,7 @@ const Dashboard = {
      * تحميل قسم التقارير في Dashboard - تصميم محسّن وتحديثات غير متزحمة
      */
     async loadReportsWidget() {
+        const { t } = this.getTranslations();
         const container = document.getElementById('dashboard-reports-widget');
         if (!container) return;
 
@@ -69,9 +180,9 @@ const Dashboard = {
                     <div class="card-body">
                         <div class="empty-state">
                             <i class="fas fa-exclamation-triangle text-4xl text-gray-300 mb-4"></i>
-                            <p class="text-gray-500">حدث خطأ أثناء تحميل البيانات</p>
+                            <p class="text-gray-500">${t('errorLoadingData')}</p>
                             <button onclick="Dashboard.loadReportsWidget()" class="btn-primary mt-4">
-                                <i class="fas fa-redo ml-2"></i>إعادة المحاولة
+                                <i class="fas fa-redo ml-2"></i>${t('retry')}
                             </button>
                         </div>
                     </div>
@@ -186,6 +297,7 @@ const Dashboard = {
      * عرض كارت التقارير مع البيانات
      */
     renderReportsWidget(stats, expiringMedications) {
+        const { t } = this.getTranslations();
         const today = new Date();
 
         return `
@@ -199,12 +311,12 @@ const Dashboard = {
                                 <i class="fas fa-chart-line"></i>
                             </div>
                             <div class="title-text">
-                                <h2>التقارير والإحصائيات</h2>
-                                <p>نظرة شاملة على جميع البيانات والإحصائيات في النظام</p>
+                                <h2>${t('reports')}</h2>
+                                <p>${t('systemOverview')}</p>
                             </div>
                         </div>
                         <div class="header-actions">
-                            <button class="btn-icon reports-refresh-btn" id="refresh-reports-btn" title="تحديث البيانات">
+                            <button class="btn-icon reports-refresh-btn" id="refresh-reports-btn" title="${t('refresh')}">
                                 <i class="fas fa-sync-alt"></i>
                             </button>
                         </div>
@@ -218,17 +330,17 @@ const Dashboard = {
                         <div class="section-header-row">
                             <h3>
                                 <i class="fas fa-chart-pie"></i>
-                                <span>الإحصائيات السريعة</span>
+                                <span>${t('statistics')}</span>
                             </h3>
                         </div>
                         <div class="stats-cards-grid" id="reports-stats-grid">
-                            ${this.renderStatCard('violations', stats.violations, 'المخالفات', 'fa-ban', 'yellow', 0)}
-                            ${this.renderStatCard('sickLeave', stats.sickLeave, 'الإجازات المرضية', 'fa-calendar-times', 'blue', 100)}
-                            ${this.renderStatCard('training', stats.training, 'برامج التدريب', 'fa-graduation-cap', 'green', 200)}
-                            ${this.renderStatCard('ppe', stats.ppe, 'مهمات الوقاية', 'fa-hard-hat', 'orange', 300)}
-                            ${this.renderStatCard('behaviorMonitoring', stats.behaviorMonitoring, 'مراقبة السلوكيات', 'fa-user-check', 'purple', 400)}
-                            ${this.renderStatCard('clinicVisits', stats.clinicVisits, 'التردد على العيادة', 'fa-hospital', 'pink', 500)}
-                            ${this.renderStatCard('incidents', stats.incidents, 'الحوادث', 'fa-exclamation-triangle', 'red', 600)}
+                            ${this.renderStatCard('violations', stats.violations, t('totalViolations'), 'fa-ban', 'yellow', 0)}
+                            ${this.renderStatCard('sickLeave', stats.sickLeave, t('sickLeave'), 'fa-calendar-times', 'blue', 100)}
+                            ${this.renderStatCard('training', stats.training, t('totalTraining'), 'fa-graduation-cap', 'green', 200)}
+                            ${this.renderStatCard('ppe', stats.ppe, t('ppeRecords'), 'fa-hard-hat', 'orange', 300)}
+                            ${this.renderStatCard('behaviorMonitoring', stats.behaviorMonitoring, t('behaviorMonitoring'), 'fa-user-check', 'purple', 400)}
+                            ${this.renderStatCard('clinicVisits', stats.clinicVisits, t('clinicVisits'), 'fa-hospital', 'pink', 500)}
+                            ${this.renderStatCard('incidents', stats.incidents, t('totalIncidents'), 'fa-exclamation-triangle', 'red', 600)}
                         </div>
                     </div>
                     
@@ -237,11 +349,11 @@ const Dashboard = {
                         <div class="section-header-row">
                             <h3>
                                 <i class="fas fa-file-export"></i>
-                                <span>تصدير التقارير</span>
+                                <span>${t('exportReports')}</span>
                             </h3>
                             <span class="info-text">
                                 <i class="fas fa-info-circle"></i>
-                                يمكنك تصدير التقارير بصيغة PDF
+                                ${t('exportInfo')}
                             </span>
                         </div>
                         <div class="reports-export-grid">
@@ -250,27 +362,27 @@ const Dashboard = {
                                     <div class="btn-icon-wrapper">
                                         <i class="fas fa-file-pdf"></i>
                                     </div>
-                                    <span class="btn-label">تقرير الحوادث</span>
+                                    <span class="btn-label">${t('incidentsReport')}</span>
                                 </div>
-                                <span class="btn-description">تصدير تقرير شامل عن الحوادث</span>
+                                <span class="btn-description">${t('incidentsReportDesc')}</span>
                             </button>
                             <button class="report-export-btn report-export-btn-training" data-report-type="training">
                                 <div class="btn-content">
                                     <div class="btn-icon-wrapper">
                                         <i class="fas fa-file-pdf"></i>
                                     </div>
-                                    <span class="btn-label">تقرير التدريب</span>
+                                    <span class="btn-label">${t('trainingReport')}</span>
                                 </div>
-                                <span class="btn-description">تصدير تقرير عن برامج التدريب</span>
+                                <span class="btn-description">${t('trainingReportDesc')}</span>
                             </button>
                             <button class="report-export-btn report-export-btn-full" data-report-type="full">
                                 <div class="btn-content">
                                     <div class="btn-icon-wrapper">
                                         <i class="fas fa-file-pdf"></i>
                                     </div>
-                                    <span class="btn-label">تقرير شامل</span>
+                                    <span class="btn-label">${t('fullReport')}</span>
                                 </div>
-                                <span class="btn-description">تصدير تقرير شامل لجميع البيانات</span>
+                                <span class="btn-description">${t('fullReportDesc')}</span>
                             </button>
                         </div>
                     </div>
@@ -2202,6 +2314,7 @@ const Dashboard = {
      * تحميل الأنشطة الأخيرة
      */
     loadRecentActivities() {
+        const { t } = this.getTranslations();
         const container = document.getElementById('recent-activities');
         if (!container) return;
 
@@ -2211,7 +2324,7 @@ const Dashboard = {
                 container.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-exclamation-triangle text-4xl text-yellow-500 mb-4"></i>
-                        <p class="text-yellow-600">جاري تحميل البيانات...</p>
+                        <p class="text-yellow-600">${t('loading')}</p>
                     </div>
                 `;
                 return;
@@ -2238,7 +2351,7 @@ const Dashboard = {
 
                     activities.push({
                         type: 'incident',
-                        title: `تم تسجيل حادث: ${incidentType}`,
+                        title: t('recentActivities'),
                         date: dateObj, // حفظ التاريخ الفعلي للترتيب
                         time: this.getTimeAgo(incidentDate),
                         icon: 'fa-exclamation-triangle',
@@ -2260,7 +2373,7 @@ const Dashboard = {
                 container.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-inbox text-4xl text-gray-300 mb-4"></i>
-                        <p class="text-gray-500">لا توجد أنشطة حديثة</p>
+                        <p class="text-gray-500">${t('noData')}</p>
                     </div>
                 `;
                 return;
@@ -2283,7 +2396,7 @@ const Dashboard = {
                 container.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
-                        <p class="text-red-600">حدث خطأ في تحميل الأنشطة</p>
+                        <p class="text-red-600">${t('errorLoadingData')}</p>
                     </div>
                 `;
             }
@@ -2294,6 +2407,7 @@ const Dashboard = {
      * تحميل مهام المستخدم في لوحة التحكم
      */
     async loadUserTasksWidget() {
+        const { t } = this.getTranslations();
         const container = document.getElementById('user-tasks-widget');
         if (!container) return;
 
@@ -2303,7 +2417,7 @@ const Dashboard = {
             container.innerHTML = `
                 <div class="empty-state">
                     <i class="fas fa-user-slash text-4xl text-gray-300 mb-4"></i>
-                    <p class="text-gray-500">لم يتم تسجيل الدخول</p>
+                    <p class="text-gray-500">${t('notLoggedIn')}</p>
                 </div>
             `;
             return;
@@ -2313,7 +2427,7 @@ const Dashboard = {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-spinner fa-spin text-4xl text-gray-300 mb-4"></i>
-                <p class="text-gray-500">جاري تحميل المهام...</p>
+                <p class="text-gray-500">${t('loading')}</p>
             </div>
         `;
 
@@ -2323,7 +2437,7 @@ const Dashboard = {
                 container.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-exclamation-triangle text-4xl text-yellow-500 mb-4"></i>
-                        <p class="text-yellow-600">جاري تحميل البيانات...</p>
+                        <p class="text-yellow-600">${t('loading')}</p>
                     </div>
                 `;
                 return;
