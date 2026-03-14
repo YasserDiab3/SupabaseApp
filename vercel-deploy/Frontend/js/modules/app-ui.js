@@ -6164,6 +6164,9 @@ window.UI = {
 
         // تهيئة زر اللغة
         this.initLanguageToggle();
+
+        // تهيئة زر طي القائمة الجانبية
+        this.initSidebarCollapse();
     },
 
     /**
@@ -8031,6 +8034,90 @@ window.UI = {
     },
 
     /**
+     * تهيئة زر طي القائمة الجانبية
+     */
+    initSidebarCollapse() {
+        const collapseBtn = document.getElementById('sidebar-collapse-btn');
+        const sidebar = document.querySelector('.sidebar');
+        
+        if (!collapseBtn || !sidebar) {
+            Utils.safeWarn('⚠️ لم يتم العثور على زر طي القائمة أو القائمة الجانبية');
+            return;
+        }
+
+        // التحقق من عدم ربط الزر مسبقاً
+        if (collapseBtn.dataset.collapseBound === 'true') {
+            return;
+        }
+
+        collapseBtn.addEventListener('click', () => {
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            const lang = this.getCurrentLanguage();
+            
+            if (isCollapsed) {
+                // Expand sidebar
+                sidebar.classList.remove('collapsed');
+                collapseBtn.innerHTML = `
+                    <span>${lang === 'ar' ? 'طي القائمة' : 'Collapse Menu'}</span>
+                    <i class="fas fa-chevron-right"></i>
+                `;
+                collapseBtn.setAttribute('aria-label', lang === 'ar' ? 'طي القائمة الجانبية' : 'Collapse sidebar');
+                collapseBtn.setAttribute('title', lang === 'ar' ? 'طي/توسيع القائمة' : 'Collapse/Expand Menu');
+            } else {
+                // Collapse sidebar
+                sidebar.classList.add('collapsed');
+                collapseBtn.innerHTML = `
+                    <span>${lang === 'ar' ? 'توسيع القائمة' : 'Expand Menu'}</span>
+                    <i class="fas fa-chevron-left"></i>
+                `;
+                collapseBtn.setAttribute('aria-label', lang === 'ar' ? 'توسيع القائمة الجانبية' : 'Expand sidebar');
+                collapseBtn.setAttribute('title', lang === 'ar' ? 'طي/توسيع القائمة' : 'Collapse/Expand Menu');
+            }
+
+            // Update app-shell margin
+            this.updateAppShellMargin();
+            
+            // Save collapsed state to localStorage
+            localStorage.setItem('sidebar-collapsed', !isCollapsed);
+        });
+
+        collapseBtn.dataset.collapseBound = 'true';
+
+        // Restore collapsed state from localStorage
+        const isCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+        if (isCollapsed) {
+            sidebar.classList.add('collapsed');
+            const lang = this.getCurrentLanguage();
+            collapseBtn.innerHTML = `
+                <span>${lang === 'ar' ? 'توسيع القائمة' : 'Expand Menu'}</span>
+                <i class="fas fa-chevron-left"></i>
+            `;
+            collapseBtn.setAttribute('aria-label', lang === 'ar' ? 'توسيع القائمة الجانبية' : 'Expand sidebar');
+        }
+    },
+
+    /**
+     * تحديث هامش app-shell بناءً على حالة القائمة
+     */
+    updateAppShellMargin() {
+        const sidebar = document.querySelector('.sidebar');
+        const appShell = document.querySelector('.app-shell');
+        
+        if (!sidebar || !appShell) return;
+
+        const isCollapsed = sidebar.classList.contains('collapsed');
+        const isOpen = sidebar.classList.contains('open');
+        
+        if (isOpen && !isCollapsed) {
+            appShell.style.marginRight = 'var(--sidebar-width)';
+        } else if (isCollapsed) {
+            appShell.style.marginRight = '70px';
+        } else {
+            appShell.style.marginRight = '0';
+        }
+    },
+
+    /**
      * تهيئة زر اللغة
      */
     initLanguageToggle() {
@@ -8238,10 +8325,33 @@ window.UI = {
             }
         `;
 
-        // تحديث نص الزر
+        // تحديث نص زر اللغة
         const langText = document.getElementById('current-lang-text');
         if (langText) {
             langText.textContent = lang === 'ar' ? 'العربية' : 'English';
+        }
+
+        // تحديث نص زر طي القائمة
+        const collapseBtn = document.getElementById('sidebar-collapse-btn');
+        if (collapseBtn) {
+            const sidebar = document.querySelector('.sidebar');
+            const isCollapsed = sidebar && sidebar.classList.contains('collapsed');
+            
+            if (isCollapsed) {
+                collapseBtn.innerHTML = `
+                    <span>${lang === 'ar' ? 'توسيع القائمة' : 'Expand Menu'}</span>
+                    <i class="fas fa-chevron-left"></i>
+                `;
+                collapseBtn.setAttribute('aria-label', lang === 'ar' ? 'توسيع القائمة الجانبية' : 'Expand sidebar');
+                collapseBtn.setAttribute('title', lang === 'ar' ? 'طي/توسيع القائمة' : 'Collapse/Expand Menu');
+            } else {
+                collapseBtn.innerHTML = `
+                    <span>${lang === 'ar' ? 'طي القائمة' : 'Collapse Menu'}</span>
+                    <i class="fas fa-chevron-right"></i>
+                `;
+                collapseBtn.setAttribute('aria-label', lang === 'ar' ? 'طي القائمة الجانبية' : 'Collapse sidebar');
+                collapseBtn.setAttribute('title', lang === 'ar' ? 'طي/توسيع القائمة' : 'Collapse/Expand Menu');
+            }
         }
 
         // مزامنة موضع الهيدر مع حالة السايدبار الحالية بعد تبديل اللغة (RTL/LTR)
